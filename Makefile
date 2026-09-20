@@ -1,0 +1,29 @@
+TARGET := dustline
+BUILD := build
+LIBBUTANO := .tools/butano/butano
+PYTHON := python3
+SOURCES := src
+INCLUDES := include
+DATA :=
+GRAPHICS := graphics
+AUDIO := audio
+AUDIOBACKEND := maxmod
+AUDIOTOOL :=
+DMGAUDIO :=
+DMGAUDIOBACKEND := null
+ROMTITLE := DUSTLINE
+ROMCODE := DUST
+USERFLAGS :=
+USERCXXFLAGS :=
+USERASFLAGS :=
+USERLDFLAGS :=
+USERLIBDIRS :=
+USERLIBS :=
+DEFAULTLIBS :=
+STACKTRACE :=
+USERBUILD :=
+EXTTOOL :=
+ifndef LIBBUTANOABS
+export LIBBUTANOABS := $(realpath $(LIBBUTANO))
+endif
+include $(LIBBUTANOABS)/butano.mak

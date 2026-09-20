@@ -1,0 +1,9 @@
+* text=auto
+*.sh text eol=lf
+Makefile text eol=lf
+*.bmp binary
+*.gba binary
+*.png binary
+*.wav binary
+# Preserve upstream license formatting; do not lint third-party whitespace.
+dist/licenses/*.txt -whitespace

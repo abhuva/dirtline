@@ -1,0 +1,407 @@
+{
+  "rom_sha256": "af82fe0d2aedbcc8d4ccc2a72f39ad0d49aec25ce2f99deeee8381da4ae02ab4",
+  "emulator": "libmGBA (Debian bookworm)",
+  "checks": [
+    {
+      "name": "Boots to title",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 81,
+        "mode": 0,
+        "setup": 1,
+        "x": 470.0,
+        "y": 860.0,
+        "vx": 0.0,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 0,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.04736328125,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Starts driving",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 87,
+        "mode": 1,
+        "setup": 1,
+        "x": 470.3623046875,
+        "y": 860.0,
+        "vx": 0.101806640625,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 4,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.1044921875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Throttle accelerates",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 147,
+        "mode": 1,
+        "setup": 1,
+        "x": 561.43798828125,
+        "y": 860.0,
+        "vx": 2.7353515625,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 64,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.085693359375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Lift preserves but reduces momentum",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 182,
+        "mode": 1,
+        "setup": 1,
+        "x": 636.5087890625,
+        "y": 860.0,
+        "vx": 1.67138671875,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 99,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.098388671875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "B reverses from rest",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 238,
+        "mode": 1,
+        "setup": 1,
+        "x": 441.916748046875,
+        "y": 860.0,
+        "vx": -0.9892578125,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 54,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.080810546875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Steering changes heading and produces lateral slip",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 344,
+        "mode": 1,
+        "setup": 1,
+        "x": 648.316650390625,
+        "y": 804.442138671875,
+        "vx": 0.85400390625,
+        "vy": -1.77294921875,
+        "heading": 289.27783203125,
+        "slip": 0.296142578125,
+        "surface": 0,
+        "lap_frames": 104,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.123046875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Lifting tightens the turn",
+      "passed": true,
+      "details": {
+        "powered": {
+          "magic": 1146442580,
+          "frame": 445,
+          "mode": 1,
+          "setup": 1,
+          "x": 658.448974609375,
+          "y": 833.937744140625,
+          "vx": 2.532470703125,
+          "vy": -1.976318359375,
+          "heading": 316.9072265625,
+          "slip": 0.3759765625,
+          "surface": 1,
+          "lap_frames": 99,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.474853515625,
+          "missed": 0
+        },
+        "coasting": {
+          "magic": 1146442580,
+          "frame": 546,
+          "mode": 1,
+          "setup": 1,
+          "x": 632.759521484375,
+          "y": 843.075927734375,
+          "vx": 1.26416015625,
+          "vy": -1.126708984375,
+          "heading": 311.632568359375,
+          "slip": 0.257080078125,
+          "surface": 1,
+          "lap_frames": 99,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.111572265625,
+          "missed": 0
+        }
+      }
+    },
+    {
+      "name": "Lifting reduces slide",
+      "passed": true,
+      "details": {
+        "powered_slip": 0.3759765625,
+        "coasting_slip": 0.257080078125
+      }
+    },
+    {
+      "name": "Pause freezes car and lap timer",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 642,
+        "mode": 2,
+        "setup": 1,
+        "x": 635.109130859375,
+        "y": 840.768310546875,
+        "vx": 1.146484375,
+        "vy": -1.161376953125,
+        "heading": 308.691650390625,
+        "slip": 0.22314453125,
+        "surface": 1,
+        "lap_frames": 101,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.0478515625,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Preset switch resets run",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 654,
+        "mode": 1,
+        "setup": 2,
+        "x": 470.0,
+        "y": 860.0,
+        "vx": 0.0,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 4,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.103271484375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Preset switch resets run",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 720,
+        "mode": 1,
+        "setup": 0,
+        "x": 470.0,
+        "y": 860.0,
+        "vx": 0.0,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 4,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.103271484375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Preset switch resets run",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 786,
+        "mode": 1,
+        "setup": 1,
+        "x": 470.0,
+        "y": 860.0,
+        "vx": 0.0,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 1,
+        "lap_frames": 4,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.103271484375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Three setups have distinct acceleration",
+      "passed": true,
+      "details": [
+        [
+          2,
+          1.6552734375
+        ],
+        [
+          0,
+          2.25830078125
+        ],
+        [
+          1,
+          2.6640625
+        ]
+      ]
+    },
+    {
+      "name": "Wall collision keeps car inside world",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 1352,
+        "mode": 1,
+        "setup": 1,
+        "x": 938.0,
+        "y": 860.0,
+        "vx": -0.00927734375,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 0,
+        "lap_frames": 504,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 25,
+        "cpu": 0.092529296875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Finish cannot count without ordered gates",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 1352,
+        "mode": 1,
+        "setup": 1,
+        "x": 938.0,
+        "y": 860.0,
+        "vx": -0.00927734375,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 0,
+        "lap_frames": 504,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 25,
+        "cpu": 0.092529296875,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Can drive a full lap with ordered checkpoints",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 2861,
+        "mode": 1,
+        "setup": 1,
+        "x": 456.37060546875,
+        "y": 863.36572265625,
+        "vx": 2.366455078125,
+        "vy": -0.434326171875,
+        "heading": 352.88623046875,
+        "slip": 0.17724609375,
+        "surface": 1,
+        "lap_frames": 1,
+        "best": 1506,
+        "laps": 1,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.493896484375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Course includes working dirt surface",
+      "passed": true,
+      "details": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "name": "Frame budget stays below one refresh",
+      "passed": true,
+      "details": {
+        "max_cpu": 0.546142578125,
+        "missed": 0
+      }
+    }
+  ]
+}
