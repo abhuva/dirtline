@@ -1,0 +1,1395 @@
+{
+  "libraryVersion": 1,
+  "maps": [
+    {
+      "id": "wasteland",
+      "includeInGame": true,
+      "recipe": {
+        "version": 3,
+        "name": "Wasteland",
+        "seed": 12648431,
+        "output": 7,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Scatter walls",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 35,
+            "y": 45
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Shape the canyons",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 270,
+            "y": 45
+          },
+          {
+            "id": 3,
+            "type": "world",
+            "label": "Make it playable",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 505,
+            "y": 45
+          },
+          {
+            "id": 4,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 4,
+            "p": [
+              12,
+              3
+            ],
+            "x": 35,
+            "y": 235
+          },
+          {
+            "id": 5,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              255,
+              3
+            ],
+            "x": 270,
+            "y": 235
+          },
+          {
+            "id": 6,
+            "type": "materials",
+            "label": "Ground materials",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 505,
+            "y": 235
+          },
+          {
+            "id": 7,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              160,
+              3
+            ],
+            "x": 740,
+            "y": 45
+          },
+          {
+            "id": 8,
+            "type": "spawns",
+            "label": "Enemy spawns",
+            "inputs": {},
+            "stream": 8,
+            "p": [
+              258,
+              128,
+              1
+            ],
+            "x": 800,
+            "y": 280
+          },
+          {
+            "id": 9,
+            "type": "decoration",
+            "label": "Decoration",
+            "inputs": {},
+            "stream": 9,
+            "p": [
+              30,
+              40,
+              20,
+              20,
+              20,
+              1
+            ],
+            "x": 800,
+            "y": 490
+          }
+        ],
+        "materialOutput": 6,
+        "spawnOutput": 8,
+        "decorationOutput": 9
+      }
+    },
+    {
+      "id": "two-rules-radial",
+      "includeInGame": true,
+      "recipe": {
+        "version": 1,
+        "name": "Two rules + radial mask",
+        "seed": 12648430,
+        "output": 8,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Random fill",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 40,
+            "y": 45
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              2,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 275,
+            "y": 45
+          },
+          {
+            "id": 3,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [
+              3,
+              496,
+              504,
+              2,
+              8
+            ],
+            "x": 510,
+            "y": 45
+          },
+          {
+            "id": 4,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              32,
+              35,
+              0
+            ],
+            "x": 40,
+            "y": 245
+          },
+          {
+            "id": 5,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              210,
+              0
+            ],
+            "x": 275,
+            "y": 245
+          },
+          {
+            "id": 6,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 3,
+              "b": 5
+            },
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 510,
+            "y": 245
+          },
+          {
+            "id": 7,
+            "type": "largest",
+            "label": "Keep largest floor",
+            "inputs": {
+              "a": 6
+            },
+            "stream": 0,
+            "p": [],
+            "x": 40,
+            "y": 445
+          },
+          {
+            "id": 8,
+            "type": "world",
+            "label": "Playable world",
+            "inputs": {
+              "a": 7
+            },
+            "stream": 0,
+            "p": [],
+            "x": 275,
+            "y": 445
+          }
+        ]
+      }
+    },
+    {
+      "id": "plasma-basin",
+      "includeInGame": true,
+      "recipe": {
+        "version": 1,
+        "name": "Plasma basin",
+        "seed": 12648430,
+        "output": 6,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "plasma",
+            "label": "Plasma",
+            "inputs": {},
+            "stream": 1,
+            "p": [
+              150
+            ],
+            "x": 40,
+            "y": 45
+          },
+          {
+            "id": 2,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              32,
+              30,
+              0
+            ],
+            "x": 275,
+            "y": 45
+          },
+          {
+            "id": 3,
+            "type": "blend",
+            "label": "Blend fields",
+            "inputs": {
+              "a": 1,
+              "b": 2
+            },
+            "stream": 0,
+            "p": [
+              105
+            ],
+            "x": 510,
+            "y": 45
+          },
+          {
+            "id": 4,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              142,
+              0
+            ],
+            "x": 40,
+            "y": 245
+          },
+          {
+            "id": 5,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              2,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 275,
+            "y": 245
+          },
+          {
+            "id": 6,
+            "type": "world",
+            "label": "Playable world",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 510,
+            "y": 245
+          }
+        ]
+      }
+    },
+    {
+      "id": "voronoi-passages",
+      "includeInGame": true,
+      "recipe": {
+        "version": 3,
+        "name": "Voronoi passages",
+        "seed": 12648438,
+        "output": 8,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "voronoi",
+            "label": "Voronoi distance",
+            "inputs": {},
+            "stream": 1,
+            "p": [
+              29,
+              1,
+              20
+            ],
+            "x": 28.344985829772945,
+            "y": 46.382668340454096
+          },
+          {
+            "id": 2,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              17,
+              0
+            ],
+            "x": 419.3017058297729,
+            "y": 27.05657291488647
+          },
+          {
+            "id": 3,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 3,
+            "p": [
+              9,
+              1
+            ],
+            "x": 115.9566954255676,
+            "y": 347.77590457443233
+          },
+          {
+            "id": 4,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              180,
+              1
+            ],
+            "x": 444.5600825106811,
+            "y": 302.97835999999995
+          },
+          {
+            "id": 5,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 2,
+              "b": 4
+            },
+            "stream": 0,
+            "p": [
+              1
+            ],
+            "x": 776.1907316595459,
+            "y": 167.69552000000004
+          },
+          {
+            "id": 6,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [
+              2,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 1084.6300466381836,
+            "y": 165.11871874465945
+          },
+          {
+            "id": 7,
+            "type": "world",
+            "label": "Playable world",
+            "inputs": {
+              "a": 6
+            },
+            "stream": 0,
+            "p": [],
+            "x": 1396.6936141702267,
+            "y": 165.41545417022706
+          },
+          {
+            "id": 8,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 7
+            },
+            "stream": 0,
+            "p": [
+              160,
+              3
+            ],
+            "x": 1679.979277489318,
+            "y": 159.58794708511374
+          },
+          {
+            "id": 9,
+            "type": "decoration",
+            "label": "Decoration",
+            "inputs": {
+              "a": 10
+            },
+            "stream": 9,
+            "p": [
+              30,
+              40,
+              20,
+              20,
+              20,
+              1
+            ],
+            "x": 442.7898,
+            "y": 543.5335212553405
+          },
+          {
+            "id": 10,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 10,
+            "p": [
+              4,
+              3
+            ],
+            "x": 130.34221165954585,
+            "y": 593.0970050213623
+          },
+          {
+            "id": 11,
+            "type": "spawns",
+            "label": "Enemy spawns",
+            "inputs": {},
+            "stream": 11,
+            "p": [
+              60,
+              128,
+              1
+            ],
+            "x": 476.6061366809081,
+            "y": 767.0321587446593
+          }
+        ],
+        "decorationOutput": 9,
+        "spawnOutput": 11
+      }
+    },
+    {
+      "id": "natural-ground",
+      "includeInGame": true,
+      "recipe": {
+        "version": 2,
+        "name": "Natural ground",
+        "seed": 12648430,
+        "output": 3,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Scatter walls",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 40,
+            "y": 80
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Shape the canyons",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 280,
+            "y": 80
+          },
+          {
+            "id": 3,
+            "type": "world",
+            "label": "Make it playable",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 520,
+            "y": 80
+          },
+          {
+            "id": 4,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 4,
+            "p": [
+              12,
+              3
+            ],
+            "x": 40,
+            "y": 280
+          },
+          {
+            "id": 5,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              192,
+              3
+            ],
+            "x": 280,
+            "y": 280,
+            "colors": [
+              "#759bc7",
+              "#63aaa2",
+              "#83ad79",
+              "#a4a766"
+            ]
+          },
+          {
+            "id": 6,
+            "type": "materials",
+            "label": "Ground materials",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 520,
+            "y": 280
+          }
+        ],
+        "materialOutput": 6
+      }
+    },
+    {
+      "id": "town-roads",
+      "includeInGame": true,
+      "recipe": {
+        "version": 2,
+        "name": "Town roads",
+        "seed": 12648430,
+        "output": 7,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Scatter walls",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 40,
+            "y": 80
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Shape the canyons",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 280,
+            "y": 80
+          },
+          {
+            "id": 3,
+            "type": "world",
+            "label": "Make it playable",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 520,
+            "y": 80
+          },
+          {
+            "id": 4,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 4,
+            "p": [
+              12,
+              3
+            ],
+            "x": 40,
+            "y": 280
+          },
+          {
+            "id": 5,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              192,
+              3
+            ],
+            "x": 280,
+            "y": 280,
+            "colors": [
+              "#759bc7",
+              "#63aaa2",
+              "#83ad79",
+              "#a4a766"
+            ]
+          },
+          {
+            "id": 6,
+            "type": "materials",
+            "label": "Ground materials",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 520,
+            "y": 280
+          },
+          {
+            "id": 7,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              160,
+              3
+            ],
+            "x": 760,
+            "y": 45
+          }
+        ],
+        "materialOutput": 6
+      }
+    },
+    {
+      "id": "populated-wasteland",
+      "includeInGame": true,
+      "recipe": {
+        "version": 3,
+        "name": "Populated wasteland",
+        "seed": 12648435,
+        "output": 7,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Scatter walls",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 0,
+            "y": 51.088510252978104
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Shape the canyons",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 238.91510782265442,
+            "y": 43.48014098987679
+          },
+          {
+            "id": 3,
+            "type": "world",
+            "label": "Make it playable",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 564.0882634050452,
+            "y": 41.084892177345594
+          },
+          {
+            "id": 4,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 4,
+            "p": [
+              12,
+              3
+            ],
+            "x": 74.69977757389745,
+            "y": 261.34328504697737
+          },
+          {
+            "id": 5,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              192,
+              3
+            ],
+            "x": 439.0828708861333,
+            "y": 244.0334589945435,
+            "colors": [
+              "#759bc7",
+              "#63aaa2",
+              "#83ad79",
+              "#a4a766"
+            ]
+          },
+          {
+            "id": 6,
+            "type": "materials",
+            "label": "Ground materials",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 880.7441907216678,
+            "y": 238.59457737166122
+          },
+          {
+            "id": 7,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              160,
+              3
+            ],
+            "x": 889.377485167394,
+            "y": 53.258178514053334
+          },
+          {
+            "id": 8,
+            "type": "spawns",
+            "label": "Enemy spawns",
+            "inputs": {},
+            "stream": 8,
+            "p": [
+              258,
+              128,
+              1
+            ],
+            "x": 908.7260746549997,
+            "y": 427.5245591951428
+          },
+          {
+            "id": 9,
+            "type": "decoration",
+            "label": "Decoration",
+            "inputs": {
+              "a": 10
+            },
+            "stream": 9,
+            "p": [
+              30,
+              40,
+              20,
+              20,
+              20,
+              1
+            ],
+            "x": 929.4082819346978,
+            "y": 628.8036976733792
+          },
+          {
+            "id": 10,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 10,
+            "p": [
+              10,
+              2
+            ],
+            "x": 428.0162469436717,
+            "y": 594.8164278861125
+          }
+        ],
+        "materialOutput": 6,
+        "spawnOutput": 8,
+        "decorationOutput": 9
+      }
+    },
+    {
+      "id": "twin-cities",
+      "includeInGame": true,
+      "recipe": {
+        "version": 3,
+        "name": "Twin Cities",
+        "seed": 12648430,
+        "output": 30,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "random",
+            "label": "Scatter walls",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              47,
+              2
+            ],
+            "x": 35,
+            "y": 45
+          },
+          {
+            "id": 2,
+            "type": "cellular",
+            "label": "Shape the canyons",
+            "inputs": {
+              "a": 1
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 270,
+            "y": 45
+          },
+          {
+            "id": 3,
+            "type": "world",
+            "label": "Make it playable",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 505,
+            "y": 45
+          },
+          {
+            "id": 4,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 4,
+            "p": [
+              12,
+              3
+            ],
+            "x": 35,
+            "y": 235
+          },
+          {
+            "id": 5,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 4
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              192,
+              3
+            ],
+            "x": 270,
+            "y": 235,
+            "colors": [
+              "#759bc7",
+              "#63aaa2",
+              "#83ad79",
+              "#a4a766"
+            ]
+          },
+          {
+            "id": 6,
+            "type": "materials",
+            "label": "Ground materials",
+            "inputs": {
+              "a": 5
+            },
+            "stream": 0,
+            "p": [],
+            "x": 505,
+            "y": 235
+          },
+          {
+            "id": 7,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 3
+            },
+            "stream": 0,
+            "p": [
+              160,
+              3
+            ],
+            "x": 740,
+            "y": 45
+          },
+          {
+            "id": 8,
+            "type": "spawns",
+            "label": "Enemy spawns",
+            "inputs": {},
+            "stream": 8,
+            "p": [
+              258,
+              128,
+              1
+            ],
+            "x": 35,
+            "y": 425
+          },
+          {
+            "id": 9,
+            "type": "decoration",
+            "label": "Decoration",
+            "inputs": {
+              "a": 10
+            },
+            "stream": 9,
+            "p": [
+              30,
+              40,
+              20,
+              20,
+              20,
+              1
+            ],
+            "x": 270,
+            "y": 425
+          },
+          {
+            "id": 10,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 10,
+            "p": [
+              10,
+              2
+            ],
+            "x": 35,
+            "y": 615
+          },
+          {
+            "id": 11,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              12,
+              11,
+              30,
+              0
+            ],
+            "x": 578.1886156295506,
+            "y": 766.08719534322
+          },
+          {
+            "id": 12,
+            "type": "random",
+            "label": "Random fill",
+            "inputs": {},
+            "stream": 12,
+            "p": [
+              56,
+              1
+            ],
+            "x": 1501.136501084599,
+            "y": 506.2414731337307
+          },
+          {
+            "id": 14,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 11
+            },
+            "stream": 0,
+            "p": [
+              128,
+              0
+            ],
+            "x": 857.4586548693105,
+            "y": 729.474071612216
+          },
+          {
+            "id": 15,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              63,
+              49,
+              48,
+              0
+            ],
+            "x": 576.3415334064034,
+            "y": 991.099518115965
+          },
+          {
+            "id": 16,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 15
+            },
+            "stream": 0,
+            "p": [
+              128,
+              0
+            ],
+            "x": 853.3493862244122,
+            "y": 958.3997786920556
+          },
+          {
+            "id": 17,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 14,
+              "b": 16
+            },
+            "stream": 0,
+            "p": [
+              1
+            ],
+            "x": 1181.2417739198681,
+            "y": 785.8864371516016
+          },
+          {
+            "id": 18,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 12,
+              "b": 17
+            },
+            "stream": 0,
+            "p": [
+              1
+            ],
+            "x": 1931.0031877063204,
+            "y": 627.416897877884
+          },
+          {
+            "id": 19,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 20
+            },
+            "stream": 0,
+            "p": [
+              5,
+              480,
+              496,
+              2,
+              8
+            ],
+            "x": 2470.4504103885884,
+            "y": 592.4090728172115
+          },
+          {
+            "id": 20,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 18
+            },
+            "stream": 0,
+            "p": [],
+            "x": 2222.9937612173053,
+            "y": 552.6696861567254
+          },
+          {
+            "id": 21,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 22,
+              "mask": 27
+            },
+            "stream": 0,
+            "p": [
+              12,
+              48,
+              120,
+              2,
+              8
+            ],
+            "x": 2186.9986413924894,
+            "y": 887.4327566625745
+          },
+          {
+            "id": 22,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 24,
+              "b": 17
+            },
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 1691.5248317120393,
+            "y": 1226.571914849264
+          },
+          {
+            "id": 23,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 21
+            },
+            "stream": 0,
+            "p": [],
+            "x": 2485.299328054941,
+            "y": 955.0786250285138
+          },
+          {
+            "id": 24,
+            "type": "random",
+            "label": "Random fill",
+            "inputs": {},
+            "stream": 24,
+            "p": [
+              42,
+              2
+            ],
+            "x": 1172.6233459070968,
+            "y": 1171.743384937775
+          },
+          {
+            "id": 25,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 19,
+              "b": 28
+            },
+            "stream": 0,
+            "p": [
+              1
+            ],
+            "x": 2846.7850201496794,
+            "y": 733.9175525277137
+          },
+          {
+            "id": 27,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 17
+            },
+            "stream": 0,
+            "p": [],
+            "x": 1770.1458865716172,
+            "y": 892.4852005744426
+          },
+          {
+            "id": 28,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 23,
+              "b": 17
+            },
+            "stream": 0,
+            "p": [
+              3
+            ],
+            "x": 2782.6129739109188,
+            "y": 1102.586124042504
+          },
+          {
+            "id": 29,
+            "type": "world",
+            "label": "Playable world",
+            "inputs": {
+              "a": 25
+            },
+            "stream": 0,
+            "p": [],
+            "x": 3271.0430983552133,
+            "y": 715.7030051544491
+          },
+          {
+            "id": 30,
+            "type": "roads",
+            "label": "Town roads",
+            "inputs": {
+              "a": 29
+            },
+            "stream": 0,
+            "p": [
+              62,
+              3
+            ],
+            "x": 3652.705381327095,
+            "y": 709.8311298967185
+          }
+        ],
+        "materialOutput": 6,
+        "spawnOutput": 8,
+        "decorationOutput": 9
+      }
+    }
+  ]
+}

@@ -17,7 +17,7 @@ def run(t):
         if t.state()['mode']==6:t.tap(t.B)
         if t.state()['mode']==1:t.tap(t.START)
         if t.state()['mode']==2:t.tap(t.SELECT)
-        t.start_map(2)
+        t.start_map(0)
         for _ in range(weapon):t.tap(t.L)
         assert t.weapon_state()['selected']==weapon
     fresh();setup=t.state()['setup']

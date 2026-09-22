@@ -16,7 +16,7 @@ public:
     void invalidate();
     int uploaded_bytes() const { return _uploaded_bytes; }
     int capacity() const { return _capacity; }
-    int unique_tiles() const { return _cache.pinned_count(); }
+    int unique_tiles() const { return _resident_count?_resident_count:_cache.pinned_count(); }
     int working_ram_bytes() const { return sizeof(*this); }
 private:
     struct upload { uint16_t slot, source; };
@@ -28,6 +28,7 @@ private:
     int _pending=0, _uploaded_bytes=0, _left=-1000, _top=-1000;
     bool _visible=false;
     int _capacity;
+    int _resident_count=0;
     bn::regular_bg_tiles_ptr _tiles;
     bn::regular_bg_map_ptr _map;
     bn::regular_bg_ptr _bg;

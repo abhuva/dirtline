@@ -47,11 +47,20 @@ void World::clear_bullets() {
     for(auto& t:traps)t=Trap();
     saw_active=false;
 }
+void World::refill_player() {
+    player_hp=player_max_hp;player_shield=player_max_shield;
+    player_shield_delay=0;player_invulnerability=0;player_destroyed=false;
+}
+void World::revive_player() {
+    refill_player();
+    player_invulnerability=revive_invulnerability;
+    clear_bullets();
+}
 void World::cycle_weapon() { if(_enabled)weapon=Weapon((int(weapon)+1)%weapon_count); }
 void World::reset(const driving::Car& player,bool enabled,cave_layout::progress_fn progress) {
     _enabled=enabled; _cooldowns.fill(0); ticks=0;weapon=Weapon::gun;
     weapon_shots.fill(0);weapon_hits.fill(0);guidance_updates=trap_explosions=0;
-    player_hp=player_max_hp; player_hits=player_shots=enemy_shots=hits=kills=wall_hits=expired=0;
+    refill_player(); player_hits=player_shots=enemy_shots=hits=kills=wall_hits=expired=0;
     bumps=player_bumps=0; last_pair=-1; last_bump=0; _contact_cooldowns.fill(0);
     clear_bullets(); fired=impact=destroyed=false;
     spawned=despawned=0; spawns.count=0;
@@ -77,8 +86,9 @@ void World::stream(const driving::Car& player,bool initial) {
         if(p.slot>=0 || ticks<p.ready_at) continue;
         int dx=int(p.x)-player.x.integer(),dy=int(p.y)-player.y.integer();
         if(abs(dx)>spawn_range || abs(dy)>spawn_range) continue;
-        // Includes camera look-ahead and sprite extent. Never pop into view.
-        if(!initial && abs(dx)<192 && abs(dy)<144) continue;
+        // Includes the maximum velocity camera lead and sprite extent. Never
+        // instantiate a streamed enemy inside the visible approach area.
+        if(!initial && abs(dx)<224 && abs(dy)<152) continue;
         int distance=dx*dx+dy*dy;
         if(distance>=best) continue;
         bool free=true;
@@ -192,6 +202,14 @@ void World::damage(Enemy& e,int amount,Weapon source) {
         p.slot=-1;p.ready_at=ticks+spawn_cooldown;
     }
 }
+void World::damage_player(int amount) {
+    if(player_destroyed || player_invulnerability)return;
+    ++player_hits;impact=true;player_shield_delay=shield_recharge_delay;
+    const int shield_damage=bn::min(player_shield,amount);
+    player_shield-=shield_damage;amount-=shield_damage;
+    player_hp=bn::max(0,player_hp-amount);
+    if(!player_hp)player_destroyed=true;
+}
 void World::explode(int x,int y,int radius,int amount,Weapon source) {
     for(auto& e:enemies)if(e.hp>0 && close(x,y,e.car,radius) &&
         line_clear(x,y,e.car.x.integer(),e.car.y.integer()))damage(e,amount,source);
@@ -289,7 +307,7 @@ bool World::hit_at(Bullet& b,const driving::Car& player) {
     int x=b.x.integer(),y=b.y.integer();
     if(solid(x,y)) { ++wall_hits; return true; }
     if(b.hostile) {
-        if(close(x,y,player,10)) { ++player_hits; impact=true; return true; }
+        if(close(x,y,player,10)) { damage_player(1); return true; }
     } else for(auto& e:enemies) if(e.hp>0 && close(x,y,e.car,11)) {
         damage(e,1,b.side?Weapon::sides:Weapon::gun);
         return true;
@@ -301,6 +319,9 @@ void World::step(driving::Car& player,bool fire) {
     fired=impact=destroyed=false;
     if(!_enabled) return;
     ++ticks;
+    if(player_invulnerability)--player_invulnerability;
+    if(player_shield_delay)--player_shield_delay;
+    else if(player_shield<player_max_shield && ticks%shield_recharge_interval==0)++player_shield;
     if(ticks%8==0) stream(player);
     for(auto& cooldown:_cooldowns)if(cooldown)--cooldown;
     for(int i=0;i<enemy_count;++i) {

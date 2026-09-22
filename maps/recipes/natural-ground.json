@@ -62,19 +62,20 @@
     },
     {
       "id": 5,
-      "type": "material_bands",
-      "label": "Field to materials",
+      "type": "field_lut",
+      "label": "Stepped LUT",
       "inputs": {
         "a": 4
       },
       "stream": 0,
       "p": [
-        96,
-        144,
-        192,
+        3,
         0,
+        96,
         1,
+        144,
         2,
+        192,
         3
       ],
       "x": 280,

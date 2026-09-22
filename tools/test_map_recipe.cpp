@@ -81,19 +81,20 @@ int main() {
     }
     // IDs are categorical bytes: painting preserves untouched IDs, including 255.
     node ground_nodes[]={
-        {op::material_fill,-1,-1,-1,0,{255}},
+        {op::field_fill,-1,-1,-1,0,{255}},
         {op::random,-1,-1,-1,0,{0,2}},
-        {op::material_paint,0,-1,1,0,{3}},
+        {op::field_paint,0,-1,1,0,{3}},
         {op::materials,2,-1,-1,0,{}}
     };
     result=execute(ground_nodes,4,42,work);assert(result.status==error::ok && result.type==kind::material);
     assert(result.data[0]==3 && result.data[32*64+32]==255);
     ground_nodes[0].p[0]=256;assert(validate(ground_nodes,4)==error::parameter);ground_nodes[0].p[0]=255;
     ground_nodes[2].mask=-1;assert(validate(ground_nodes,4)==error::input);
-    node bands[]={ {op::radial,-1,-1,-1,0,{32,32,30,0}}, {op::material_bands,0,-1,-1,0,{64,128,192,0,3,127,255}} };
+    node bands[]={ {op::radial,-1,-1,-1,0,{32,32,30,0}}, {op::field_lut,0,-1,-1,0,{}} };
+    auto lut=reinterpret_cast<uint8_t*>(bands[1].p);
+    for(int value=0;value<256;++value)lut[value]=uint8_t(value<64?0:value<128?3:value<192?127:255);
     result=execute(bands,2,42,work);assert(result.status==error::ok);
     assert(result.data[32*64+32]==0 && result.data[0]==255);
-    bands[1].p[0]=200;assert(validate(bands,2)==error::parameter);
     // Refactored selection retains the original game's art reference at every tile.
     legacy.generate(0xC0FFEE,scratch);
     for(int y=0;y<1024;++y)for(int x=0;x<1024;++x){

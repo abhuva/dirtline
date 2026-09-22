@@ -5,13 +5,15 @@
 // Scene data stays in ROM; only nearby chunk IDs are decoded into fixed RAM.
 // Physics queries surfaces without knowing the renderer.
 namespace world_map {
-void select(int index,uint32_t seed=0,void(*progress)(int)=nullptr);
+void select(int index,void(*progress)(int)=nullptr);
 int index();
 int width();
 int height();
 int start_x();
 int start_y();
 int tile_slots();
+// Nonzero when the complete tile vocabulary fits in the reserved VRAM.
+int resident_tile_count();
 int chunk_loads();
 int chunk_decodes();
 int chunk_cache_bytes();

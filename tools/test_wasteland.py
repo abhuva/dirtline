@@ -8,22 +8,27 @@ from collections import deque
 
 class Reference:
     def __init__(self,api,seed):
-        from compile_recipe import compile_recipe
-        self.recipe=json.loads((api.OUT/'wasteland/active-recipe.json').read_text())
+        from compile_recipe import PARAM_WORDS,compile_recipe
+        node_format=f'<{5+PARAM_WORDS}I'
+        pack_program=lambda nodes:b''.join(
+            struct.pack(node_format,*(value&0xffffffff for value in node)) for node in nodes)
+        library=json.loads((api.OUT/'wasteland/active-map-library.json').read_text())
+        maps=[entry for entry in library['maps'] if entry['includeInGame']]
+        self.recipe=maps[api.state()['map']]['recipe']
         world=compile_recipe(self.recipe)
         folder=api.ROOT/'build';program=folder/'active-world.program';material=folder/'active-ground.program'
-        program.write_bytes(b''.join(struct.pack('<13I',*(v&0xffffffff for v in n)) for n in world))
+        program.write_bytes(pack_program(world))
         material_arg='-'
         if self.recipe.get('materialOutput') is not None:
             ground=compile_recipe(self.recipe,self.recipe['materialOutput'])
-            material.write_bytes(b''.join(struct.pack('<13I',*(v&0xffffffff for v in n)) for n in ground));material_arg=str(material)
+            material.write_bytes(pack_program(ground));material_arg=str(material)
         path=api.OUT/'wasteland'/f'active-seed-{seed}.bin'
         placements=[]
         for key in ('spawnOutput','decorationOutput'):
             arg='-'
             if self.recipe.get(key) is not None:
                 branch=compile_recipe(self.recipe,self.recipe[key]);file=folder/(key+'.program')
-                file.write_bytes(b''.join(struct.pack('<13I',*(v&0xffffffff for v in n)) for n in branch));arg=str(file)
+                file.write_bytes(pack_program(branch));arg=str(file)
             placements.append(arg)
         subprocess.run([str(folder/'map_recipe_bridge'),str(program),str(seed),str(path),material_arg,*placements],check=True)
         data=path.read_bytes();meta=struct.unpack_from('<20I',data)
@@ -31,7 +36,7 @@ class Reference:
         self.columns=64;self.extent=8192;self.seed=seed;self.cells=data[80:4176]
         self.towns=[struct.unpack_from('<2I',data,32+i*8) for i in range(6)]
         self.render_refs=struct.unpack_from('<1048576H',data,8272)
-        self.layout_bytes=4168+(4096 if material_arg!='-' else 0)+(4104 if world[-1][0]==17 else 0)
+        self.layout_bytes=4168+(4096 if material_arg!='-' else 0)+(4104 if world[-1][0]==16 else 0)
         self.layout_bytes+=(1036 if placements[0]!='-' else 0)+(4120 if placements[1]!='-' else 0)
         offset=8272+1048576*2+4
         self.decoration=data[offset:offset+1048576]
@@ -39,7 +44,7 @@ class Reference:
         self.spawns=[struct.unpack_from('<HH',data,offset+1048576+4+i*4) for i in range(count)]
         self.decoration_art=json.loads((api.ROOT/'tools/map_editor/generated/art.json').read_text())['decoration']
         self.roads=set()
-        if world[-1][0]==17:
+        if world[-1][0]==16:
             towns=[(x//128,y//128) for x,y in self.towns];root=towns[0]
             queue=deque([root]);parents={root:None}
             while queue:
@@ -186,21 +191,40 @@ def run(t):
         t.check(prefix+' confirmation freezes driving',after['mode']==3 and
                 all(before[k]==after[k] for k in ('x','y','heading','lap_frames')),after)
         t.tap(t.UP); t.tap(t.A); town=t.step(0,16)
-        t.capture(f'wasteland/{prefix}-town')
-        t.check(prefix+' enters a separate unloaded town scene',town['mode']==4 and
-                town['tile_capacity']==0 and town['bg_bytes']<=4096 and town['town_visits']>before['town_visits'],town)
+        t.capture(f'wasteland/{prefix}-town-exterior')
+        walking=t.town_state()
+        t.check(prefix+' enters a walkable unloaded town scene',town['mode']==4 and
+                walking['place']==0 and walking['x']==128 and walking['y']==226 and
+                town['tile_capacity']==0 and 32768<=town['bg_bytes']<=45056 and
+                town['town_visits']>before['town_visits'],dict(state=town,town=walking))
         t.check(prefix+' town retains run state',all(town[k]==before[k] for k in
                 ('seed','signature','generations','x','y','heading')),town)
-        original=town['setup']; t.tap(t.R); right=t.state(); t.tap(t.L); left=t.state()
-        t.check(prefix+' L/R changes vehicle setup only in town without resetting position',
-                right['setup']==(original+1)%3 and left['setup']==original and
-                all(left[k]==town[k]==right[k] for k in ('x','y','seed','signature','generations','lap_frames')),left)
-        expected_setup=original
-        if prefix=='random':
-            t.tap(t.R); expected_setup=(original+1)%3
-            t.capture('wasteland/town-setup-changed')
-        # A held across return must not immediately accelerate or re-enter.
-        t.step(t.A,20); held=t.state(); t.step(0,20); after=t.state()
+        original=town['setup'];t.tap(t.R);t.tap(t.L)
+        t.check(prefix+' driving controls do not change setup while walking',t.state()['setup']==original,t.state())
+
+        # Walk around the central rock island to the north garage door.
+        t.step(t.UP,30);t.step(t.RIGHT,40);t.step(t.UP,180);t.step(t.LEFT,40);t.tap(t.UP);t.tap(t.A);t.step(0,8)
+        garage=t.town_state();t.capture(f'wasteland/{prefix}-garage')
+        t.check(prefix+' garage door loads a separate walkable interior',
+                t.state()['mode']==4 and garage['place']==1 and garage['x']==128 and garage['y']==228,garage)
+
+        # The counter stops the player at the mechanic interaction distance.
+        t.step(t.UP,180);at_counter=t.town_state();t.tap(t.A);menu=t.town_state()
+        t.capture(f'wasteland/{prefix}-garage-menu')
+        t.check(prefix+' garage collision stops at the mechanic counter',76<=at_counter['y']<=94,at_counter)
+        t.check(prefix+' mechanic opens the setup menu',menu['menu'] and menu['selection']==original,menu)
+        t.tap(t.RIGHT);candidate=t.town_state();t.tap(t.A);fitted=t.state()
+        expected_setup=(original+1)%3
+        t.check(prefix+' garage menu fits the selected vehicle setup',
+                candidate['selection']==expected_setup and fitted['setup']==expected_setup and
+                not t.town_state()['menu'],dict(candidate=candidate,state=fitted))
+
+        # Leave through both physical doors and return to the preserved car.
+        t.step(t.DOWN,150);t.tap(t.A);exterior=t.town_state()
+        t.check(prefix+' garage exit returns to the same town',exterior['place']==0 and
+                exterior['x']==128 and exterior['y']==67,exterior)
+        t.step(t.RIGHT,40);t.step(t.DOWN,135);t.step(t.LEFT,40);t.step(t.DOWN,35);t.tap(t.A)
+        held=t.state();t.step(0,20);after=t.state()
         t.check(prefix+' return restores exact stopped position and same world',after['mode']==1 and
                 all(after[k]==before[k]==held[k] for k in ('seed','signature','generations','x','y','heading')),after)
         t.check(prefix+' chosen vehicle setup survives the town return',after['setup']==expected_setup,after['setup'])
@@ -212,7 +236,7 @@ def run(t):
         t.check_scene_pixels(prefix+' restored graphics match procedural reference',Reference(t,after['seed']))
         return after
 
-    menu(); fixed=t.start_map(2); t.capture('wasteland/start')
+    menu(); fixed=t.start_map(0); t.capture('wasteland/start')
     info=json.loads((t.OUT/'wasteland/report.json').read_text())
     ref=Reference(t,fixed['seed'])
     t.check('Fixed wasteland uses reproducible shared generator',fixed['seed']==ref.recipe['seed'] and fixed['signature']==ref.info[3],fixed)
@@ -243,7 +267,7 @@ def run(t):
     t.reset(); approach(); again=visit('repeat')
     t.check('Repeated scene round trip does not leak EWRAM',again['free_ewram']==returned['free_ewram'],
             [returned['free_ewram'],again['free_ewram']])
-    menu(); repeat=t.start_map(2)
+    menu(); repeat=t.start_map(0)
     t.check('Restarting fixed mode reproduces layout and spawn',all(repeat[k]==fixed[k] for k in
             ('seed','signature','x','y','floor_cells')) and repeat['generations']==again['generations']+1,repeat)
 
@@ -295,22 +319,20 @@ def run(t):
     t.check('Forward gun is blocked by the approached canyon wall',
             t.combat_state()['wall_hits']>before_wall,t.combat_state())
 
-    menu(); random1=t.start_map(3); t.capture('wasteland/random')
-    random_ref=Reference(t,random1['seed'])
-    t.check('Random mode generates its chosen seed on the GBA',random1['seed']!=fixed['seed'] and
-            random1['signature']==random_ref.info[3] and random1['width']==8192 and random1['height']==8192,random1)
-    t.check_scene_pixels('Random map graphics match its own seed',random_ref)
-    check_hud_radar(t,random_ref,'Random')
-    approach(); visit('random')
-    menu(); t.step(0,37); random2=t.start_map(3)
-    t.check('Starting random mode again generates a different world',random2['seed']!=random1['seed'] and
-            random2['signature']!=random1['signature'] and random2['generations']==random1['generations']+1,random2)
-    t.check('Generation scratch is released after each load',abs(random2['free_ewram']-random1['free_ewram'])<512,
-            [random1['free_ewram'],random2['free_ewram']])
-    menu(); t.start_map(0)
-    t.check_scene_pixels('Leaving wasteland restores comparison palette and art',
-                        t.Image.open(t.OUT/'map2/converted.png').convert('RGB'))
-    t.check('Comparison scene releases procedural layout',t.state()['layout_bytes']==0,t.state())
+    menu(); alternate=t.start_map(1); t.capture('wasteland/alternate')
+    alternate_ref=Reference(t,alternate['seed'])
+    t.check('Second catalog entry uses its saved seed and graph',alternate['seed']==alternate_ref.recipe['seed'] and
+            alternate['signature']==alternate_ref.info[3] and alternate['signature']!=fixed['signature'],alternate)
+    t.check_scene_pixels('Alternate catalog map matches its compiled recipe',alternate_ref)
+    check_hud_radar(t,alternate_ref,'Alternate')
+    menu(); t.step(0,37); alternate2=t.start_map(1)
+    t.check('Reloading the alternate map is deterministic',alternate2['seed']==alternate['seed'] and
+            alternate2['signature']==alternate['signature'] and alternate2['generations']==alternate['generations']+1,alternate2)
+    t.check('Generation scratch is released after each catalog load',abs(alternate2['free_ewram']-alternate['free_ewram'])<512,
+            [alternate['free_ewram'],alternate2['free_ewram']])
+    menu(); restored=t.start_map(0);restored_ref=Reference(t,restored['seed'])
+    t.check_scene_pixels('Switching catalog entries restores the selected map art',restored_ref)
+    t.check('Catalog switch replaces rather than stacking procedural layouts',restored['layout_bytes']==fixed['layout_bytes'],restored)
     t.check('Town dialogs, resets and scene switches add no missed driving frames',
             t.state()['missed']==initial_missed,dict(before=initial_missed,after=t.state()['missed']))
 

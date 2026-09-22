@@ -16,7 +16,7 @@ decoration_view* decoration_view::_active=nullptr;
 decoration_view::decoration_view() :
     _map(bn::regular_bg_map_ptr::allocate(bn::size(64,32),
         bn::regular_bg_tiles_ptr::create(bn::regular_bg_tiles_item(bn::span<const bn::tile>(decoration_art::tiles),bn::bpp_mode::BPP_4,bn::compression_type::NONE)),
-        bn::bg_palette_ptr::create(bn::bg_palette_item(bn::span<const bn::color>(world_map::palette(),16),bn::bpp_mode::BPP_4)))),
+        bn::bg_palette_ptr::create(bn::bg_palette_item(bn::span<const bn::color>(world_map::palette()+224,16),bn::bpp_mode::BPP_4)))),
     _bg(bn::regular_bg_ptr::create(_map)) {
     for(auto& p:_positions)p=0xffffffff;
     _tile_offset=_map.tiles_offset()+(_map.palette().id()<<12);

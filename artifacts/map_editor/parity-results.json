@@ -1,7 +1,7 @@
 {
-  "cases": 389,
+  "cases": 390,
   "legacySeeds": 128,
   "nativeWasmByteParity": true,
   "graphValidation": true,
-  "wasmSha256": "a8ca2c3b37ac60b61ba9ea08b72788798b1fd5bc5d0a04ac2b24345f0fd677af"
+  "wasmSha256": "fa7add1a0c2c99d4d2f484852ea5cded11e6b04890e175a202c12cc724241a55"
 }

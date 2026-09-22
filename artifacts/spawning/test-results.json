@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "cdadb9ab83ae6663b43eecb6e2f8e83f244968b40b2345d60abae69ff310e2cb",
+  "rom_sha256": "64db55cf5f226ee995601ed896be5b1f739dbb75d2bf07aebb62669e8f8ec365",
   "emulator": "libmGBA (Debian bookworm)",
   "checks": [
     {
@@ -7,7 +7,7 @@
       "passed": true,
       "details": {
         "points": 163,
-        "ram": 4716,
+        "ram": 4732,
         "record_bytes": 12
       }
     },
@@ -17,7 +17,7 @@
       "details": {
         "x": 4264,
         "y": 4176,
-        "ready_at": 1833,
+        "ready_at": 1852,
         "slot": -1,
         "hp": 0
       }
@@ -29,11 +29,11 @@
         "point": {
           "x": 4264,
           "y": 4176,
-          "ready_at": 1833,
+          "ready_at": 1852,
           "slot": -1,
           "hp": 0
         },
-        "ticks": 1915
+        "ticks": 1934
       }
     },
     {
@@ -169,15 +169,15 @@
       "passed": true,
       "details": {
         "peak_active": 5,
-        "unique_encounters": 17,
-        "spawned": 22
+        "unique_encounters": 16,
+        "spawned": 21
       }
     },
     {
       "name": "Distant cars despawn without counting as kills and retain HP",
       "passed": true,
       "details": {
-        "despawned": 16,
+        "despawned": 15,
         "kills": 1,
         "departed": [
           1,
@@ -187,33 +187,31 @@
           91,
           101,
           102,
-          103,
           104,
           105,
           114,
           115,
-          117,
-          118,
-          126
+          116,
+          126,
+          127
         ]
       }
     },
     {
-      "name": "Returning reactivates dormant encounters and expired destroyed point",
+      "name": "Returning reactivates dormant encounters and keeps expired destroyed points eligible",
       "passed": true,
       "details": {
         "returned": [
           1,
-          102,
-          103,
-          115
+          88,
+          102
         ],
         "victim": {
           "x": 4264,
           "y": 4176,
-          "ready_at": 1833,
-          "slot": 3,
-          "hp": 3
+          "ready_at": 1852,
+          "slot": -1,
+          "hp": 0
         }
       }
     },
@@ -226,7 +224,7 @@
       "name": "Spawn streaming fits measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.958984375,
+        "cpu": 0.780029296875,
         "missed": 0
       }
     },
@@ -256,7 +254,7 @@
           "x": 4264,
           "y": 4176,
           "ready_at": 0,
-          "slot": 4,
+          "slot": 1,
           "hp": 2
         }
       }
@@ -265,7 +263,7 @@
       "name": "Damaged-survivor streaming route stays within frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.88037109375,
+        "cpu": 0.79931640625,
         "missed": 0
       }
     },
@@ -531,14 +529,6 @@
           3,
           3,
           3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
           1,
           1,
           1,
@@ -552,13 +542,13 @@
         "weapon": {
           "selected": 1,
           "saw": true,
-          "saw_x": 4234.023681640625,
+          "saw_x": 4220.057861328125,
           "saw_y": 4176.0,
           "guidance": 0,
           "explosions": 0,
           "shots": [
             0,
-            7,
+            6,
             0,
             0,
             0
@@ -652,7 +642,7 @@
       "details": {
         "selected": 3,
         "saw": false,
-        "saw_x": 4234.023681640625,
+        "saw_x": 4220.057861328125,
         "saw_y": 4176.0,
         "guidance": 0,
         "explosions": 0,
@@ -746,7 +736,7 @@
       "details": {
         "selected": 3,
         "saw": false,
-        "saw_x": 4234.023681640625,
+        "saw_x": 4220.057861328125,
         "saw_y": 4176.0,
         "guidance": 1,
         "explosions": 0,
@@ -766,14 +756,14 @@
         ],
         "missiles": [
           {
-            "x": 4202.1005859375,
-            "y": 4176.8876953125,
-            "vx": -3.8994140625,
-            "vy": 0.8876953125,
+            "x": 4202.427734375,
+            "y": 4177.7978515625,
+            "vx": -3.572265625,
+            "vy": 1.7978515625,
             "remaining": 142,
             "age": 8,
             "target": 1,
-            "heading": 167.250244140625,
+            "heading": 153.43505859375,
             "explosion": 0
           },
           {
@@ -840,7 +830,7 @@
       "details": {
         "selected": 3,
         "saw": false,
-        "saw_x": 4234.023681640625,
+        "saw_x": 4220.057861328125,
         "saw_y": 4176.0,
         "guidance": 2,
         "explosions": 0,
@@ -860,14 +850,14 @@
         ],
         "missiles": [
           {
-            "x": 4178.7802734375,
-            "y": 4182.4990234375,
-            "vx": -3.8232421875,
-            "vy": 1.1728515625,
+            "x": 4181.2890625,
+            "y": 4189.080078125,
+            "vx": -3.27734375,
+            "vy": 2.29296875,
             "remaining": 136,
             "age": 14,
             "target": 1,
-            "heading": 163.1083984375,
+            "heading": 145.17333984375,
             "explosion": 0
           },
           {
@@ -936,9 +926,9 @@
         "weapon": {
           "selected": 3,
           "saw": false,
-          "saw_x": 4234.023681640625,
+          "saw_x": 4220.057861328125,
           "saw_y": 4176.0,
-          "guidance": 39,
+          "guidance": 37,
           "explosions": 0,
           "shots": [
             10,
@@ -967,14 +957,14 @@
               "explosion": 0
             },
             {
-              "x": 4330.0,
-              "y": 4176.0,
-              "vx": 4.0,
-              "vy": 0.0,
-              "remaining": 112,
-              "age": 38,
+              "x": 3944.0673828125,
+              "y": 4232.19921875,
+              "vx": -3.9091796875,
+              "vy": 0.83984375,
+              "remaining": 76,
+              "age": 74,
               "target": -1,
-              "heading": 0.0,
+              "heading": 167.969970703125,
               "explosion": 0
             }
           ],
@@ -1031,7 +1021,7 @@
       "details": {
         "selected": 4,
         "saw": false,
-        "saw_x": 4234.023681640625,
+        "saw_x": 4220.057861328125,
         "saw_y": 4176.0,
         "guidance": 0,
         "explosions": 0,
@@ -1125,7 +1115,7 @@
       "details": {
         "selected": 4,
         "saw": false,
-        "saw_x": 4234.023681640625,
+        "saw_x": 4220.057861328125,
         "saw_y": 4176.0,
         "guidance": 0,
         "explosions": 0,
@@ -1221,7 +1211,7 @@
         "weapon": {
           "selected": 4,
           "saw": false,
-          "saw_x": 4234.023681640625,
+          "saw_x": 4220.057861328125,
           "saw_y": 4176.0,
           "guidance": 0,
           "explosions": 1,
@@ -1274,7 +1264,7 @@
             {
               "x": 4153.2373046875,
               "y": 4176.0,
-              "remaining": 856,
+              "remaining": 880,
               "arm": 0,
               "explosion": 0
             },
@@ -1339,9 +1329,9 @@
       "name": "New weapons fit the measured driving frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.97998046875,
+        "cpu": 0.728515625,
         "missed": 0,
-        "ram": 4716
+        "ram": 4732
       }
     }
   ]

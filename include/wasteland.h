@@ -4,10 +4,12 @@
 #include "enemy_spawns.h"
 
 namespace wasteland {
-void generate(uint32_t seed,cave_layout::progress_fn progress);
+void generate(int map_index,cave_layout::progress_fn progress);
 void release();
 BN_CODE_IWRAM bool active();
 BN_CODE_IWRAM const cave_layout& layout();
+int map_count();
+const char* map_name(int index);
 uint32_t fixed_seed();
 int minimap_cell(int x,int y); // 1 floor, 2 wall, 3 road.
 int generations();

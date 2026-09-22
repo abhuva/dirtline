@@ -250,91 +250,28 @@
       "parameters": []
     },
     {
-      "id": "material_fill",
-      "name": "Fill material",
-      "kind": "material",
-      "inputs": {},
-      "parameters": [
-        [
-          "Material ID",
-          0,
-          0,
-          255,
-          "material"
-        ]
-      ]
-    },
-    {
-      "id": "material_bands",
-      "name": "Field to materials",
-      "kind": "material",
+      "id": "field_lut",
+      "name": "Stepped LUT",
+      "kind": "field",
       "inputs": {
         "a": "field"
       },
-      "parameters": [
-        [
-          "Boundary 1",
-          96,
-          0,
-          255
-        ],
-        [
-          "Boundary 2",
-          144,
-          0,
-          255
-        ],
-        [
-          "Boundary 3",
-          192,
-          0,
-          255
-        ],
-        [
-          "Low material",
-          0,
-          0,
-          255,
-          "material"
-        ],
-        [
-          "Middle material",
-          1,
-          0,
-          255,
-          "material"
-        ],
-        [
-          "High material",
-          2,
-          0,
-          255,
-          "material"
-        ],
-        [
-          "Peak material",
-          3,
-          0,
-          255,
-          "material"
-        ]
-      ]
+      "parameters": []
     },
     {
-      "id": "material_paint",
-      "name": "Paint material",
-      "kind": "material",
+      "id": "field_paint",
+      "name": "Paint field value",
+      "kind": "field",
       "inputs": {
-        "a": "material",
+        "a": "field",
         "mask": "mask"
       },
       "parameters": [
         [
-          "Paint material ID",
+          "Paint value",
           1,
           0,
-          255,
-          "material"
+          255
         ]
       ]
     },
@@ -343,14 +280,14 @@
       "name": "Ground materials",
       "kind": "material",
       "inputs": {
-        "a": "material"
+        "a": "field"
       },
       "parameters": []
     },
     {
       "id": "material_patches",
       "name": "Original ground patches",
-      "kind": "material",
+      "kind": "field",
       "inputs": {},
       "parameters": []
     },

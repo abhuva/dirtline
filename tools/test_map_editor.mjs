@@ -36,13 +36,15 @@ if(process.argv.includes('--prepare')) {
   add(original,original.seed,original.output,'active');
   for(const id of [0,3,127,255]){
     const r=structuredClone(legacy);r.version=2;r.materialOutput=6;
-    r.nodes.push({...makeNode(schema,'material_fill',4),p:[id]},
-      {...makeNode(schema,'material_paint',5),inputs:{a:4,mask:1},p:[255-id]},
+    r.nodes.push({...makeNode(schema,'field_fill',4),p:[id]},
+      {...makeNode(schema,'field_paint',5),inputs:{a:4,mask:1},p:[255-id]},
       {...makeNode(schema,'materials',6),inputs:{a:5}});
     add(r,42,6,`material-paint-${id}`);
   }
   const patches=structuredClone(legacy);patches.nodes.push(makeNode(schema,'material_patches',4));
   for(const seed of [0,42,12648430,0xffffffff])add(patches,seed,4,'original-ground-patches');
+  const dense=structuredClone(examples[4]),denseLut=dense.nodes.find(n=>n.type==='field_lut');denseLut.p=[255,0,...Array.from({length:255},(_,i)=>[i+1,(i+1)&255]).flat()];delete denseLut.colors;
+  add(dense,42,denseLut.id,'dense-lut-255-points');
   await writeFile(new URL('manifest.json',out),JSON.stringify(fixtures));
   for(let i=0;i<fixtures.length;++i)await writeFile(new URL(`${i}.program`,out),new Uint32Array(fixtures[i].program.flat()));
   const bad=structuredClone(legacy);bad.nodes[1].inputs.a=2;assert.throws(()=>compile(bad,schema),/cycle/);
@@ -53,18 +55,25 @@ if(process.argv.includes('--prepare')) {
   bad.version=99;assert.throws(()=>compile(bad,schema),/Unsupported/);
   const reordered=structuredClone(legacy);reordered.nodes.reverse();assert.deepEqual(compile(reordered,schema).program,compile(legacy,schema).program);
   reordered.nodes.push(makeNode(schema,'random',4));assert.deepEqual(compile(reordered,schema).program,compile(legacy,schema).program);
-  const materialBad=structuredClone(examples[4]);materialBad.nodes.find(n=>n.type==='material_bands').p[0]=255;
-  assert.throws(()=>compile(materialBad,schema),/ascending/);
-  delete materialBad.materialOutput;assert.throws(()=>compile(materialBad,schema),/ascending|Ground/);
+  const materialBad=structuredClone(examples[4]),badLut=materialBad.nodes.find(n=>n.type==='field_lut');badLut.p[4]=badLut.p[2];
+  assert.throws(()=>compile(materialBad,schema),/unique/);
+  delete materialBad.materialOutput;assert.throws(()=>compile(materialBad,schema),/unique|Ground/);
+  const crossed=structuredClone(examples[4]),crossedLut=crossed.nodes.find(n=>n.type==='field_lut');crossedLut.p=[3,9,200,1,50,2,120,3];
+  const crossedWords=compile(crossed,schema,crossedLut.id).program.at(-1).slice(5),lutByte=(words,value)=>(words[value>>2]>>>((value&3)*8))&255;
+  assert.equal(crossedWords.length,64);assert.deepEqual([0,49,50,119,120,199,200,255].map(v=>lutByte(crossedWords,v)),[9,9,2,2,3,3,1,1]);
+  const denseWords=compile(dense,schema,denseLut.id).program.at(-1).slice(5);assert.equal(denseWords.length,64);for(let value=0;value<256;++value)assert.equal(lutByte(denseWords,value),value);
+  const retired=structuredClone(examples[4]),retiredLut=retired.nodes.find(n=>n.type==='field_lut');retiredLut.type='material_bands';retiredLut.p=[64,128,192,4,5,6,7];
+  compile(retired,schema,retiredLut.id);assert.equal(retiredLut.type,'field_lut');assert.deepEqual(retiredLut.p,[3,4,64,5,128,6,192,7]);
   const renderCases=[{name:'original',recipe:legacy,seed:12648430},{name:'natural',recipe:examples[4],seed:12648430},
     {name:'natural-zero',recipe:examples[4],seed:0}];
   const reserved=structuredClone(legacy);reserved.version=2;reserved.materialOutput=5;
-  reserved.nodes.push({...makeNode(schema,'material_fill',4),p:[255]},{...makeNode(schema,'materials',5),inputs:{a:4}});
+  reserved.nodes.push({...makeNode(schema,'field_fill',4),p:[255]},{...makeNode(schema,'materials',5),inputs:{a:4}});
   renderCases.push({name:'roads',recipe:examples[5],seed:12648430});
   const wide=structuredClone(examples[5]);wide.nodes.at(-1).p=[256,1];
   renderCases.push({name:'roads-wide',recipe:wide,seed:42});
   renderCases.push({name:'reserved-id',recipe:reserved,seed:42});
-  const active=JSON.parse(await readFile(new URL('maps/wasteland.json',root),'utf8'));
+  const library=JSON.parse(await readFile(new URL('maps/map-library.json',root),'utf8'));
+  const active=library.maps.find(entry=>entry.includeInGame).recipe;
   renderCases.push({name:'active',recipe:active,seed:active.seed});
   const legacyRoads=structuredClone(examples[5]);legacyRoads.nodes.at(-1).p=[153,3,170];
   const migrated=compile(legacyRoads,schema);assert.deepEqual(migrated.program.at(-1).slice(5,8),[160,3,0]);

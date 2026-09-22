@@ -33,6 +33,11 @@ void terrain_streamer::invalidate() {
     for(auto& entry:_positions) entry=0xFFFFFFFF;
     _left=-1000; _top=-1000;
     _source_tiles=world_map::tiles();
+    _resident_count=world_map::resident_tile_count();
+    BN_ASSERT(_resident_count<=_capacity,"Resident artwork exceeds reserved VRAM");
+    // Small procedural vocabularies need no eviction. Source IDs are stable
+    // VRAM slots, uploaded once while the scene is still hidden.
+    for(int i=0;i<_resident_count;++i) _uploads[_pending++]={uint16_t(i),uint16_t(i)};
 }
 
 terrain_streamer::~terrain_streamer() {
@@ -65,7 +70,7 @@ void terrain_streamer::set_camera(int x,int y) {
     const int left=(x-120)/8,top=(y-80)/8;
     const bool jump=left-_left>1 || _left-left>1 || top-_top>1 || _top-top>1;
     if(left!=_left || top!=_top) {
-        BN_ASSERT(!_pending,"Uncommitted terrain uploads");
+        BN_ASSERT(!_pending || (_resident_count && jump),"Uncommitted terrain uploads");
         // On a jump, wrapped BG cells may have overwritten positions that the
         // smaller bookkeeping ring still remembers. Re-resolve the entire view.
         if(jump) {
@@ -76,36 +81,50 @@ void terrain_streamer::set_camera(int x,int y) {
             bn::core::update();
             for(auto& entry:_positions) entry=0xFFFFFFFF;
         }
-        _cache.begin_view();
-        int changes=0;
-        // First protect EVERY tile still needed by the next view, including
-        // old tiles that newly entering cells will reference. No eviction yet.
-        for(int row=top;row<top+terrain_cache::window_rows;++row) {
-            for(int col=left;col<left+terrain_cache::window_columns;++col) {
-                const int position_slot=(row%22)*32+(col%32);
-                const int cell=(row%32)*32+(col%32);
-                const uint32_t position=(uint32_t(row)<<16)|uint32_t(col);
-                if(_positions[position_slot]==position) {
-                    _cache.pin(_cells[cell]);
-                    continue;
+        if(_resident_count) {
+            // Only entering rows/columns need material lookup. Existing cells
+            // retain their stable slots; no whole-view pin/hash pass is needed.
+            for(int row=top;row<top+terrain_cache::window_rows;++row) {
+                if(jump || row<_top || row>=_top+terrain_cache::window_rows) {
+                    for(int col=left;col<left+terrain_cache::window_columns;++col)
+                        _cells[(row&31)*32+(col&31)]=world_map::tile_at(col,row);
+                } else if(left!=_left) {
+                    int col=left<_left?left:left+terrain_cache::window_columns-1;
+                    _cells[(row&31)*32+(col&31)]=world_map::tile_at(col,row);
                 }
-                _positions[position_slot]=position;
-                const uint16_t source=world_map::tile_at(col,row);
-                int slot=_cache.find(source);
-                if(slot>=0) _cache.pin(slot);
-                _uploads[changes++]={uint16_t(cell),source};
             }
-        }
-        // Repeated source IDs resolve to the same slot, even within one upload
-        // batch. Old off-screen slots may now be safely recycled.
-        for(int i=0;i<changes;++i) {
-            const auto cell_change=_uploads[i];
-            bool upload_needed=false;
-            const int slot=_cache.acquire(cell_change.source,upload_needed);
-            BN_ASSERT(slot>=0,"Terrain cache exceeded: regenerate map capacity audit");
-            _cells[cell_change.slot]=uint16_t(slot);
-            // _pending <= i: only overwrite scratch entries already consumed.
-            if(upload_needed) _uploads[_pending++]={uint16_t(slot),cell_change.source};
+        } else {
+            _cache.begin_view();
+            int changes=0;
+            // First protect EVERY tile still needed by the next view, including
+            // old tiles that newly entering cells will reference. No eviction yet.
+            for(int row=top;row<top+terrain_cache::window_rows;++row) {
+                for(int col=left;col<left+terrain_cache::window_columns;++col) {
+                    const int position_slot=(row%22)*32+(col%32);
+                    const int cell=(row%32)*32+(col%32);
+                    const uint32_t position=(uint32_t(row)<<16)|uint32_t(col);
+                    if(_positions[position_slot]==position) {
+                        _cache.pin(_cells[cell]);
+                        continue;
+                    }
+                    _positions[position_slot]=position;
+                    const uint16_t source=world_map::tile_at(col,row);
+                    int slot=_cache.find(source);
+                    if(slot>=0) _cache.pin(slot);
+                    _uploads[changes++]={uint16_t(cell),source};
+                }
+            }
+            // Repeated source IDs resolve to the same slot, even within one upload
+            // batch. Old off-screen slots may now be safely recycled.
+            for(int i=0;i<changes;++i) {
+                const auto cell_change=_uploads[i];
+                bool upload_needed=false;
+                const int slot=_cache.acquire(cell_change.source,upload_needed);
+                BN_ASSERT(slot>=0,"Terrain cache exceeded: regenerate map capacity audit");
+                _cells[cell_change.slot]=uint16_t(slot);
+                // _pending <= i: only overwrite scratch entries already consumed.
+                if(upload_needed) _uploads[_pending++]={uint16_t(slot),cell_change.source};
+            }
         }
         _map.reload_cells_ref();
         _left=left; _top=top;

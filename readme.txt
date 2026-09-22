@@ -1,5 +1,5 @@
-DUSTLINE - PROCEDURAL WASTELANDS, COMMONS AND CIRCUIT
-Playable Game Boy Advance driving/combat prototype / version 0.12
+DUSTLINE - PROCEDURAL WASTELANDS
+Playable Game Boy Advance driving/combat prototype / version 0.14
 
 PLAY
 ----
@@ -8,25 +8,31 @@ Open dist/dustline.gba in RetroArch using the Nintendo - Game Boy Advance
 may not recognize an original homebrew game. No base game or ROM patch is
 needed. A separate GBA BIOS is optional with mGBA.
 
-Choose a map with Up/Down (or Left/Right), then press A or Start.
-WASTELAND FIXED (default) is an 8192 x 8192 organic canyon maze, generated on
-the GBA from the exported recipe seed (currently 12648431). WASTELAND RANDOM creates a fresh seed when started
-from the title. Both use cellular automata, smoothing and a largest-component
-flood fill: disconnected floor is filled, and all six outposts are reachable.
-Generation takes roughly two seconds with a loading message. Select opens settings
-without resetting the car. L/R change the vehicle setup only inside town.
+Choose a map with Left/Right, then press A. Every title entry comes from
+maps/map-library.json and has a saved seed. The ROM currently includes eight
+8192 x 8192 procedural maps. There is no runtime random-map choice. Recipes can
+use cellular automata, masks, smoothing and largest-component flood fill so
+disconnected floor is filled and all six outposts are reachable.
+The loading screen shows aggregate progress through the selected map's world,
+material, spawn and decoration node graphs, followed by encounter and scene setup.
+Select opens settings without resetting the car. Vehicle setups are fitted by the
+mechanic inside town.
 While driving, L cycles weapons and R fires the selected weapon.
 Drive east from spawn to try the nearby first outpost (256px away).
 Approaching an outpost stops the car and asks whether to enter. Use a direction
 to select Yes/No, then A to confirm; B cancels. No is selected initially.
-Yes unloads the overworld graphics and opens a blank town placeholder with
-one return option. A or Start returns to the exact saved coordinates, stopped,
-on the same map. Leave the entrance vicinity before its prompt can reopen.
+Yes unloads the overworld graphics and opens a walkable desert settlement. Walk
+around the central rocks to the garage at the north edge, face its open door and
+press A. Inside, walk to the mechanic and press A to fit a vehicle setup. Leave
+through the garage door, then use the settlement's south gate to return to the
+exact saved coordinates, stopped, on the same map. Leave the entrance vicinity
+before its prompt can reopen.
 The settlement marker remains visible above the bottom-aligned entry question.
-There are no town interiors, dialogue NPCs or persistent saves yet.
+All six outposts currently share this first town and garage layout. There are no
+additional interiors, shop transactions, dialogue trees or persistent saves yet.
 
-BASIC COMBAT TEST (WASTELANDS ONLY)
-Red/orange versions of the existing car now spawn throughout both wastelands.
+BASIC COMBAT TEST
+Red/orange versions of the existing car spawn throughout procedural maps.
 Each reachable 512px sector gets an encounter anchor where clearance permits,
 plus two nearby starter opponents. The active exported recipe has 163 anchors; other seeds
 vary. A shared pool limits the entire simulation to FIVE active enemies.
@@ -58,8 +64,12 @@ Weapons respect walls/buildings. Each weapon retains its own cooldown when
 switched; deployed attacks keep working. Pause/settings freeze all simulation.
 Town entry clears deployed attacks while preserving the selected weapon and
 encounter damage. A new run starts with the gun and empty weapon pools.
-The player has 100 HP and is invincible for this test. Enemy bullet contacts
-are counted but do not reduce HP. Ramming changes motion, not HP, for now.
+The player starts with 100 health and a 20-point rechargeable shield. Enemy
+bullets deal one point, consuming shield before health. After three seconds
+without damage, shield returns at four points per second. Entering an outpost
+fully restores both. At zero health, A revives in place with full health and
+shield, clears deployed projectiles and grants two seconds of protection.
+Ramming changes motion, not health, for now.
 Cars have heading-aligned 22x14px rectangular contact bodies. Impacts transfer
 velocity according to relative closing speed and mass, with mild bounce and
 tangential friction. Light cars are shoved more than heavy ones; engine speed
@@ -88,8 +98,6 @@ unloads its sprites and clears bullets in flight, but preserves enemy HP/deaths
 and positions, including anchor ownership and cooldowns. Cooldowns only advance
 while driving, not in menus or town. Returning does not reset encounters; starting
 a new map resets all of them. No encounter state is saved across a reboot.
-The original Circuit and Commons remain combat-free comparison maps.
-
 All driving scenes use a single 12px-high HUD strip: speed and detected ground.
 The former lower control strip and second HUD row now show terrain. Setup names,
 seed, timers and lap counts are not displayed while driving. The wasteland uses
@@ -106,46 +114,33 @@ crosses a displayed pixel. Road width and ground materials do not change this
 simplified image. Small red dots track living active enemies every frame; dots
 outside the circle, destroyed enemies and inactive spawn points are hidden.
 
-The Circuit and Commons keep their north-up circular local radar. In settings,
-Left/Right choose 1x, 2x, 4x or 8x view distance (312/624/1248/2496px radius),
-then A, B, Select or Start returns. Their terrain image updates over 16 frames.
-Driving pauses in settings and preserves position/velocity. Zoom preferences
-persist across maps and town visits until reboot; there is no persistent save.
-
-LAKESIDE COMMONS is the expanded 16384 x 16384 modular free-driving area: explore
-sixteen connected 4096px sectors using the same roads, dirt, yards and lakes.
-This is four times each axis, sixteen times the area of the previous 4096 map.
-The original spawn is unchanged. Drive east along the starting road to reach
-the eastern district; the north/south main roads also cross into southern areas.
-Read-only test telemetry counts actual chunk decompressions since selecting the
-scene. It increases when uncached chunks are needed, not every frame. Compression
-is always enabled in Commons; the comparison circuit keeps its original format.
-It has no lap objective. The garage is a scenery landmark, not an interior.
-
-LAKESIDE CIRCUIT preserves the previous 1280 x 1280 map for comparison.
-Drive east across the starting straight and
-follow the circuit counterclockwise around the lake. Complete the 12 ordered checkpoint regions, then
-cross the checkered line eastbound to record a lap internally. Lap/gate state is
-retained for regression testing, but no longer displayed in the driving HUD.
+In settings, Left/Right choose 1x, 2x, 4x or 8x, then A, B, Select or Start
+returns. Driving pauses and preserves position and velocity. The zoom preference
+persists across catalog maps and town visits until reboot.
 
 CONTROLS (GBA BUTTONS, AS MAPPED IN YOUR EMULATOR)
 ------------------------------------------------
+Title Left/Right Select the previous / next map
+Title A          Start the selected map
 A               Accelerate
 B               Brake; keep holding to reverse once stopped
 Left / Right    Steer relative to the car (steering reverses while backing up)
-L / R in town   Previous / next vehicle setup; preserves the saved position
+Town D-pad      Walk in four directions
+Town A          Enter/leave doors and interact with the mechanic
+Garage Left/Right Choose a vehicle setup while speaking to the mechanic
+Garage A / B    Fit the selected setup / close the setup menu
 L in wasteland  Cycle GUN / SAW / SIDES / SEEK / TRAP (one weapon at a time)
 R in wasteland  Hold to use the selected weapon; no vehicle setup change
 Select          Open settings while driving or in town (pauses driving)
-Left / Right    In settings: choose minimap zoom (comparison maps: view distance)
+Left / Right    In settings: choose minimap zoom
 A/B/Select/Start In settings: apply and return
 Start           Pause / controls screen; press again to resume
 Select in pause Return to map selection
 
 Up and Down have no driving function. Reverse uses B, not Down.
 
-PROGRESSION DIRECTION (NOT IMPLEMENTED YET)
------------------------------------------
+PROGRESSION DIRECTION
+---------------------
 Each town should offer a Garage for fitting, buying/selling and printing parts.
 Owned blueprints are permanent unlocks available in every garage, allowing
 onward travel without a mandatory central hub. Reactor/solar upgrades could
@@ -164,10 +159,10 @@ apply throttle again as you come out. You retain momentum while coasting.
 There is no tap-frequency bonus: deliberate throttle timing is the goal.
 The car has separate heading and velocity, so its nose can point slightly
 away from its direction of travel. Watch the skid marks during a fast turn.
-To restart a run, press Start, then Select, and choose a map again. Random
-wastelands receive a new seed; there is no longer a driving-position reset key.
+To restart a run, press Start, then Select, and choose a map again. Its saved
+seed reproduces the same layout; there is no driving-position reset key.
 
-Enter a wasteland town and press L/R to compare:
+Enter a wasteland town, walk into the garage and speak to the mechanic to compare:
   GRIP   - 950kg; forgiving cornering grip, moderate power.
   RALLY  - 1100kg; default, more power and speed, looser cornering.
   HEAVY  - 2200kg; slower acceleration/steering, greater resistance to shoves.
@@ -175,32 +170,24 @@ The town menu displays mass. These are relative arcade handling values, not
 a real-world vehicle model; no enemy tank art or dedicated tank setup yet.
 
 Changing setups in town does not reset position or regenerate the world.
-The selected setup also carries into the comparison maps. Each setup retains
-its own internal best lap time during the current session.
-Returning to map selection preserves session bests. Closing/resetting the emulator clears
-these records; cartridge save support is not implemented yet.
+The selected setup carries across catalog maps. Closing or resetting the
+emulator clears the session; cartridge save support is not implemented yet.
 
 WHAT IS IN THIS DEMO
 --------------------
 - Native GBA ROM, C++ / Butano / devkitARM.
-- Fixed and runtime-random 8k wastelands with connected floor, canyon walls,
-  six settlement icons, live minimaps and real town scene unload/reload.
+- Eight catalog-selected 8k procedural maps with fixed seeds, connected floor,
+  canyon walls, six settlement icons, live minimaps and a town/garage scene loop.
 - Five pooled enemy drivers, world-wide spawn points, cooldowns and despawning.
-- Forward guns, three-hit enemies and invincible player HP.
-- Selectable modular 16384 x 16384 Lakeside Commons, built from the same terrain
-  and repeated placements of existing props. Asphalt, gravel, dirt and grass are
-  drivable; water, trees, rocks, fences and buildings have explicit blockers.
-- Playable 1280 x 1280 lakeside circuit imported from maps/map2/background.png:
-  starting straight, waterfall, mountain bends, bridge, and linked hairpins.
+- Forward guns, three-hit enemies, player health and a rechargeable shield.
 - 64-direction pixel-art car with a fixed elevated view; no 3D renderer.
 - Fixed-point momentum, speed-dependent steering, grip-limited sliding,
   braking, reverse, and slower curb shoulders. The handling presets are unchanged.
-- Road-edge collisions keep the car out of water, cliffs, buildings and trees.
-  The circuit has asphalt and narrow grassy shoulders; dirt is in the Commons.
-- Camera look-ahead, zoomable wasteland overview with live enemy dots, local radar on comparison maps.
+- Terrain collisions keep the car out of canyon walls and town buildings.
+- Camera look-ahead and a zoomable circular overview with live enemy dots.
 - Skid/dust particles and simple synthesized engine, tire, impact, and UI sounds.
 - Title screen, pause/help screen, and paused minimap settings menu.
-- Editable Tiled map and reusable kit in maps/open_world; see its README.md.
+- Local browser workshop backed by the same shared map catalog compiled into the ROM.
 
 This is the driving foundation for an original vehicle-adventure RPG,
 inspired by Racing Gears Advance's handling and Car Battler Joe's vehicle
@@ -255,10 +242,18 @@ without -NoBuild after changing C++ generator code. -BuildOnly builds the engine
 without starting the server; -Port chooses a different loopback port.
 
 The editor provides a draggable node graph with typed input/output connections,
-live intermediate previews, undo/redo, browser draft persistence, JSON import/
+live intermediate previews, undo/redo, shared-library persistence, JSON import/
 export, PNG captures, before/after comparison, floor-region overlays, exact
 refined collision, game textures, and a nine-seed preview grid. Changing settings keeps the seed;
 the refresh button chooses a new seed. Click a seed thumbnail to explore it.
+The Map selector loads entries from maps/map-library.json. New starts a blank
+draft, Save updates its catalog entry, and Save As creates a separate entry.
+Drafts may be incomplete while Include in game is off. Enabling that checkbox
+requires a complete valid graph; enabled entries appear on the ROM title screen
+after the next build. Delete map removes the selected catalog entry. The local
+server uses revision checks and atomic file replacement to prevent stale tabs
+from silently overwriting newer saves. Unsaved edits are recovered per map in
+the browser when the catalog revision still matches. Ctrl+S also saves.
 Drag between output and input ports in either direction to connect them; dropping
 onto an occupied input replaces its connection. Outputs can feed multiple inputs.
 Click the x beside a connected input to disconnect it. Escape or dropping on
@@ -272,8 +267,9 @@ selection-following controls. Duplicate/Delete act on the node in Node Settings.
 The temporary cellular iteration slider also works through downstream previews.
 Pins clear when their node is removed or a different recipe is loaded.
 The desktop workshop fits the browser window with a single compact toolbar and
-graph heading. The graph scrolls independently; the preview scales to the space
-available. Small windows or large text may require scrolling inside a panel.
+graph heading. Drag empty graph space to pan without bounds and use the mouse
+wheel to zoom around the pointer. The graph has no scrollbars. The preview scales
+to the space available. Small windows or large text may require scrolling inside a panel.
 The built-in Guide describes mask semantics and the individual controls.
 
 Game textures previews the actual terrain art using the same C++ tile selector
@@ -290,7 +286,7 @@ Choose the Populated wasteland preset or add Enemy spawns and Decoration nodes.
 They are independent final outputs applied to the selected wall/floor world.
 New nodes become their respective output automatically; Use as spawn/decoration
 output selects another branch. JSON stores spawnOutput and decorationOutput.
-The active maps/wasteland.json includes both outputs. Older recipes retain legacy
+The Wasteland catalog entry includes both outputs. Older recipes retain legacy
 encounters and no decoration. Ground output remains optional in version 3.
 
 Enemy spawns has Target count (0-258), Minimum spacing (0-1024 world pixels),
@@ -334,9 +330,12 @@ four ground swatches. Additional IDs can map to these swatches; adding new art
 also requires extending the swatch extraction in tools/wasteland_assets.py.
 
 Start with the Natural ground preset (also maps/recipes/natural-ground.json).
-Its Value noise -> Field to materials -> Ground materials branch assigns four
-IDs by value ranges. Fill material creates a uniform base. Paint material
-replaces IDs wherever its mask is 1; chain these nodes for more material areas.
+Its Value noise -> Stepped LUT -> Ground materials branch turns the input into
+value bands, then interprets those values as material IDs. Position 0 is fixed;
+its output is editable. Click the LUT histogram to add up to 255 movable points.
+Select a point to edit its preview color and value/ID or delete it. Each point changes the output from its position
+onward. Constant field creates a uniform base. Paint field value replaces
+values wherever its mask is 1; chain these nodes for more material areas.
 Select a Ground materials node and choose Use as ground output. The Playable
 world node remains the wall/floor output. Pin material settings while previewing
 Final world / Game textures to tune areas live. Material edges follow the 64x64
@@ -365,8 +364,8 @@ north approaches at town cells are excluded, with routes using their open plazas
 The paths are shortest on this valid road graph. They are not diagonal paths or
 smoothed splines. Rebuild to use exported road settings in the game.
 
-Build the example with ./build.ps1 -Recipe maps/recipes/town-roads.json.
-The active ROM includes constant-width roads and the exported ground settings.
+The Town roads catalog entry demonstrates constant-width roads and ground settings.
+Run ./build.ps1 after saving to include it in the ROM.
 Current full terrain previews are artifacts/map_editor/roads-full-map.png and
 active-full-map.png. Road storage in the shared source is 4,104 bytes;
 the generation workspace is 45,136 bytes and reuses the existing flood queue.
@@ -394,20 +393,17 @@ The finalizer enforces a two-cell solid border, retains connected floor, reports
 fallback clearing use, and carves the original spawn and six outpost approaches.
 
 To use a recipe in the ROM:
-  1. Choose the wall/floor output and optional ground output, then export JSON.
-  2. Save it as maps/wasteland.json.
+  1. Create or load a map in the workshop and choose its final outputs.
+  2. Turn on Include in game and press Save or Save As.
   3. Run ./build.ps1, then ./test.ps1 and playtest the resulting ROM.
-The asset generator compiles that recipe into include/generated/wasteland_recipe.h.
+The local server writes maps/map-library.json. The asset generator compiles every
+enabled entry into include/generated/wasteland_recipe.h.
 Do not hand-edit the generated header. The ROM executes the recipe at runtime;
-no layout bitmap is baked into it. Fixed mode uses the exported recipe's seed, while Random mode supplies a fresh
-seed. The default build reads maps/wasteland.json, copied from the user's
-export maps/wasteland (2).json: seed 12648431, fixed road width 160px, and its
-independent ground-material branch. The legacy recipe remains in
-maps/recipes/wasteland.json for comparison.
-To build a separate saved recipe without replacing it, use:
-  ./build.ps1 -Recipe maps/recipes/natural-ground.json
-This writes dist/dustline.gba; ./build.ps1 returns to the active maps/wasteland.json.
-A tested example ROM is also available at dist/dustline-natural-ground.gba.
+no layout bitmap is baked into it. Each entry always uses its saved seed. The
+default Wasteland entry has seed 12648431, fixed road width 160px, an independent
+ground-material branch, spawn points and decoration. Standalone JSON import and
+export remain available for exchange and backups; they do not change the shared
+catalog until saved through the workshop.
 Graph positions and labels are editor-only; unconnected branches are not exported.
 
 Both recipe versions are bounded: 64x64 logical cells, 32 total nodes, six live
@@ -432,12 +428,11 @@ For the DOM integration checks (no browser rendering), install the pinned test
 helper and run:
   npm install --prefix build/map-editor-ui --no-save --package-lock=false jsdom@26.1.0
   node tools/test_map_editor_ui.mjs
-To test the example material ROM after its -Recipe build:
+To test the Natural ground catalog entry:
   docker run --rm --mount "type=bind,source=$PWD,target=/work" dustline-build:1 python3 tools/test_material_rom.py
 Run ./test-map-editor.ps1 first for its render fixtures; ./test.ps1 supplies the
-emulator bridge. The full default gameplay routes assume the original surfaces.
-For the road example, build maps/recipes/town-roads.json and run the same Docker
-command with tools/test_road_rom.py. It also checks driving across the road
+emulator bridge. For Town roads, run the same Docker command with
+tools/test_road_rom.py. It also checks driving across the road
 overlay and the additional grid allocation/release.
 The separate material-ROM smoke test checks terrain pixels, grip, restart,
 scene release and a short controller-driven route; subjective handling still
@@ -454,37 +449,22 @@ The test script runs the actual dist ROM in headless libmGBA 0.10.1, sends
 normal GBA joypad input, and reads exported telemetry through ELF symbols.
 It never teleports the car or writes game state to make tests pass.
 
-It checks boot, acceleration, coasting, reverse, steering, throttle-release
-behavior, pause, setup changes, boundary collisions, checkpoint gating,
-and a complete controller-driven lap. It also measures the frame budget.
-It additionally selects all four maps, drives the Commons test route through
-multiple chunks and surface types, checks streamed pixels, tests solid
-boundaries and pause, then switches scenes again to exercise cache invalidation.
-The route now visits all sixteen Commons sectors, crossing former map edges
-and many more chunks than fit in the nine-slot decoded cache. Tests check actual
-runtime decompression, reuse while stationary, invalidation on scene switches,
-frame timing and streamed pixels. Exact results and peak timings are recorded
-in artifacts/test-results.json, excluding car/UI/particles from pixel checks.
-Host tests also compare every packed chunk against the original uncompressed
-IDs using the actual C++ decoder, including eviction, raw fallback and bad input.
-The long route drives both axes beyond 15,000 pixels and checks minimap placement
-throughout. The far eastern world boundary is also tested under continuous
-throttle. The comparison-map tests do not include AI; five-slot combat is tested
-separately in wastelands. These checks do not replace human playtesting.
+It checks title catalog enumeration, every enabled map's fixed seed, repeatable
+generation, acceleration, camera look-ahead, pause and frame budget. Exact
+results and peak timings are recorded in artifacts/test-results.json, excluding
+car, UI and particles from terrain pixel comparisons.
 The procedural generator has a 128-seed host sweep: determinism, independent
 four-connected flood-fill verification, placement separation, car clearance,
 and traversable coarse-cell links. ROM tests compare the GBA's seed/signature
 with that same host generator, exercise Yes/No and repeated town visits, exact
-return coordinates, held-button protection, memory release, random reseeding,
-canyon collisions and rendered pixels. Loading is separate from driving-frame
-profiling. Emulator captures at far-east/far-southeast show distant Commons
-regions; artifacts/wasteland contains the new scene and generator evidence.
-Tests also check the visible town artwork above its prompt, every fixed-overview
+return coordinates, held-button protection, catalog switching, canyon collisions
+and rendered pixels. Loading is separate from driving-frame profiling.
+Tests also check the visible town artwork above its prompt, every overview
 cell, town dots, player-marker alignment, one-upload stability while driving,
 newly exposed HUD space, and town-only setup controls. Settings tests cover the
-all four wasteland image zooms and comparison-map radar scales, frozen motion, held-button
+four image zooms, frozen motion, held-button
 protection, town/map persistence, unchanged driving VRAM and frame timing.
-Combat tests check three-hit destruction, enemy movement/firing, invincibility,
+Combat tests check three-hit destruction, enemy movement/firing, health and shield,
 terrain impacts, bounded projectiles, menu freezing and town persistence.
 Traffic tests leave the player idle for 25 seconds, verify ongoing enemy motion,
 vehicle sensing, forward-only fire and separation, then ram using joypad input.
@@ -503,13 +483,7 @@ Evidence:
   artifacts/driving.png       Native emulator driving screenshot
   artifacts/controls.png      Native emulator help screenshot
   artifacts/cornering.png     Native emulator cornering screenshot
-  artifacts/map2/bridge.png   Emulator capture while driving across the bridge
-  artifacts/lap-complete.png  Completed lap
-  artifacts/demo.gif          Controller-driven lap capture (2x, ~10 fps)
-  artifacts/track.png         Generated track overview, not an emulator capture
-  artifacts/open_world/      Commons emulator captures, overview, collision mask
-                              and exact ROM/VRAM asset budget report
-  artifacts/wasteland/       Fixed-layout overview, tiles, emulator captures,
+  artifacts/wasteland/       Catalog snapshot, overview, tiles, emulator captures,
                               generated seed fixtures and art budget report
   artifacts/settings/        Settings menu and all four minimap zoom captures
   artifacts/combat/          Enemy/gunfire captures, route GIF and combat results
@@ -526,41 +500,20 @@ handling feel and audio balance still need your controller playtest. This
 build has not been tested on a physical cartridge or inside your RetroArch
 installation. Its native ROM was verified using the mGBA emulator core.
 
-MAP2 IMPORT AND LIMITATIONS
----------------------------
-The 1254x1254 input is resized to 1280x1280 with nearest-neighbor sampling.
-The original PNG is untouched. Terrain uses 240 colors, plus a reserved UI
-palette bank, at full world-pixel resolution. A content-shared tile cache covers
-a 31x21 tile camera window, uploading new graphics during VBlank. The detailed
-circuit reserves 672 slots (42 KiB). During driving,
-terrain and HUD use 48 KiB of background VRAM. About 28 KiB of sprite VRAM
-remains in the tested lap. Combat cars/effects are only instantiated in wastelands,
-not in this detailed circuit; its AI performance has not been benchmarked.
-
-The input artwork's lower inner bend is a dead end. The importer adds a short
-paved connector to the lower-left road so the route forms a complete circuit.
-artifacts/map2/connector-before-after.png shows this change. The original
-bottom junction remains visible; ordered checkpoints prevent shortcut laps.
-
-No mask was supplied. tools/import_map2.py detects connected tan pavement,
-fills lane-marking gaps, and adds a narrow forgiving shoulder. Everything
-beyond that driving corridor is solid. Collision tests use a 7px circular
-car footprint against a 4px grid; they do not simulate terrain height.
-The bridge is a flat drivable surface. The mask is a first authored inference
-and needs human edge-feel review, especially around the new connector.
-
-artifacts/map2/route-overlay.png shows the route; collision-mask.png shows
-road, shoulder and blocked ground. converted.png is the GBA-palette artwork.
-course.json records source hash, checkpoints, dimensions and asset budgets.
-The generator and streamer are separate from the fixed-point physics.
-
 PROCEDURAL WASTELAND PIPELINE
 -----------------------------
-See maps/overworld/README.md for generation rules and art provenance. The actual
-provided reference is maps/open_world/wasteland.png (preserved untouched).
-maps/overworld/wasteland-kit.png is an original image-tool-generated tile kit
-based on that reference; art-prompt.txt records its prompt. The build extracts,
-downsamples, quantizes and deduplicates it through tools/wasteland_assets.py.
+See maps/overworld/README.md for generation rules and art provenance.
+maps/overworld/wasteland-kit-muted.png and wasteland-details-muted.png are the
+current environment sources, generated with the built-in image tool from the
+supplied muted wasteland style reference. muted-art-prompts.txt records both
+prompts. The build extracts, downsamples, quantizes and deduplicates the art
+through tools/wasteland_assets.py and tools/generate_assets.py. The earlier
+source kit and maps/open_world/wasteland.png are preserved.
+Four ground materials and both wall textures repeat at 32px. Town stamps are
+64px; grass, scrub, rocks and twigs use transparent 16px patches. The editor's
+Game textures / Full map render views use the same artwork as the ROM.
+artifacts/wasteland/muted-art-proof.png shows 3x3 texture repeats and all four
+details composited over each ground material. Alpha is binary on the GBA.
 
 The on-GBA generator operates on a 64 x 64 byte grid, one cell per 128 world
 pixels. It seeds 47% walls, applies five 4/5-neighbour smoothing passes, keeps
@@ -578,21 +531,22 @@ and 4,104 bytes when Town roads is enabled. The bounded recipe workspace is
 45,136 bytes (six grid buffers, 12,288 bytes of scratch, a staging layout and
 road grid) and is freed before scene graphics load. There is no full 8k bitmap in RAM/ROM.
 Terrain pixels and collision are evaluated from the coarse layout as needed.
-This procedural mode does not use the Commons LZ77 chunk format: generation
-replaces its authored layout storage. Commons compression remains unchanged.
-170 unique 8px artwork tiles fit a 192-slot reservation: 12 KiB terrain VRAM,
+180 unique 8px artwork tiles fit a 192-slot reservation: 12 KiB terrain VRAM,
 18 KiB including the streamed map and driving HUD. The modal adds 4 KiB; the
 decoration layer adds 6 KiB of background VRAM and about 4.5 KiB of streaming RAM.
+The complete wasteland tile set uploads during scene loading and stays resident.
+Driving updates only newly exposed tile-map rows/columns, with no artwork
+eviction or whole-view cache pinning.
 Wasteland HUD, pause, town screens and decoration now use 4bpp. Decoration pixel
 data shrinks from 1,088 to 544 bytes; its allocated VRAM still rounds up to a
 2 KiB block, so normal driving remains at 24 KiB total background allocation.
 UI pixel storage is also halved (maps remain 16-bit). Lossless RGB5 palette
-compaction retains every terrain colour in 192 entries, leaving a separate
-16-colour bank for UI/decoration. Terrain stays 8bpp: 165/170 current tiles
-need more than 15 opaque colours, with up to 48 colours in one tile.
+compaction fits the muted terrain palette into 80 entries, leaving separate
+16-colour banks for UI and scenery. Terrain stays 8bpp: 91/180 current tiles
+need more than 15 opaque colours.
 Its density/settings occupy 4,120 bytes, and saved spawn coordinates use 1,036
 bytes. The temporary spawn weight field is freed after generation. Decoration
-art has 17 transparent 8px tiles sharing the UI palette bank. The
+art has 17 transparent 8px tiles with its own muted 16-colour palette bank. The
 blank town uses only 4 KiB total background VRAM. The zoomable 64x64 overview uses
 2 KiB of sprite VRAM, 2 KiB of staging RAM, a 4 KiB source image and a dedicated
 16-color palette. Five enemy dots share one 32-byte tile and the existing sprite
@@ -609,98 +563,16 @@ anchor plus a count). Inactive anchors run no physics or AI. Nearby anchors are
 scanned every eight driving frames and at most one car is activated per scan.
 Wasteland overview generation reads only wall cells and road-connection bits;
 there are no terrain/material samples while driving. Zoomed crops reuse packed
-rows and precomputed circle masks, updating only on display-pixel crossings. Comparison
-radars use fast internal RAM and packed interior pixel writes.
+rows and precomputed circle masks, updating only on display-pixel crossings.
 Town entry releases the terrain renderer and radar, retaining only the run
 layout, car/camera state and shared UI/car/particle resources. Returning rebuilds
-graphics from that same layout; it does not reroll the world. The layout itself
-is freed when loading either comparison map. Randomness uses input/frame timing,
-not hardware entropy: replaying identical timing after reboot is reproducible.
+graphics from that same layout; it does not reroll the world. Selecting a new
+catalog entry releases the previous layout and regenerates from the saved seed.
 
 This is a first reusable art pass: texture repetition, coarse map-scale shapes,
 simple material boundaries and conservative town hitboxes remain visible.
 The layout is connected, but route variety, travel times, wall readability and
 cornering comfort need human controller testing. No world/seed persistence yet.
-
-MODULAR WORLD PIPELINE
-----------------------
-maps/open_world/world.tmj is an editable Tiled map. terrain.tsj defines
-surface properties; props.tsj defines collision rectangles. All three are
-preserved when rebuilding. The source-kit.png was generated using the circuit
-as a style reference with the built-in image tool; art-prompt.txt records the
-prompt. Derived PNGs and runtime headers are regenerated by tools/open_world.py
-through the normal generate_assets.py entry point. See maps/open_world/README.md
-for authoring instructions and supported input constraints.
-
-The 16384-square world uses 16-pixel metatiles arranged in 256-pixel chunks.
-Earlier layouts are preserved at maps/open_world/world-2048.tmj and world-4096.tmj.
-The expansion
-repeats its districts, opens internal borders, connects roads and clears only
-props intersecting those connectors. No new graphics or palette colors were added:
-the same 1,397 graphics serve sixteen times the 4096 map's area, with 9,296 props.
-Graphics, compressed layout, collision definitions and radar data use 137,736
-ROM bytes (134.5 KiB). This includes a 6,464-byte packed radar surface table.
-Exact sizes are recorded in artifacts/open_world/report.json.
-The build covers 4,096,551 camera-tile positions: the busiest Commons view
-needs 476 unique tiles, rounded up to 480 slots (30 KiB of terrain VRAM).
-Including its map and compact HUD, Commons background VRAM use is 36 KiB while driving,
-down from the original 52 KiB. This frees 16 KiB without changing its terrain art.
-The circuit still needs its larger cache because most of its art is unique.
-The cache adds about 5 KiB of bookkeeping in ordinary RAM (13,944 bytes total
-for the renderer object), separate from VRAM. Its hot loop uses about 2 KiB
-of fast internal RAM for ARM code. Large camera jumps rebuild the view in a
-brief hidden loading phase, keeping that work separate from physics/HUD frames.
-Over 26 KiB of sprite VRAM remains free in the existing driving tests.
-The scene is assembled from repeated graphics rather than a unique giant PNG;
-static props are flattened into background tiles during import, not allocated
-as one hardware sprite per object. Source and editor files are not loaded by GBA.
-
-Cache capacity is recomputed after layout edits. Every next-view tile is pinned
-before old slots can be evicted; repeated tiles are uploaded only once. Tests
-exercise 109,607 representative camera windows across all 123 distinct chunk
-neighbourhoods, plus 10,000 random jumps,
-along with emulator driving and scene changes. Runtime telemetry reports the actual
-allocation, unique visible tiles and renderer working RAM footprint.
-
-Chunk compression is enabled in the ROM. The 4,096 world chunk positions reference
-101 deduplicated chunks. These are losslessly LZ77-compressed independently; all chunks
-round-trip during generation. A raw fallback handles incompressible future chunks.
-The compression report includes offsets, alignment and the 8 KiB chunk-ID grid.
-Layout storage is 28,880 bytes versus 59,904 after deduplication (51.8% saved
-by compression alone). The entire chunk-ID grid stays in ROM, not working RAM.
-See artifacts/open_world/compression.json for current measurements; the older
-compression-estimate.json is retained only as historical evidence.
-Graphics and collision share a nine-slot decoded chunk cache: 512 bytes per
-chunk, 4,652 bytes total including tags/counters, regardless of world dimensions.
-Chunks decode on first access and are reused until their slot is replaced.
-The camera and car normally touch only nearby chunks; large camera jumps reload on
-demand. There is no full-map RAM copy and no per-frame heap allocation.
-This saves ROM, not unpacked graphics VRAM. The 30 KiB terrain cache is unchanged.
-The radar samples a separate ROM-only, two-bit surface table at 16px resolution,
-sharing the chunk-ID grid. Wide views therefore do not decompress distant chunks
-or evict the camera/physics cache. Actual collision retains its 4px resolution.
-
-This first kit has grid-based road/shore transitions, conservative rectangular
-tree/building collisions and no canopy occlusion. Grass and dirt are genuinely
-drivable. No garage interactions, NPCs or traffic were added to Commons. Combat
-and its performance tests are confined to the wasteland maps.
-Larger layouts can use the same format, but only layouts up to 16384-square have
-been exercised. The editor's terrain auto-brush configuration is not yet included.
-
-The importer composes only distinct 256px source chunks; it does not allocate a
-16384-square RGB image. Its 4px collision mask still covers the whole world for
-connectivity validation. The exact VRAM capacity audit reuses identical 2x2 chunk
-neighbourhoods, including edge-clamping: this covers every legal camera origin,
-not a random sample. A brute-force regression test validates this optimization.
-overview-small.png is the current overview; reference-atlas.png plus
-reference-layout.json provide lossless full-resolution reference pixels for tests.
-collision.png and surfaces.png use one pixel per 4 world pixels. The old
-overview.png is retained as historical 4096-square output and is not regenerated.
-Integer-pixel local radar coordinates avoid fixed-point overflow far from spawn.
-
-The World Machine panning mode has been removed. Its original inputs in
-maps/map1 and historical captures in artifacts/map1 are retained as references.
-Older artifacts outside the current evidence list may describe earlier ROMs.
 
 PROJECT FILES
 -------------
@@ -711,26 +583,21 @@ include/driving.h          Vehicle data, tuning presets, and physics interface
 src/driving.bn_iwram.cpp   Motion, surfaces, and collision response (ARM hot loop)
 src/main.cpp               Input, camera, presentation, lap rules, and audio
 tools/generate_assets.py   Original procedural graphics, map data, and audio
-tools/import_map2.py       Imported artwork, road repair, surface grid and route
-tools/open_world.py        Reusable kit import, Tiled layout and chunk compiler
 src/world_map.cpp          Selected scene, ROM tile lookup and surface queries
 src/terrain_streamer.bn_iwram.cpp  Terrain tile cache and VBlank uploads
-include/terrain_cache.h    Shared tile lookup, pinning and eviction logic
-tools/map_storage_audit.py Exhaustive tile capacity audit and chunk compression
-include/chunk_cache.h      Runtime LZ77 decoder and fixed nine-chunk RAM cache
-tools/test_chunk_cache.cpp Exact decoder/cache host regression tests
-tools/expand_open_world.py Explicit one-time 2048-to-4096 layout migration
-tools/expand_world_16k.py   Explicit one-time 4096-to-16384 layout migration
-tools/world_compile.py     Chunk-local asset composition and connectivity checks
-tools/world_reference.py   Lossless chunk-addressed emulator pixel reference
-tools/test_map_storage.py  Independent exhaustive-audit and connectivity tests
-tools/test_terrain_cache.cpp Host stress test of the actual runtime cache
+maps/map-library.json      Shared editor and ROM map catalog
+tools/compile_recipe.py    Catalog validation and generated C++ recipe compiler
+tools/serve_map_editor.py  Loopback editor server and atomic catalog save API
 tools/emulator_bridge.c    Thin headless mGBA adapter for integration tests
 tools/test_rom.py          Joypad-driven checks and capture generation
 include/cave_layout.h      Shared integer cellular automaton and flood fill
 src/wasteland.cpp          Runtime procedural tiles and surface queries
 src/local_minimap.bn_iwram.cpp Zoomable wasteland image / enemy dots / local radar
 tools/wasteland_assets.py  Reference-derived tile kit compiler and budget report
+tools/town_assets.py       Native town backgrounds and walking sprite generation
+include/town_scene.h       Walkable town/interior state and interaction interface
+src/town_scene.cpp         Town movement, collision, doors and mechanic menu
+tools/test_town_scene.py   Controller-driven town/garage vertical-slice test
 tools/test_cave_layout.cpp Host seed sweep, clearance checks and seed export
 tools/test_wasteland.py    Procedural graphics and town lifecycle ROM tests
 tools/test_settings.py     Paused settings, zoom levels and persistence ROM tests
@@ -748,8 +615,7 @@ tools/Dockerfile           Isolated compiler and test dependencies
 Generated graphics/, audio/, and include/generated/ are deliberately ignored
 by Git. Regenerate them through build.ps1. The asset generator is their source
 of truth. Tuning acceleration, grip, top speed, and steering starts in
-include/driving.h. The current route starts with WAYPOINTS in import_map2.py.
-The previous procedural course remains as an unused track() generator function.
+include/driving.h.
 
 CREDITS / THIRD-PARTY SOFTWARE
 -----------------------------

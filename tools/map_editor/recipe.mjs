@@ -1,4 +1,48 @@
 export const MAX_NODES = 32;
+export const LUT_MAX_POINTS = 255;
+export const PARAM_WORDS = 64;
+const LUT_COLORS=['#759bc7','#d6a466','#83ad79','#bd7f9f','#9a8ac7','#63aaa2','#c58a67','#a4a766'];
+export const defaultLutColor=value=>LUT_COLORS[((value*37)^(value>>2))%LUT_COLORS.length];
+function normalizeLut(node) {
+  if(!Array.isArray(node.p) || !Number.isInteger(node.p[0]) || node.p[0]<0 || node.p[0]>LUT_MAX_POINTS)return;
+  const count=node.p[0];
+  if(node.p.length>=2+count*2)node.p=node.p.slice(0,2+count*2);
+  const outputs=[node.p[1],...Array.from({length:count},(_,i)=>node.p[3+i*2])];
+  node.colors=outputs.map((output,i)=>/^#[0-9a-f]{6}$/i.test(node.colors?.[i]??'')?node.colors[i]:defaultLutColor(Number.isInteger(output)?output:0));
+}
+function upgradeNode(node) {
+  if(node.type==='material_fill') {
+    node.type='field_fill';
+    if(node.label==='Fill material')node.label='Constant field';
+  }
+  if(node.type==='material_paint') {
+    node.type='field_paint';
+    if(node.label==='Paint material')node.label='Paint field value';
+  }
+  if(node.type==='material_bands') {
+    if(Array.isArray(node.p) && node.p.length===7) {
+      const boundaries=node.p.slice(0,3),values=node.p.slice(3),points=[];
+      let initial=values[0];
+      boundaries.forEach((position,index)=>{
+        const output=values[index+1];
+        if(position===0)initial=output;
+        else if(points.at(-1)?.position===position)points.at(-1).output=output;
+        else points.push({position,output});
+      });
+      node.p=[points.length,initial,...points.flatMap(point=>[point.position,point.output])];
+    }
+    node.type='field_lut';
+    if(node.label==='Field to materials')node.label='Stepped LUT';
+  }
+  if(node.type==='field_lut')normalizeLut(node);
+}
+function compiledParameters(node) {
+  if(node.type!=='field_lut')return node.p;
+  const pairs=Array.from({length:node.p[0]},(_,i)=>[node.p[2+i*2],node.p[3+i*2]]).sort((a,b)=>a[0]-b[0]);
+  const lookup=new Uint8Array(256);let output=node.p[1],point=0;
+  for(let input=0;input<256;++input){while(point<pairs.length&&pairs[point][0]<=input)output=pairs[point++][1];lookup[input]=output;}
+  return Array.from({length:PARAM_WORDS},(_,word)=>(lookup[word*4]|lookup[word*4+1]<<8|lookup[word*4+2]<<16|lookup[word*4+3]<<24));
+}
 export function compile(recipe, schema, target = recipe.output, validateAll = true) {
   const fail = message => { throw new Error(message); };
   const integer = (value, lo, hi, name) => {
@@ -10,6 +54,7 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
   const ops = new Map(schema.operations.map((op, index) => [op.id, { ...op, index }]));
   const nodes = new Map();
   for (const node of recipe.nodes) {
+    upgradeNode(node);
     integer(node.id, 1, 0x7fffffff, 'Node ID');
     if (nodes.has(node.id)) fail('Node IDs must be unique.');
     const op = ops.get(node.type);
@@ -20,12 +65,19 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
       integer(node.p[0],8,256,'Minimum road width');integer(node.p[2],node.p[0],256,'Maximum road width');
       node.p=[node.p[0]===node.p[2]?node.p[0]:Math.floor((node.p[0]+node.p[2]+8)/16)*8,node.p[1]];
     }
-    if (!Array.isArray(node.p) || node.p.length !== op.parameters.length) fail(`Invalid parameters on node ${node.id}.`);
-    op.parameters.forEach((p, i) => {
-      integer(node.p[i], p[2], p[3], p[0]);
-      if (p[4] === 'neighbours' && ![4, 8].includes(node.p[i])) fail('Choose 4 or 8 neighbours.');
-    });
-    if(node.type==='material_bands' && (node.p[0]>node.p[1] || node.p[1]>node.p[2])) fail('Material boundaries must be in ascending order.');
+    if(node.type==='field_lut') {
+      if(!Array.isArray(node.p) || !Number.isInteger(node.p[0]) || node.p.length!==2+node.p[0]*2)fail(`Invalid LUT data on node ${node.id}.`);
+      integer(node.p[0],0,LUT_MAX_POINTS,'Point count');integer(node.p[1],0,255,'Initial output');
+      for(let i=0;i<node.p[0];++i){integer(node.p[2+i*2],1,255,`Point ${i+1} position`);integer(node.p[3+i*2],0,255,`Point ${i+1} output`);}
+      const positions=Array.from({length:node.p[0]},(_,i)=>node.p[2+i*2]);
+      if(new Set(positions).size!==positions.length)fail('Stepped LUT points need unique positions.');
+    } else {
+      if (!Array.isArray(node.p) || node.p.length !== op.parameters.length) fail(`Invalid parameters on node ${node.id}.`);
+      op.parameters.forEach((p, i) => {
+        integer(node.p[i], p[2], p[3], p[0]);
+        if (p[4] === 'neighbours' && ![4, 8].includes(node.p[i])) fail('Choose 4 or 8 neighbours.');
+      });
+    }
     nodes.set(node.id, node);
   }
   if(recipe.version===2 && nodes.get(recipe.materialOutput)?.type!=='materials') fail('Choose a Ground materials output.');
@@ -54,9 +106,9 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
   ordered.length = 0; done.clear(); visit(target);
   const indices = new Map(ordered.map((id, i) => [id, i]));
   const program = ordered.map(id => {
-    const n = nodes.get(id);
+    const n = nodes.get(id),params=compiledParameters(n);
     return [ops.get(n.type).index, ...['a', 'b', 'mask'].map(p => indices.get(n.inputs?.[p]) ?? -1),
-      n.stream ?? 0, ...n.p, ...Array(8 - n.p.length).fill(0)];
+      n.stream ?? 0, ...params, ...Array(PARAM_WORDS - params.length).fill(0)];
   });
   const last = program.map((_, i) => i);
   program.forEach((n, i) => n.slice(1, 4).forEach(source => { if (source >= 0) last[source] = i; }));
@@ -67,7 +119,9 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
 
 export function makeNode(schema, type, id, x = 40, y = 40) {
   const op = schema.operations.find(op => op.id === type);
-  return { id, type, label: op.name, inputs: {}, stream: op.random ? id : 0, p: op.parameters.map(p => p[1]), x, y };
+  const node={ id, type, label: op.name, inputs: {}, stream: op.random ? id : 0, p: op.parameters.map(p => p[1]), x, y };
+  if(type==='field_lut'){node.p=[3,0,96,1,144,2,192,3];normalizeLut(node);}
+  return node;
 }
 
 export function presets(schema, original) {
@@ -99,7 +153,7 @@ export function presets(schema, original) {
       const r=structuredClone(original);r.name='Natural ground';r.version=2;
       const first=Math.max(...r.nodes.map(n=>n.id))+1;
       const noise=makeNode(schema,'noise',first,40,280);noise.p=[12,3];
-      const bands=makeNode(schema,'material_bands',first+1,280,280);bands.inputs.a=first;
+      const bands=makeNode(schema,'field_lut',first+1,280,280);bands.inputs.a=first;
       const output=makeNode(schema,'materials',first+2,520,280);output.inputs.a=first+1;
       r.nodes.push(noise,bands,output);r.materialOutput=output.id;return r;
     })()];

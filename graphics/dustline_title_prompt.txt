@@ -1,0 +1,9 @@
+Built-in image generation edit prompt, 2026-09-22
+
+Use case: precise-object-edit
+Asset type: Game Boy Advance title-screen background source
+Primary request: Remove only the words "PRESS START" and their black shadow/outline from the lower center of the image. Reconstruct the desert ground and plants behind the removed lettering so the repair is invisible.
+Input image: graphics/dustline-title.png is the edit target.
+Constraints: Preserve the exact composition, Dustline logo, EXPLORE / FIGHT / UPGRADE / SURVIVE text, car, skyline, road, mountains, colors, pixel-art style, dimensions, framing, and every other detail. Change only the lower-center PRESS START lettering area. Keep crisp pixel-art edges. Add no new text, symbols, UI, borders, logos, or watermarks.
+
+The built-in editor returned a clean 3:2 source at 1536x1024. The asset pipeline fits it to the GBA's 240x160 viewport, darkens the bottom UI footer, and quantizes it for 8bpp display.

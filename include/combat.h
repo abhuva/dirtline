@@ -5,9 +5,10 @@
 
 // Bounded, fixed-point simulation. No sprites, audio or allocation in this layer.
 namespace combat {
-constexpr int enemy_count=5, bullet_count=24, enemy_hp=3, player_max_hp=100;
+constexpr int enemy_count=5, bullet_count=24, enemy_hp=3, player_max_hp=100,player_max_shield=20;
 constexpr int spawn_range=560, despawn_range=800, spawn_cooldown=1800;
 constexpr int player_range=120, enemy_range=480, player_interval=10, enemy_interval=player_interval;
+constexpr int shield_recharge_delay=180,shield_recharge_interval=15,revive_invulnerability=120;
 enum class Weapon { gun, chainsaw, sides, missile, trap, count };
 constexpr int weapon_count=int(Weapon::count), missile_count=2, trap_count=6;
 constexpr int saw_radius=10, saw_damage=2, missile_damage=3, trap_damage=3;
@@ -48,14 +49,18 @@ public:
     int guidance_updates=0,trap_explosions=0;
     enemy_spawns spawns;
     int spawned=0,despawned=0;
-    int player_hp=player_max_hp, player_hits=0, player_shots=0, enemy_shots=0;
+    int player_hp=player_max_hp,player_shield=player_max_shield;
+    int player_shield_delay=0,player_invulnerability=0;
+    int player_hits=0, player_shots=0, enemy_shots=0;
     int hits=0,kills=0,wall_hits=0,expired=0,ticks=0;
     int bumps=0,player_bumps=0,last_pair=-1;
     bn::fixed last_bump=0;
-    bool fired=false,impact=false,destroyed=false;
+    bool fired=false,impact=false,destroyed=false,player_destroyed=false;
     void reset(const driving::Car& player,bool enabled,cave_layout::progress_fn progress=nullptr);
     BN_CODE_IWRAM void step(driving::Car& player,bool fire);
     void clear_bullets();
+    void refill_player();
+    void revive_player();
     void cycle_weapon();
     int living() const;
 private:
@@ -68,6 +73,7 @@ private:
     void fire_weapon(const driving::Car& player,bool fire);
     void update_specials(const driving::Car& player);
     void damage(Enemy& enemy,int amount,Weapon source);
+    void damage_player(int amount);
     void explode(int x,int y,int radius,int amount,Weapon source);
     BN_CODE_IWRAM bool hit_at(Bullet& bullet,const driving::Car& player);
 };

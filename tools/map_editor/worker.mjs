@@ -32,7 +32,7 @@ function run(program, seed, {collision=false,textures=false,materialProgram=null
   return {meta,cells,refined,texture,ground,unknown,seed,spawns,patches,requestedSpawns:spawnProgram?.at(-1)[5],decorations:full?decorations:null,tileMap:full?tileMap:null};
 }
 self.onmessage = async ({data}) => {
-  const {id,program,seed,collision,textures,seeds,compare,materialProgram,spawnProgram,decorationProgram,showSpawns,render} = data;
+  const {id,program,seed,collision,textures,seeds,compare,materialProgram,spawnProgram,decorationProgram,histogramProgram,histogramNode,categorical,categoricalColors,showSpawns,render} = data;
   const options={materialProgram,spawnProgram,decorationProgram,showSpawns};
   try {
     if(render){
@@ -44,8 +44,11 @@ self.onmessage = async ({data}) => {
     const start = performance.now();
     const outputs = (seeds ?? [seed]).map(s => run(program,s,{...options,collision,textures,small:!!seeds}));
     const before = compare ? run(compare,seed,{...options,textures}) : null;
-    const response={id,outputs,before,ms:performance.now()-start};
+    let histogram=null;
+    if(histogramProgram){execute(histogramProgram,seed);histogram=new Uint16Array(256);for(const value of engine.HEAPU8.slice(engine._recipe_cells(),engine._recipe_cells()+4096))++histogram[value];}
+    const response={id,outputs,before,histogram,histogramNode,categorical,categoricalColors,ms:performance.now()-start};
     const transfer=outputs.flatMap(o=>[o.cells.buffer,...[o.refined,o.ground,o.texture?.pixels].filter(Boolean).map(a=>a.buffer)]);
+    if(histogram)transfer.push(histogram.buffer);
     self.postMessage(response,transfer);
   } catch (error) { self.postMessage({id,render:!!render,error:error.message}); }
 };

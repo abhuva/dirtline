@@ -1,10 +1,13 @@
-"""Controller-only smoke test after building maps/recipes/town-roads.json."""
+"""Controller-only smoke test for the Town roads shared catalog entry."""
 import hashlib
 import json
 import struct
 import test_rom as t
 
 output=t.OUT/'map_editor'
+library=json.loads((t.ROOT/'maps/map-library.json').read_text())
+game_maps=[entry for entry in library['maps'] if entry['includeInGame']]
+road_index=next(i for i,entry in enumerate(game_maps) if entry['id']=='town-roads')
 reference=t.Image.open(output/'roads-full-map.png').convert('RGB')
 raw=(t.ROOT/'build/map-recipe-tests/roads.render').read_bytes()
 base=(t.ROOT/'build/map-recipe-tests/natural.render').read_bytes()
@@ -15,7 +18,7 @@ def tile(data,x,y):
 assert t.lib.emulator_open(str(t.ROOT/'dist/dustline.gba').encode())
 try:
     t.step(0,90)
-    state=t.start_map(2);t.step(0,30)
+    state=t.start_map(road_index);t.step(0,30)
     t.check('Road recipe allocates ground and connection grids',state['layout_bytes']==4168+4096+4104,state['layout_bytes'])
     t.check_scene_pixels('Road ROM terrain matches exported full-map render',reference)
     t.capture('map_editor/roads-rom-start')
@@ -35,8 +38,8 @@ try:
     t.check_scene_pixels('Moving camera keeps roads aligned with full-map render',reference)
     t.capture('map_editor/roads-rom-driving')
     t.tap(t.START);t.tap(t.SELECT);t.start_map(0)
-    t.check('Leaving wasteland releases road and material grids',t.state()['layout_bytes']==0,t.state()['layout_bytes'])
-    t.tap(t.START);t.tap(t.SELECT);t.start_map(2);t.step(0,30)
+    t.check('Changing catalog map replaces the active generated layout',t.state()['map']==0,t.state())
+    t.tap(t.START);t.tap(t.SELECT);t.start_map(road_index);t.step(0,30)
     t.check_scene_pixels('Restart regenerates road overlay consistently',reference)
 finally:
     t.lib.emulator_close()

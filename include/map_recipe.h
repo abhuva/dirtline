@@ -2,14 +2,14 @@
 #include "cave_layout.h"
 #include "road_network.h"
 
-// Recipe format v1. Inputs refer to earlier instructions; -1 means absent.
+// Recipe wire format. Inputs refer to earlier instructions; -1 means absent.
 // The editor compiles a DAG into this bounded instruction stream. No heap,
 // floating point, JSON parser or editor state is needed on the GBA.
 namespace mapgen {
-inline constexpr int version=1,max_nodes=32,max_buffers=6,words_per_node=13;
+inline constexpr int version=1,max_nodes=32,max_buffers=6,parameter_words=64,words_per_node=5+parameter_words;
 enum class op : int32_t { random, cellular, radial, threshold, combine, blend,
                          invert, largest, noise, plasma, voronoi, world,
-                         material_fill, material_bands, material_paint, materials, material_patches, roads,
+                         field_lut, field_paint, materials, material_patches, roads,
                          spawns, decoration, field_fill, mask_field };
 enum class kind { mask, field, world, material, spawns, decoration };
 enum class error { ok, count, opcode, input, type, parameter, memory };
@@ -17,7 +17,7 @@ struct node {
     op operation;
     int32_t a=-1,b=-1,mask=-1;
     uint32_t stream=0;
-    int32_t p[8]={};
+    int32_t p[parameter_words]={};
 };
 static_assert(sizeof(node)==words_per_node*4,"Recipe wire format must stay fixed");
 inline constexpr node default_nodes[]={
@@ -41,11 +41,11 @@ struct result {
 inline kind output_kind(op operation) {
     if(operation==op::spawns)return kind::spawns;
     if(operation==op::decoration)return kind::decoration;
-    if(operation==op::field_fill || operation==op::mask_field)return kind::field;
+    if(operation==op::materials)return kind::material;
     if(operation==op::roads) return kind::world;
-    if(int(operation)>=int(op::material_fill)) return kind::material;
-    return operation==op::radial || operation==op::blend || operation==op::noise ||
-        operation==op::plasma || operation==op::voronoi ? kind::field :
+    return operation==op::radial || operation==op::blend || operation==op::noise || operation==op::plasma ||
+        operation==op::voronoi || operation==op::field_lut || operation==op::field_paint ||
+        operation==op::material_patches || operation==op::field_fill || operation==op::mask_field ? kind::field :
         operation==op::world ? kind::world : kind::mask;
 }
 inline bool between(int value,int low,int high) { return value>=low && value<=high; }
@@ -57,15 +57,16 @@ inline error validate(const node* nodes,int count) {
         if(int(n.operation)<0 || int(n.operation)>int(op::mask_field)) return error::opcode;
         bool placement=n.operation==op::spawns || n.operation==op::decoration;
         bool unary=n.operation==op::cellular || n.operation==op::threshold || n.operation==op::invert ||
-            n.operation==op::largest || n.operation==op::world || n.operation==op::material_bands ||
-            n.operation==op::material_paint || n.operation==op::materials || n.operation==op::roads || n.operation==op::mask_field;
+            n.operation==op::largest || n.operation==op::world || n.operation==op::field_lut ||
+            n.operation==op::field_paint || n.operation==op::materials || n.operation==op::roads || n.operation==op::mask_field;
         bool binary=n.operation==op::combine || n.operation==op::blend;
         if(n.a<-1 || n.b<-1 || n.mask<-1 || n.a>=i || n.b>=i || n.mask>=i) return error::input;
         if((!placement && (unary || binary)!=(n.a>=0)) || binary!=(n.b>=0)) return error::input;
-        if(n.mask>=0 && n.operation!=op::cellular && n.operation!=op::blend && n.operation!=op::material_paint) return error::input;
-        if(n.operation==op::material_paint && n.mask<0) return error::input;
-        kind expected=n.operation==op::roads?kind::world:placement || n.operation==op::threshold || n.operation==op::blend || n.operation==op::material_bands?kind::field:
-            n.operation==op::material_paint || n.operation==op::materials?kind::material:kind::mask;
+        if(n.mask>=0 && n.operation!=op::cellular && n.operation!=op::blend && n.operation!=op::field_paint) return error::input;
+        if(n.operation==op::field_paint && n.mask<0) return error::input;
+        kind expected=n.operation==op::roads?kind::world:
+            placement || n.operation==op::threshold || n.operation==op::blend || n.operation==op::field_lut ||
+            n.operation==op::field_paint || n.operation==op::materials?kind::field:kind::mask;
         if(n.a>=0 && output_kind(nodes[n.a].operation)!=expected) return error::type;
         if(n.b>=0 && output_kind(nodes[n.b].operation)!=expected) return error::type;
         if(n.mask>=0 && output_kind(nodes[n.mask].operation)!=kind::mask) return error::type;
@@ -98,13 +99,8 @@ inline error validate(const node* nodes,int count) {
         case op::noise: if(!between(p[0],1,32) || !between(p[1],1,5)) return error::parameter; break;
         case op::plasma: if(!between(p[0],0,255)) return error::parameter; break;
         case op::voronoi: if(!between(p[0],2,32) || !between(p[1],0,1) || !between(p[2],1,64)) return error::parameter; break;
-        case op::material_fill: case op::material_paint:
-            if(!between(p[0],0,255)) return error::parameter;
-            break;
-        case op::material_bands:
-            for(int k=0;k<7;++k) if(!between(p[k],0,255)) return error::parameter;
-            if(p[0]>p[1] || p[1]>p[2]) return error::parameter;
-            break;
+        case op::field_paint: if(!between(p[0],0,255)) return error::parameter;break;
+        case op::field_lut: break; // Parameters contain a compiled 256-byte lookup table.
         default: break;
         }
     }
@@ -264,11 +260,10 @@ inline result execute(const node* nodes,int count,uint32_t seed,workspace& work,
             work.roads.generate(work.layout,work.scratch,p[0],p[1],progress);
             for(int at=0;at<cells;++at) out[at]=a[at];
             break;
-        case op::material_fill: for(int at=0;at<cells;++at) out[at]=uint8_t(p[0]); break;
-        case op::material_bands:
-            for(int at=0;at<cells;++at) out[at]=uint8_t(p[3+(a[at]>=p[0])+(a[at]>=p[1])+(a[at]>=p[2])]);
+        case op::field_lut:
+            for(int at=0;at<cells;++at)out[at]=reinterpret_cast<const uint8_t*>(p)[a[at]];
             break;
-        case op::material_paint:
+        case op::field_paint:
             for(int at=0;at<cells;++at) out[at]=mask[at]?uint8_t(p[0]):a[at];
             break;
         case op::materials: for(int at=0;at<cells;++at) out[at]=a[at]; break;

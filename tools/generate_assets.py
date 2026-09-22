@@ -9,7 +9,7 @@ import math
 import random
 import struct
 import wave
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 GFX = ROOT / "graphics"
@@ -72,6 +72,10 @@ FONT = {
  '9':['01110','10001','10001','01111','00001','00001','01110'],
  ':':['0','1','0','0','1','0','0'], '.':['0','0','0','0','0','1','0'],
  '-':['000','000','000','111','000','000','000'],
+ '#':['01010','11111','01010','01010','11111','01010','00000'],
+ '%':['11001','11010','00100','01000','10110','00110','00000'],
+ '[':['111','100','100','100','100','100','111'],
+ ']':['111','001','001','001','001','001','111'],
  '/':['00001','00001','00010','00100','01000','10000','10000'],
  '+':['000','010','010','111','010','010','000'],
  '>':['100','010','001','0001','001','010','100'],
@@ -351,22 +355,17 @@ def sprites():
     save('font',font,'sprite',height=8)
 
 def screens(path, palette):
-    title=img((256,256),1)
-    d=ImageDraw.Draw(title)
-    # Visible viewport in a centered 256x256 BG: (8,48)..(247,207).
-    for y in range(48,208):
-        d.line((8,y,247,y),fill=1 if y<140 else 2)
-    d.polygon([(8,150),(166,90),(247,114),(247,155),(86,208),(8,208)],fill=3)
-    d.line((8,184,247,101),fill=11,width=2)
-    for i in range(8):
-        x=22+i*31
-        d.line((x,190-int(i*10.7),x+15,185-int(i*10.7)),fill=12,width=2)
-    label(title,24,64,'DUSTLINE',12,4)
-    label(title,26,101,'CHOOSE YOUR MAP',14)
-    label(title,26,116,'COMBAT PROTOTYPE / 11',11)
-    d.rectangle((20,132,235,205),fill=1)
-    label(title,30,195,'UP/DOWN CHOOSE  A DRIVE',11)
-    title.putpalette(palette)
+    # The authored source is kept separate from the generated Butano BMP.
+    # A darkened footer keeps live map-selection text legible on the artwork.
+    source=Image.open(GFX/'dustline_title_clean.png').convert('RGB')
+    screen=ImageOps.fit(source,(240,160),Image.Resampling.LANCZOS)
+    footer=screen.crop((0,124,240,160))
+    screen.paste(Image.blend(footer,Image.new('RGB',footer.size),(0.58)),(0,124))
+    screen=screen.quantize(colors=256,method=Image.Quantize.MEDIANCUT,
+                           dither=Image.Dither.FLOYDSTEINBERG)
+    title=Image.new('P',(256,256),0);title.putpalette(screen.getpalette())
+    # Visible viewport in a centered 256x256 regular BG: (8,48)..(247,207).
+    title.paste(screen,(8,48))
     save('title',title,'regular_bg',bpp_mode='bpp_8')
     hud=img((256,256),0)
     d=ImageDraw.Draw(hud)
@@ -414,25 +413,31 @@ def audio():
             f.writeframes(struct.pack('<'+'h'*len(samples),*samples))
 
 def decoration_tiles(palette):
-    """Four original 16px cosmetic patches; index zero stays transparent."""
+    """Import four alpha-masked patches into a dedicated 4bpp scenery bank."""
+    source=Image.open(ROOT/'maps/overworld/wasteland-details-muted.png').convert('RGBA')
+    rgba=[]
+    for x,y in [(0,0),(1,0),(0,1),(1,1)]:
+        art=source.crop((round(x*source.width/2),round(y*source.height/2),
+                         round((x+1)*source.width/2),round((y+1)*source.height/2)))
+        art.putalpha(art.getchannel('A').point(lambda value:255 if value>=192 else 0))
+        bounds=art.getchannel('A').getbbox()
+        if not bounds: raise ValueError('Generated decoration is empty')
+        art=art.crop(bounds);art.thumbnail((14,14),Image.Resampling.NEAREST)
+        patch=Image.new('RGBA',(16,16))
+        patch.paste(art,((16-art.width)//2,15-art.height))
+        rgba.append(patch)
+    # Quantize only opaque pixels; transparent padding must not consume colours.
+    pixels=[rgb[:3] for im in rgba for rgb in im.getdata() if rgb[3]]
+    strip=Image.new('RGB',(len(pixels),1));strip.putdata(pixels)
+    quantized=strip.quantize(colors=15,method=Image.Quantize.MEDIANCUT)
+    colors=[tuple((c//8)*8 for c in quantized.getpalette()[i:i+3]) for i in range(0,45,3)]
+    detail_palette=[0,0,0]+[c for color in colors for c in color]
+    palette[224*3:240*3]=detail_palette
     patches=[]
-    for kind in range(4):
-        im=Image.new('P',(16,16),0);im.putpalette(palette);d=ImageDraw.Draw(im)
-        if kind==0:  # Dry grass, narrow stalks and shaded roots.
-            for x,y,h in [(3,12,5),(6,13,8),(9,12,6),(12,11,4)]:
-                d.line((x,y,x-1,y-h),fill=9);d.line((x+1,y,x+2,y-h+2),fill=10)
-            d.line((3,13,12,13),fill=8)
-        elif kind==1:  # Low scrub, with scattered holes between leaves.
-            for x,y,r in [(5,9,3),(9,7,4),(12,10,2)]:
-                d.ellipse((x-r,y-r,x+r,y+r),fill=4)
-                d.line((x-r+1,y-1,x+1,y-2),fill=6)
-            d.line((7,11,8,14),fill=8)
-        elif kind==2:
-            for x,y,w in [(3,9,3),(8,6,4),(11,12,3)]:
-                d.rectangle((x,y,x+w,y+2),fill=3);d.line((x,y,x+w-1,y),fill=7)
-        else:
-            d.line((3,13,11,4),fill=8,width=2);d.line((3,12,11,3),fill=10)
-            d.line((7,8,3,5),fill=9);d.line((8,7,13,8),fill=9)
+    for art in rgba:
+        im=Image.new('P',(16,16));im.putpalette(detail_palette+[0]*720)
+        im.putdata([0 if not p[3] else 1+min(range(15),key=lambda i:
+                    sum((p[c]-colors[i][c])**2 for c in range(3))) for p in art.getdata()])
         patches.append(im)
     tiles=[bytes(64)]
     for im in patches:
@@ -442,10 +447,12 @@ def decoration_tiles(palette):
     packed=[bytes(tile[i] | (tile[i+1]<<4) for i in range(0,64,2)) for tile in tiles]
     header+='\n'.join('{{'+','.join(hex(v) for v in struct.unpack('<8I',tile))+'}},' for tile in packed)+'\n};\n}\n'
     (GEN/'decoration_art.h').write_text(header)
-    atlas=Image.new('P',(64,16),0);atlas.putpalette(palette)
+    atlas=Image.new('P',(64,16),0);atlas.putpalette(detail_palette+[0]*720)
     for i,im in enumerate(patches):atlas.paste(im,(i*16,0))
-    atlas.save(ROOT/'artifacts/wasteland/decoration.png')
-    return list(b''.join(tiles))
+    atlas.save(ROOT/'artifacts/wasteland/decoration.png',transparency=0)
+    # Browser/native renderers use the combined 8bpp palette. The GBA uses the
+    # same RGB5 colours in a separate 16-colour bank and the packed local indices.
+    return [224+pixel if pixel else 0 for pixel in b''.join(tiles)]
 
 if __name__=='__main__':
     (ROOT/'artifacts').mkdir(exist_ok=True)
@@ -455,6 +462,8 @@ if __name__=='__main__':
     path, palette = generate(save, PALETTE, smooth)
     sprites()
     screens(path, palette)
+    from town_assets import generate as generate_town
+    generate_town(save)
     from open_world import generate as generate_open_world
     generate_open_world(palette,save,label)
     from wasteland_assets import generate as generate_wasteland

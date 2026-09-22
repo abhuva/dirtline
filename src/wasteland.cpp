@@ -15,45 +15,79 @@ struct spawn_locations { uint16_t xy[enemy_spawns::capacity*2];int count=0; };
 bn::unique_ptr<spawn_locations> spawn_points;
 bn::unique_ptr<decoration_layout> decoration;
 int serial=0,updates=0;
+int selected_map=0;
 cave_layout::progress_fn loading_callback=nullptr;
-void progress(int value) { ++updates; if(loading_callback) loading_callback(value); }
+int progress_done=0,progress_stage=0,progress_total=1,progress_last=0;
+void begin_stage(int nodes) { progress_stage=nodes; }
+void progress(int value) {
+    ++updates;
+    value=value<0?0:value>100?100:value;
+    int overall=(progress_done*100+value*progress_stage)/progress_total;
+    if(overall<progress_last)overall=progress_last;
+    progress_last=overall;
+    if(loading_callback)loading_callback(overall);
 }
-void generate(uint32_t seed,cave_layout::progress_fn callback) {
+void finish_stage() {
+    progress(100);
+    progress_done+=progress_stage;
+    progress_stage=0;
+}
+}
+void generate(int map_index,cave_layout::progress_fn callback) {
+    BN_ASSERT(map_index>=0 && map_index<map_catalog::count,"Invalid map catalog index");
+    selected_map=map_index;
+    const auto& recipe=map_catalog::maps[selected_map];
+    const uint32_t seed=recipe.seed;
     if(!current) current.reset(new cave_layout());
     bn::unique_ptr<mapgen::workspace> scratch(new mapgen::workspace());
     loading_callback=callback; updates=0;
-    auto result=mapgen::execute(active_recipe::nodes,active_recipe::count,seed,*scratch,progress);
+    progress_done=0;progress_stage=0;progress_last=0;
+    progress_total=recipe.count+recipe.material_count+recipe.spawn_count+recipe.decoration_count+(recipe.spawn_count?1:0);
+    if(!progress_total)progress_total=1;
+    if(loading_callback)loading_callback(0);
+    begin_stage(recipe.count);
+    auto result=mapgen::execute(recipe.nodes,recipe.count,seed,*scratch,progress);
     BN_ASSERT(result.status==mapgen::error::ok && result.type==mapgen::kind::world,"Invalid map recipe");
+    finish_stage();
     *current=scratch->layout;
     if(scratch->roads.width) {
         if(!roads) roads.reset(new road_network());
         *roads=scratch->roads;
     } else roads.reset();
-    if(active_recipe::material_count) {
-        auto materials=mapgen::execute(active_recipe::material_nodes,active_recipe::material_count,seed,*scratch,progress);
+    if(recipe.material_count) {
+        begin_stage(recipe.material_count);
+        auto materials=mapgen::execute(recipe.material_nodes,recipe.material_count,seed,*scratch,progress);
         BN_ASSERT(materials.status==mapgen::error::ok && materials.type==mapgen::kind::material,"Invalid ground recipe");
+        finish_stage();
         if(!ground) ground.reset(new ground_grid());
         for(int i=0;i<64*64;++i) ground->ids[i]=materials.data[i];
     } else ground.reset();
-    if(active_recipe::spawn_count) {
-        auto field=mapgen::execute(active_recipe::spawn_nodes,active_recipe::spawn_count,seed,*scratch,progress);
+    if(recipe.spawn_count) {
+        begin_stage(recipe.spawn_count);
+        auto field=mapgen::execute(recipe.spawn_nodes,recipe.spawn_count,seed,*scratch,progress);
         BN_ASSERT(field.status==mapgen::error::ok && field.type==mapgen::kind::spawns);
-        const auto& config=active_recipe::spawn_nodes[active_recipe::spawn_count-1];
+        finish_stage();
+        const auto& config=recipe.spawn_nodes[recipe.spawn_count-1];
         bn::unique_ptr<enemy_spawns> generated(new enemy_spawns());
+        begin_stage(1);
         generated->generate_recipe(*current,field.data,config.p[0],config.p[1],config.p[2],config.stream,progress);
+        finish_stage();
         if(!spawn_points)spawn_points.reset(new spawn_locations());
         spawn_points->count=generated->count;
         for(int i=0;i<generated->count;++i) {
             spawn_points->xy[i*2]=generated->points[i].x;spawn_points->xy[i*2+1]=generated->points[i].y;
         }
     } else spawn_points.reset();
-    if(active_recipe::decoration_count) {
-        auto field=mapgen::execute(active_recipe::decoration_nodes,active_recipe::decoration_count,seed,*scratch,progress);
+    if(recipe.decoration_count) {
+        begin_stage(recipe.decoration_count);
+        auto field=mapgen::execute(recipe.decoration_nodes,recipe.decoration_count,seed,*scratch,progress);
         BN_ASSERT(field.status==mapgen::error::ok && field.type==mapgen::kind::decoration);
+        finish_stage();
         if(!decoration)decoration.reset(new decoration_layout());
-        const auto& config=active_recipe::decoration_nodes[active_recipe::decoration_count-1];
+        const auto& config=recipe.decoration_nodes[recipe.decoration_count-1];
         decoration->configure(seed,config.stream,field.data,config.p);
     } else decoration.reset();
+    progress_done=progress_total;progress_stage=0;progress(100);
     loading_callback=nullptr; ++serial;
 }
 void release() { current.reset(); ground.reset(); roads.reset();spawn_points.reset();decoration.reset(); }
@@ -66,7 +100,9 @@ bool has_decoration() { return bool(decoration); }
 uint8_t decoration_patch(int x,int y) { return decoration?decoration->patch(x,y,*current,roads.get()):0; }
 bool active() { return bool(current); }
 const cave_layout& layout() { BN_ASSERT(current); return *current; }
-uint32_t fixed_seed() { return active_recipe::seed; }
+int map_count() { return map_catalog::count; }
+const char* map_name(int index) { BN_ASSERT(index>=0 && index<map_catalog::count);return map_catalog::maps[index].name; }
+uint32_t fixed_seed() { return map_catalog::maps[selected_map].seed; }
 int minimap_cell(int x,int y) {
     if(current->wall(x,y))return 2;
     return roads && (roads->links[y*64+x]&15)?3:1;

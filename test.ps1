@@ -2,6 +2,11 @@ $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 if (-not (Test-Path 'dustline.elf')) { throw 'Run ./build.ps1 first.' }
 $mount = "type=bind,source=$PSScriptRoot,target=/work"
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_map_library.py
+if ($LASTEXITCODE -ne 0) { throw 'Shared map library persistence test failed.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_wasteland_art.py
+if ($LASTEXITCODE -ne 0) { throw 'Wasteland art masks, palette or repeat checks failed.' }
+
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_map_storage.py
 if ($LASTEXITCODE -ne 0) { throw 'Build audit regression tests failed.' }
 
@@ -35,5 +40,10 @@ docker run --rm --mount $mount dustline-build:1 g++ -std=c++17 -O2 -Wall -Wextra
 if ($LASTEXITCODE -ne 0) { throw 'Could not compile cave generator tests.' }
 docker run --rm --mount $mount dustline-build:1 ./build/test_cave_layout
 if ($LASTEXITCODE -ne 0) { throw 'Cave connectivity test failed.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_town_scene.py
+if ($LASTEXITCODE -ne 0) { throw 'Walkable town scene test failed; see artifacts/town.' }
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_rom.py
 if ($LASTEXITCODE -ne 0) { throw 'ROM verification failed; see artifacts/test-results.json and captures.' }
+
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_town_streaming.py
+if ($LASTEXITCODE -ne 0) { throw 'Town approach streaming regression failed.' }

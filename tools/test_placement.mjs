@@ -7,7 +7,8 @@ import createEngine from './map_editor/generated/engine.mjs';
 const root=new URL('../',import.meta.url),dir=new URL('build/placement-tests/',root);
 await mkdir(dir,{recursive:true});
 const schema=JSON.parse(await readFile(new URL('tools/map_editor/schema.json',root)));
-const active=JSON.parse(await readFile(new URL('maps/wasteland.json',root)));
+const library=JSON.parse(await readFile(new URL('maps/map-library.json',root)));
+const active=library.maps.find(entry=>entry.includeInGame).recipe;
 const art=JSON.parse(await readFile(new URL('tools/map_editor/generated/art.json',root)));
 const engine=await createEngine();
 function run(program,seed){engine.HEAPU32.set(new Uint32Array(program.flat()),engine._recipe_input()>>>2);assert.equal(engine._recipe_run(program.length,seed),0);}

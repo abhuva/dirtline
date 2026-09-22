@@ -15,26 +15,26 @@ def generate(ui_palette,save,label):
     from generate_materials import generate as generate_material_catalog
     catalog=generate_material_catalog()
     OUT.mkdir(parents=True,exist_ok=True)
-    source=Image.open(ASSETS/'wasteland-kit.png').convert('RGBA')
-    composite=Image.new('RGB',source.size,(214,167,99)); composite.paste(source,mask=source.getchannel('A'))
-    adaptive=composite.quantize(colors=240,method=Image.Quantize.MEDIANCUT)
+    source=Image.open(ASSETS/'wasteland-kit-muted.png').convert('RGBA')
+    composite=Image.new('RGB',source.size,(132,112,88)); composite.paste(source,mask=source.getchannel('A'))
+    adaptive=composite.quantize(colors=208,method=Image.Quantize.MEDIANCUT)
     # Round colours to hardware RGB5 before mapping, and retain the common UI slots.
-    material_palette=[(c//8)*8 for c in adaptive.getpalette()[:720]]
+    material_palette=[(c//8)*8 for c in adaptive.getpalette()[:624]]
     # RGB5 rounding leaves duplicate palette entries. Compact them losslessly,
-    # retaining UI indices 0..15 and reserving a bank for 4bpp UI/decoration.
+    # retaining UI indices 0..15 and reserving separate 4bpp UI/scenery banks.
     colors=[tuple(ui_palette[i:i+3]) for i in range(0,48,3)]
     remap=[]
-    for i in range(0,720,3):
+    for i in range(0,624,3):
         color=tuple(material_palette[i:i+3])
         if color not in colors[1:]: colors.append(color)
         remap.append(colors.index(color,1))  # Opaque terrain must never become index zero.
     palette_colors=(len(colors)+15)//16*16
-    assert palette_colors<=240, 'Reserve one background palette bank for 4bpp art'
+    assert palette_colors<=224, 'Reserve separate UI and scenery palette banks'
     full_palette=[c for color in colors for c in color]+[0]*(768-len(colors)*3)
-    pal=Image.new('P',(1,1)); pal.putpalette(material_palette+material_palette[:48])
+    pal=Image.new('P',(1,1)); pal.putpalette(material_palette+material_palette[:144])
     def indexed(im):
         result=im.convert('RGB').quantize(palette=pal,dither=Image.Dither.NONE)
-        result=result.point([remap[i%240] for i in range(256)]); result.putpalette(full_palette)
+        result=result.point([remap[i%208] for i in range(256)]); result.putpalette(full_palette)
         return result
     def cell(x,y):
         return source.crop((round(x*source.width/4),round(y*source.height/2),
@@ -56,6 +56,8 @@ def generate(ui_palette,save,label):
             for x in range(64): base.putpixel((x,y),textures[0].getpixel((x%32,(y+16)%32)))
         base.paste(indexed(art),((64-art.width)//2,(64-art.height)//2),art.getchannel('A'))
         icons.append(base)
+    from generate_assets import decoration_tiles
+    decoration=decoration_tiles(full_palette)
     unique=[]; lookup={}; refs=[]
     for art in textures+icons:
         for y in range(0,art.height,8):
@@ -81,8 +83,6 @@ def generate(ui_palette,save,label):
     (OUT/'palette.bin').write_bytes(bytes(full_palette))
     editor=ROOT/'tools/map_editor/generated'
     editor.mkdir(parents=True,exist_ok=True)
-    from generate_assets import decoration_tiles
-    decoration=decoration_tiles(full_palette)
     (editor/'art.json').write_text(json.dumps(dict(
         refs=refs,tiles=list(b''.join(unique)),palette=full_palette,catalog=catalog,decoration=decoration),separators=(',',':')))
     hud=Image.open(ROOT/'graphics/hud.bmp').copy(); hud.putpalette(full_palette)
@@ -110,7 +110,7 @@ def generate(ui_palette,save,label):
     report=dict(width=extent,height=extent,logical_grid=[columns,columns],cell_size=128,fixed_seed=info[2],
                 fixed_signature=info[3],fixed_floor_cells=info[4],towns=6,
                 unique_tiles=len(unique),tile_slots=slots,terrain_vram_bytes=slots*64,palette_colors=palette_colors,
-                art_source_sha256=hashlib.sha256((ASSETS/'wasteland-kit.png').read_bytes()).hexdigest(),
+                art_source_sha256=hashlib.sha256((ASSETS/'wasteland-kit-muted.png').read_bytes()).hexdigest(),
                 reference_sha256=hashlib.sha256((ROOT/'maps/open_world/wasteland.png').read_bytes()).hexdigest())
     (OUT/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print('Wasteland:',report,flush=True)

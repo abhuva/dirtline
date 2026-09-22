@@ -30,11 +30,11 @@ constexpr auto masks=[] {
 local_minimap::local_minimap(int x,int y,int zoom_level) :
     _sprite(bn::sprite_ptr::create(screen_x,screen_y,bn::sprite_shape_size(64,64),
         bn::sprite_tiles_ptr::allocate(64,bn::bpp_mode::BPP_4),
-        bn::sprite_palette_ptr::create(world_map::index()>=2?bn::sprite_items::overview_palette.palette_item():bn::sprite_items::dot.palette_item()))),
+        bn::sprite_palette_ptr::create(bn::sprite_items::overview_palette.palette_item()))),
     _vram(nullptr) {
     auto tiles=_sprite.tiles(); _vram=tiles.vram()->data();
     _sprite.set_bg_priority(0); _sprite.set_z_order(-1); _sprite.set_visible(false);
-    _overview=world_map::index()>=2;
+    _overview=true;
     _active=this;
     if(_overview) {
         _scale=128>>zoom_level;build_overview();crop_overview(x,y);
@@ -156,7 +156,7 @@ void local_minimap::rows() {
         }
     }
     if(_row==64) {
-        if(world_map::index()>=2) for(int i=0;i<cave_layout::town_count;++i) {
+        for(int i=0;i<cave_layout::town_count;++i) {
             auto town=wasteland::layout().town(i);
             int dx=(town.x-_build_x)/_scale,dy=(town.y-_build_y)/_scale;
             if(dx*dx+dy*dy>23*23) continue;

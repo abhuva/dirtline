@@ -12,19 +12,16 @@
 #include "bn_optional.h"
 #include "bn_array.h"
 #include "bn_regular_bg_items_title.h"
-#include "bn_regular_bg_items_hud.h"
-#include "bn_regular_bg_items_hud_open.h"
-#include "bn_regular_bg_items_pause.h"
 #include "bn_sprite_items_car.h"
 #include "bn_sprite_items_font.h"
 #include "bn_sprite_items_particles.h"
 #include "bn_sprite_items_dot.h"
 #include "driving.h"
-#include "generated/track_data.h"
 #include "terrain_streamer.h"
 #include "bn_unique_ptr.h"
 #include "bn_bg_tiles.h"
 #include "bn_bg_maps.h"
+#include "bn_bg_palettes.h"
 #include "bn_sprite_tiles.h"
 #include "world_map.h"
 #include "wasteland.h"
@@ -34,30 +31,57 @@
 #include "bn_regular_bg_items_pause_waste.h"
 #include "bn_regular_bg_items_town_blank.h"
 #include "bn_regular_bg_items_town_dialog.h"
-#include "bn_regular_bg_items_menu_blank.h"
 #include "combat.h"
 #include "combat_view.h"
 #include "decoration_view.h"
+#include "town_scene.h"
 
 // Read-only telemetry for emulator regression tests; not a gameplay backdoor.
 extern "C" {
 // Diagnostic buffers belong in EWRAM; keep the small IWRAM stack available
 // for rendering/physics calls rather than reserving it for debug snapshots.
-BN_DATA_EWRAM_BSS volatile int dustline_telemetry[53];
+BN_DATA_EWRAM_BSS volatile int dustline_telemetry[54];
 BN_DATA_EWRAM_BSS volatile int dustline_combat_telemetry[240];
 BN_DATA_EWRAM_BSS volatile int dustline_weapon_telemetry[72];
+BN_DATA_EWRAM_BSS volatile int dustline_town_telemetry[8];
 }
 
 namespace {
 using bn::fixed;
-void loading_update(int) { bn::core::update(); }
 fixed clamp(fixed v,fixed lo,fixed hi) { return v<lo?lo:v>hi?hi:v; }
+constexpr int camera_lead_x_limit=80,camera_lead_y_limit=48;
+constexpr fixed camera_lead_x_scale=22,camera_lead_y_scale=16,camera_lead_response=fixed(0.12);
 constexpr auto font_widths=[] {
     bn::array<int8_t,95> widths{};
     widths.fill(6);
     return widths;
 }();
 constexpr bn::sprite_font font(bn::sprite_items::font, {}, font_widths);
+bn::sprite_text_generator* loading_generator=nullptr;
+bn::vector<bn::sprite_ptr,48>* loading_sprites=nullptr;
+int loading_progress=0,loading_displayed=-1;
+void loading_update(int value) {
+    value=value<0?0:value>100?100:value;
+    if(value<loading_progress)value=loading_progress;
+    loading_progress=value;
+    dustline_telemetry[53]=value;
+    if(loading_generator && loading_sprites && value!=loading_displayed) {
+        loading_displayed=value;
+        loading_sprites->clear();
+        loading_generator->generate(-48,-18,"GENERATING WORLD",*loading_sprites);
+        bn::string<20> bar="[";
+        const int filled=value*16/100;
+        for(int index=0;index<16;++index)bar+=(index<filled?'#':'-');
+        bar+=']';
+        loading_generator->generate(-54,4,bar,*loading_sprites);
+        bn::string<8> percentage=bn::to_string<4>(value);
+        percentage+='%';
+        loading_generator->generate(-12,24,percentage,*loading_sprites);
+    }
+    bn::core::update();
+}
+void generation_loading_update(int value) { loading_update(value*90/100); }
+void spawn_loading_update(int value) { loading_update(90+value*5/100); }
 
 struct Mark {
     bn::sprite_ptr sprite=bn::sprite_items::particles.create_sprite(0,0);
@@ -69,12 +93,12 @@ struct Mark {
 
 int main() {
     bn::core::init();
-    bn::unique_ptr<terrain_streamer> track(new terrain_streamer());
-    bn::optional<bn::regular_bg_ptr> hud=bn::regular_bg_items::hud.create_bg(0,0);
-    hud->set_priority(0);
+    // Title art owns most background tile VRAM. Allocate map graphics only
+    // after a map is selected and the title has been released.
+    bn::unique_ptr<terrain_streamer> track;
+    bn::optional<bn::regular_bg_ptr> hud;
     bn::optional<bn::regular_bg_ptr> overlay=bn::regular_bg_items::title.create_bg(0,0);
     overlay->set_priority(0);
-    hud->set_visible(false);
     auto car_sprite=bn::sprite_items::car.create_sprite(0,0);
     car_sprite.set_z_order(-1);
     car_sprite.set_bg_priority(1);
@@ -87,23 +111,27 @@ int main() {
     text.set_bg_priority(0);
     text.set_z_order(-3);
     bn::vector<bn::sprite_ptr,48> hud_text;
-    bn::string<64> driving_hud_line;
+    bn::vector<bn::sprite_ptr,48> loading_text;
+    bn::vector<bn::sprite_ptr,12> speed_text;
+    bn::vector<bn::sprite_ptr,12> surface_text;
+    bn::vector<bn::sprite_ptr,16> vitality_text;
+    bn::string<12> shown_speed_line;
+    int shown_surface=-1,shown_hp=-1,shown_shield=-1;
     bn::vector<bn::sprite_ptr,8> weapon_text;
     int shown_weapon=-1;
     bn::array<Mark,24> marks;
     int next_mark=0;
     driving::Car car;
-    fixed camera_x=car.x+25, camera_y=car.y;
-    int state=0; // title=0, driving=1, pause=2, confirm=3, town=4, loading=5, settings=6
+    fixed camera_lead_x=0,camera_lead_y=0,camera_x=car.x,camera_y=car.y-6;
+    int state=0; // title=0, driving=1, pause=2, confirm=3, town=4, loading=5, settings=6, wrecked=7
     int zoom_level=0,settings_return=1;
     int setup=1;
-    int selected_map=2; // Fixed wasteland; both comparison maps remain available.
+    int selected_map=0;
     int lap_frames=0,best[3]={0,0,0},laps=0,checkpoint=0;
     int frame=0,notice_frames=180,engine_tick=0;
     int missed=0;
     bn::optional<bn::sound_handle> engine;
     bn::unique_ptr<local_minimap> radar;
-    uint32_t entropy=0x73514A29, last_random_seed=0;
     int ignored_town=-1,current_town=-1,town_visits=0;
     bool town_yes=false,button_guard=false;
     // Keep entity pools off the small IWRAM stack; allocation is once at boot.
@@ -111,27 +139,31 @@ int main() {
     auto& combat_world=*combat_storage;
     bn::unique_ptr<combat_view> combat_graphics;
     bn::unique_ptr<decoration_view> decorations;
+    bn::unique_ptr<town_scene> town;
 
     auto reset=[&]() {
         car=driving::Car();
         car.x=world_map::start_x(); car.y=world_map::start_y();
-        camera_x=car.x+25; camera_y=car.y;
+        camera_lead_x=0;camera_lead_y=0;camera_x=car.x;camera_y=car.y-6;
         lap_frames=0; checkpoint=0; laps=0;
         notice_frames=180;
         for(auto& mark:marks) { mark.life=0; mark.sprite.set_visible(false); }
         if(engine && engine->active()) engine->stop();
         engine.reset(); engine_tick=0;
         ignored_town=-1; current_town=-1;
-        combat_world.reset(car,selected_map>=2,loading_update);
+        combat_world.reset(car,true,spawn_loading_update);
     };
 
     auto unload_scene=[&]() {
+        town.reset();
         decorations.reset();
         radar.reset(); overlay.reset(); hud.reset(); track.reset();
         combat_graphics.reset(); combat_world.clear_bullets();
         car_sprite.set_visible(false); minimap_dot.set_visible(false);
         for(auto& mark:marks) { mark.life=0; mark.sprite.set_visible(false); }
         hud_text.clear();
+        speed_text.clear();surface_text.clear();vitality_text.clear();
+        shown_speed_line.clear();shown_surface=-1;shown_hp=-1;shown_shield=-1;
         weapon_text.clear();shown_weapon=-1;
         if(engine && engine->active()) engine->stop();
         engine.reset(); engine_tick=0;
@@ -140,16 +172,15 @@ int main() {
     };
     auto create_scene=[&]() {
         track.reset(new terrain_streamer());
-        hud=(selected_map>=2 ? bn::regular_bg_items::hud_waste :
-             selected_map==1 ? bn::regular_bg_items::hud_open : bn::regular_bg_items::hud).create_bg(0,0);
+        hud=bn::regular_bg_items::hud_waste.create_bg(0,0);
         hud->set_priority(0);
         radar.reset(new local_minimap(car.x.integer(),car.y.integer(),zoom_level));
         track->set_camera(camera_x.integer(),camera_y.integer());
         track->set_visible(true);
         car_sprite.set_position(car.x-camera_x.integer(),car.y-camera_y.integer());
         car_sprite.set_visible(true); minimap_dot.set_visible(true);
-        if(selected_map>=2) combat_graphics.reset(new combat_view());
-        if(selected_map>=2 && wasteland::has_decoration()) {
+        combat_graphics.reset(new combat_view());
+        if(wasteland::has_decoration()) {
             decorations.reset(new decoration_view());
             decorations->update(camera_x.integer(),camera_y.integer(),true);
             bn::core::update(); // Populate the initial patch window during scene loading.
@@ -159,31 +190,34 @@ int main() {
 
     while(true) {
         ++frame;
-        entropy=entropy*1664525u+1013904223u+uint32_t(frame);
-        bool redraw=(frame%6==0);
+        // Only the driving HUD has values that change without an input event.
+        // Menu text is rebuilt on entry or selection changes, avoiding repeated
+        // sprite allocation while a static screen is open.
+        bool redraw=frame==1 || (state==1 && frame%6==0);
         if(!bn::keypad::a_held() && !bn::keypad::b_held() && !bn::keypad::start_held()) button_guard=false;
-        if(state==0 && (bn::keypad::up_pressed() || bn::keypad::down_pressed() ||
-                        bn::keypad::left_pressed() || bn::keypad::right_pressed())) {
-            selected_map=(selected_map+((bn::keypad::up_pressed() || bn::keypad::left_pressed())?3:1))%4;
+        if(state==0 && (bn::keypad::left_pressed() || bn::keypad::right_pressed())) {
+            const int count=wasteland::map_count();
+            selected_map=(selected_map+(bn::keypad::left_pressed()?count-1:1))%count;
             redraw=true;
         }
-        if(state==0 && (bn::keypad::a_pressed() || bn::keypad::start_pressed())) {
+        if(state==0 && bn::keypad::a_pressed()) {
             unload_scene();
             state=5; dustline_telemetry[2]=5;
-            text.generate(-108,-8,"GENERATING / LOADING WORLD",hud_text);
-            bn::core::update();
-            uint32_t seed=(entropy & 0x7fffffffu)|1u;
-            if(seed==last_random_seed) seed^=0x13579u;
-            if(selected_map==3) last_random_seed=seed;
-            world_map::select(selected_map,seed,loading_update);
-            hud_text.clear();
-            reset(); redraw=true;
-            create_scene(); state=1;
+            bn::bg_palettes::set_transparent_color(bn::color(2,4,5));
+            loading_generator=&text;loading_sprites=&loading_text;
+            loading_progress=0;loading_displayed=-1;
+            loading_update(0);
+            world_map::select(selected_map,generation_loading_update);
+            loading_update(90);
+            reset();loading_update(95);redraw=true;
+            loading_update(96);create_scene();loading_update(100);
+            loading_text.clear();loading_generator=nullptr;loading_sprites=nullptr;
+            state=1;
             bn::sound_items::chime.play(fixed(0.45));
         } else if((state==1 || state==2) && bn::keypad::start_pressed()) {
             state=state==1?2:1;
             if(state==2) {
-                overlay=(selected_map>=2?bn::regular_bg_items::pause_waste:bn::regular_bg_items::pause).create_bg(0,0);
+                overlay=bn::regular_bg_items::pause_waste.create_bg(0,0);
                 overlay->set_priority(0);
             } else overlay.reset();
             hud->set_visible(state==1);
@@ -202,13 +236,6 @@ int main() {
             overlay->set_priority(0);
             hud_text.clear(); redraw=true;
         }
-        if(state==4) {
-            if(bn::keypad::r_pressed() || bn::keypad::l_pressed()) {
-                setup=(setup+(bn::keypad::r_pressed()?1:2))%3;
-                redraw=true;
-                bn::sound_items::chime.play(fixed(0.4));
-            }
-        }
         if((state==1 || state==4) && bn::keypad::select_pressed()) {
             settings_return=state; state=6;
             if(engine && engine->active()) engine->stop();
@@ -216,8 +243,9 @@ int main() {
             if(hud) hud->set_visible(false);
             car_sprite.set_visible(false); minimap_dot.set_visible(false);
             if(radar) radar->set_visible(false);
+            if(town) town->set_visible(false);
             overlay.reset(); hud_text.clear(); bn::core::update();
-            overlay=(selected_map>=2?bn::regular_bg_items::town_blank:bn::regular_bg_items::menu_blank).create_bg(0,0);
+            overlay=bn::regular_bg_items::town_blank.create_bg(0,0);
             overlay->set_priority(0); redraw=true;
         } else if(state==6) {
             if(bn::keypad::left_pressed() && zoom_level>0) { --zoom_level; redraw=true; }
@@ -229,26 +257,51 @@ int main() {
                 if(state==1) {
                     overlay.reset(); hud->set_visible(true); car_sprite.set_visible(true);
                     radar->set_visible(true); minimap_dot.set_visible(true);
+                } else if(state==4 && town) {
+                    overlay.reset();
+                    if(town->menu_open()) {
+                        overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+                        overlay->set_priority(0);
+                    }
+                    town->set_visible(true);
                 }
             }
         }
-        if(state==3) {
+        if(state==7) {
+            if(bn::keypad::a_pressed()) {
+                combat_world.revive_player();
+                overlay.reset();hud_text.clear();state=1;button_guard=true;redraw=true;
+                radar->set_visible(true);minimap_dot.set_visible(true);
+                bn::sound_items::chime.play(fixed(0.4));
+            }
+        } else if(state==3) {
             if(bn::keypad::up_pressed() || bn::keypad::down_pressed() ||
                bn::keypad::left_pressed() || bn::keypad::right_pressed()) { town_yes=!town_yes; redraw=true; }
             if(bn::keypad::b_pressed() || (bn::keypad::a_pressed() && !town_yes)) {
                 ignored_town=current_town; state=1; overlay.reset();
                 hud_text.clear(); button_guard=true; redraw=true;
             } else if(bn::keypad::a_pressed() && town_yes) {
+                combat_world.refill_player();
                 unload_scene(); state=4; ++town_visits;
-                overlay=bn::regular_bg_items::town_blank.create_bg(0,0);
-                overlay->set_priority(0); redraw=true;
+                town.reset(new town_scene(current_town,setup));
+                redraw=true;
             }
-        } else if(state==4 && !button_guard && (bn::keypad::a_pressed() || bn::keypad::start_pressed())) {
-            overlay.reset(); hud_text.clear(); bn::core::update();
-            create_scene(); ignored_town=current_town; state=1; button_guard=true; redraw=true;
+        } else if(state==4 && town && !button_guard) {
+            auto town_event=town->update(setup);
+            if(town_event==town_scene::event::return_to_world) {
+                overlay.reset();hud_text.clear();town.reset();bn::core::update();
+                create_scene();ignored_town=current_town;state=1;button_guard=true;redraw=true;
+            } else if(town_event==town_scene::event::menu_opened) {
+                overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+                overlay->set_priority(0);redraw=true;
+            } else if(town_event==town_scene::event::menu_closed ||
+                      town_event==town_scene::event::setup_applied) {
+                overlay.reset();redraw=true;
+                if(town_event==town_scene::event::setup_applied)
+                    bn::sound_items::chime.play(fixed(0.4));
+            } else if(town_event==town_scene::event::redraw) redraw=true;
         }
         if(state==1) {
-            fixed previous_x=car.x;
             driving::Input input {bn::keypad::a_held(),bn::keypad::b_held(),
                 (bn::keypad::right_held()?1:0)-(bn::keypad::left_held()?1:0)};
             if(!button_guard) {
@@ -262,21 +315,15 @@ int main() {
                 else if(combat_world.impact) bn::sound_items::bump.play(fixed(0.18));
             }
             if(notice_frames>0) --notice_frames;
-            if(selected_map==0 && checkpoint<int(sizeof(world::checkpoints)/sizeof(world::checkpoints[0]))) {
-                auto point=world::checkpoints[checkpoint];
-                int dx=car.x.integer()-point.x,dy=car.y.integer()-point.y;
-                if(dx*dx+dy*dy<52*52) ++checkpoint;
-            } else if(selected_map==0 && previous_x<world::finish_x && car.x>=world::finish_x &&
-                      car.y>world::finish_top && car.y<world::finish_bottom && car.vx>0) {
-                if(best[setup]==0 || lap_frames<best[setup]) best[setup]=lap_frames;
-                lap_frames=0; checkpoint=0; ++laps; notice_frames=120;
-                bn::sound_items::chime.play(fixed(0.6)); redraw=true;
-            }
-            // Camera leads actual motion; smoothed and clamped to the map.
-            fixed target_x=clamp(car.x+car.vx*13,120,world_map::width()-120);
-            fixed target_y=clamp(car.y+car.vy*13-6,80,world_map::height()-80);
-            camera_x+=(target_x-camera_x)*fixed(0.095);
-            camera_y+=(target_y-camera_y)*fixed(0.095);
+            // Anchor to the car and smooth only the velocity-driven look-ahead.
+            // This keeps the car stable while opening more screen in the actual
+            // direction of travel, including reverse and controlled slides.
+            fixed desired_lead_x=clamp(car.vx*camera_lead_x_scale,-camera_lead_x_limit,camera_lead_x_limit);
+            fixed desired_lead_y=clamp(car.vy*camera_lead_y_scale,-camera_lead_y_limit,camera_lead_y_limit);
+            camera_lead_x+=(desired_lead_x-camera_lead_x)*camera_lead_response;
+            camera_lead_y+=(desired_lead_y-camera_lead_y)*camera_lead_response;
+            camera_x=clamp(car.x+camera_lead_x,120,world_map::width()-120);
+            camera_y=clamp(car.y+camera_lead_y-6,80,world_map::height()-80);
             track->set_camera(camera_x.integer(),camera_y.integer());
             car_sprite.set_position(car.x-camera_x.integer(),car.y-camera_y.integer());
             int direction=((car.heading*64/360).integer()+64)%64;
@@ -311,105 +358,128 @@ int main() {
             }
             // Build only the dialog text on entry, never both text screens in
             // one frame (the renderer retains old sprite references until VBlank).
-            int approaching=selected_map>=2?wasteland::layout().nearby_town(car.x.integer(),car.y.integer()):-1;
+            int approaching=wasteland::layout().nearby_town(car.x.integer(),car.y.integer());
             if(redraw && !(approaching>=0 && approaching!=ignored_town)) {
-                bn::string<64> line="";
-                line+=bn::to_string<4>((car.speed*42).integer()); line+=" KPH  ";
-                if(selected_map>=2) {
-                    const char* names[]={"SAND","GRAVEL","HARDPAN","ASPHALT"};
-                    line+=names[wasteland::layout().material(car.x.integer(),car.y.integer())];
-                } else line+=car.surface==2?"DIRT":car.surface==0?"GRASS":"ROAD";
-                // Retain the existing sprites when the displayed value has
-                // not changed; steady driving needs no font/tile allocation.
-                if(line!=driving_hud_line || hud_text.empty()) {
-                    hud_text.clear();
-                    text.generate(-114,-74,line,hud_text);
-                    driving_hud_line=line;
+                bn::string<12> speed_line=bn::to_string<4>((car.speed*42).integer());
+                speed_line+=" KPH";
+                if(speed_line!=shown_speed_line || speed_text.empty()) {
+                    speed_text.clear();text.generate(-114,-74,speed_line,speed_text);
+                    shown_speed_line=speed_line;
+                }
+                int surface=wasteland::layout().material(car.x.integer(),car.y.integer());
+                const char* names[]={"SAND","GRAVEL","HARDPAN","ASPHALT"};
+                if(surface!=shown_surface || surface_text.empty()) {
+                    surface_text.clear();text.generate(-70,-74,names[surface],surface_text);
+                    shown_surface=surface;
+                }
+                if(combat_world.player_hp!=shown_hp || combat_world.player_shield!=shown_shield || vitality_text.empty()) {
+                    bn::string<16> line="H";line+=bn::to_string<4>(combat_world.player_hp);
+                    line+=" S";line+=bn::to_string<3>(combat_world.player_shield);
+                    vitality_text.clear();text.generate(-20,-74,line,vitality_text);
+                    shown_hp=combat_world.player_hp;shown_shield=combat_world.player_shield;
                 }
             }
-            if(selected_map>=2) {
-                const auto& layout=wasteland::layout();
-                if(ignored_town>=0) {
-                    auto p=layout.town(ignored_town);
-                    if(bn::abs(car.x.integer()-p.x)>160 || bn::abs(car.y.integer()-p.y)>160) ignored_town=-1;
-                }
-                int near=layout.nearby_town(car.x.integer(),car.y.integer());
-                if(near>=0 && near!=ignored_town) {
-                    state=3; current_town=near; town_yes=false;
-                    car.vx=0; car.vy=0; car.yaw=0; car.speed=0; car.slip=0;
-                    if(engine && engine->active()) engine->stop();
-                    engine.reset(); engine_tick=0;
-                    hud_text.clear();
-                    radar->set_visible(false); minimap_dot.set_visible(false);
-                    if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),false);
-                    // Finish the driving frame before allocating dialog art/text.
-                    // Combat is already paused; this is a scene/UI transition.
-                    bn::core::update();
-                    overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
-                    overlay->set_priority(0); hud_text.clear(); redraw=true;
-                    radar->set_visible(false);
-                    minimap_dot.set_visible(false);
-                }
-                if(state==1) { radar->set_visible(true); minimap_dot.set_visible(true); }
+            const auto& layout=wasteland::layout();
+            if(ignored_town>=0) {
+                auto p=layout.town(ignored_town);
+                if(bn::abs(car.x.integer()-p.x)>160 || bn::abs(car.y.integer()-p.y)>160) ignored_town=-1;
+            }
+            int near=layout.nearby_town(car.x.integer(),car.y.integer());
+            if(!combat_world.player_destroyed && near>=0 && near!=ignored_town) {
+                state=3; current_town=near; town_yes=false;
+                car.vx=0; car.vy=0; car.yaw=0; car.speed=0; car.slip=0;
+                if(engine && engine->active()) engine->stop();
+                engine.reset(); engine_tick=0;
+                hud_text.clear();
+                radar->set_visible(false); minimap_dot.set_visible(false);
+                if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),false);
+                // Finish the driving frame before allocating dialog art/text.
+                // Combat is already paused; this is a scene/UI transition.
+                bn::core::update();
+                missed+=bn::core::last_missed_frames();
+                overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+                overlay->set_priority(0); hud_text.clear(); redraw=true;
+                radar->set_visible(false);
+                minimap_dot.set_visible(false);
+            }
+            if(state==1) { radar->set_visible(true); minimap_dot.set_visible(true); }
+            if(state==1 && combat_world.player_destroyed) {
+                state=7;car.vx=0;car.vy=0;car.yaw=0;car.speed=0;car.slip=0;
+                if(engine && engine->active())engine->stop();
+                engine.reset();engine_tick=0;hud_text.clear();
+                radar->set_visible(false);minimap_dot.set_visible(false);
+                bn::core::update();missed+=bn::core::last_missed_frames();
+                overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+                overlay->set_priority(0);redraw=true;
             }
         } else {
             for(auto& mark:marks) mark.sprite.set_visible(false);
             if(state==0 && redraw) {
                 hud_text.clear();
-                const char* names[]={"LAKESIDE CIRCUIT","LAKESIDE COMMONS","WASTELAND FIXED","WASTELAND RANDOM"};
-                for(int i=0;i<4;++i) {
-                    bn::string<32> line=selected_map==i?"> ":"  "; line+=names[i];
-                    text.generate(-91,10+i*13,line,hud_text);
-                }
+                bn::string<32> line="<  ";line+=wasteland::map_name(selected_map);line+="  >";
+                text.set_center_alignment();
+                text.generate(0,52,line,hud_text);
+                text.generate(0,68,"PRESS A TO START",hud_text);
+                text.set_left_alignment();
             }
         }
-        if((state==3 || state==4) && redraw) {
+        if(state==3 && redraw) {
             hud_text.clear();
-            bn::string<32> line=state==3?"ENTER OUTPOST ":"OUTPOST ";
-            line+=bn::to_string<3>(current_town+1); if(state==3) line+='?';
-            text.generate(-104,state==3?38:-40,line,hud_text);
-            if(state==3) {
-                text.generate(-104,52,town_yes?"> YES     NO":"  YES   > NO",hud_text);
-                text.generate(-104,68,"A CONFIRM  B CANCEL",hud_text);
-            } else {
-                line="VEHICLE: "; line+=driving::setups[setup].name;
-                text.generate(-104,-18,line,hud_text);
-                text.generate(-104,-4,"L / R  CHANGE SETUP",hud_text);
-                line="MASS: "; line+=bn::to_string<5>(driving::setups[setup].mass); line+=" KG";
-                text.generate(-104,9,line,hud_text);
-                text.generate(-78,22,"> RETURN TO OVERWORLD",hud_text);
-                text.generate(-78,44,"A / START",hud_text);
+            bn::string<32> line="ENTER OUTPOST ";
+            line+=bn::to_string<3>(current_town+1); line+='?';
+            text.generate(-104,38,line,hud_text);
+            text.generate(-104,52,town_yes?"> YES     NO":"  YES   > NO",hud_text);
+            text.generate(-104,68,"A CONFIRM  B CANCEL",hud_text);
+        }
+        if(state==4 && redraw) {
+            hud_text.clear();
+            if(town && town->menu_open()) {
+                bn::string<32> line="MECHANIC / SETUP";
+                text.generate(-104,38,line,hud_text);
+                line="<  ";line+=driving::setups[town->menu_selection()].name;line+="  >";
+                text.generate(-104,52,line,hud_text);
+                line=bn::to_string<5>(driving::setups[town->menu_selection()].mass);line+=" KG";
+                text.generate(18,52,line,hud_text);
+                text.generate(-104,68,"A FIT     B CANCEL",hud_text);
             }
+        }
+        if(state==7 && redraw) {
+            hud_text.clear();
+            text.generate(-104,48,"WRECKED",hud_text);
+            text.generate(-104,68,"PRESS A TO REVIVE",hud_text);
         }
 
         if(state==6 && redraw) {
             hud_text.clear();
             text.generate(-96,-52,"SETTINGS",hud_text);
-            text.generate(-96,-28,selected_map>=2?"MINIMAP ZOOM":"MINIMAP ZOOM / VIEW DISTANCE",hud_text);
+            text.generate(-96,-28,"MINIMAP ZOOM",hud_text);
             for(int i=0;i<4;++i) {
                 bn::string<8> option=zoom_level==i?">":" ";
                 option+=bn::to_string<2>(1<<i); option+="X";
                 text.generate(-96+i*48,-7,option,hud_text);
             }
             bn::string<32> line="VIEW RADIUS: ";
-            line+=bn::to_string<5>(selected_map>=2?26*(128>>zoom_level):312<<zoom_level); line+=" PX";
+            line+=bn::to_string<5>(26*(128>>zoom_level)); line+=" PX";
             text.generate(-96,14,line,hud_text);
-            text.generate(-96,32,selected_map>=2?"1X WIDEST / 8X CLOSEST":"1X CLOSEST / 8X WIDEST",hud_text);
-            if(selected_map>=2)text.generate(-96,42,"RED ENEMIES / GOLD TOWNS",hud_text);
+            text.generate(-96,32,"1X WIDEST / 8X CLOSEST",hud_text);
+            text.generate(-96,42,"RED ENEMIES / GOLD TOWNS",hud_text);
             text.generate(-96,52,"LEFT/RIGHT CHANGE",hud_text);
             text.generate(-96,66,"A/B/SELECT BACK",hud_text);
         }
-        if(state!=1)driving_hud_line.clear();
-        if(state==1 && selected_map>=2) {
+        if(state!=1) {
+            speed_text.clear();surface_text.clear();vitality_text.clear();
+            shown_speed_line.clear();shown_surface=-1;shown_hp=-1;shown_shield=-1;
+        }
+        if(state==1) {
             if(shown_weapon!=int(combat_world.weapon)) {
                 weapon_text.clear();bn::string<16> label="L:";label+=combat::weapon_name(combat_world.weapon);
                 text.generate(58,-74,label,weapon_text);shown_weapon=int(combat_world.weapon);
             }
         } else if(shown_weapon>=0) { weapon_text.clear();shown_weapon=-1; }
         int view_start=bn::core::current_cpu_ticks();
-        if(decorations)decorations->update(camera_x.integer(),camera_y.integer(),state==1 || state==3);
+        if(decorations)decorations->update(camera_x.integer(),camera_y.integer(),state==1 || state==3 || state==7);
         if(radar)radar->update_enemies(combat_world,state==1);
-        if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),state==1);
+        if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),state==1 || state==7);
         dustline_combat_telemetry[19]=bn::core::current_cpu_ticks()-view_start;
         dustline_combat_telemetry[0]=0x434F4D42;
         dustline_combat_telemetry[1]=combat_world.ticks;
@@ -424,7 +494,7 @@ int main() {
         dustline_combat_telemetry[10]=combat_world.living();
         dustline_combat_telemetry[12]=sizeof(combat_world);
         dustline_combat_telemetry[13]=combat_graphics?1:0;
-        dustline_combat_telemetry[14]=1; // Player invincibility enabled for this test.
+        dustline_combat_telemetry[14]=combat_world.player_invulnerability;
         int collisions=0,avoidance=0,recoveries=0,bullets=0;
         for(int i=0;i<combat::enemy_count;++i) {
             const auto& e=combat_world.enemies[i]; int at=20+i*12;
@@ -470,6 +540,9 @@ int main() {
         dustline_combat_telemetry[234]=sizeof(enemy_spawns::point);
         dustline_combat_telemetry[235]=combat::spawn_range;
         dustline_combat_telemetry[236]=combat::despawn_range;
+        dustline_combat_telemetry[237]=combat_world.player_shield;
+        dustline_combat_telemetry[238]=combat_world.player_shield_delay;
+        dustline_combat_telemetry[239]=combat_world.player_invulnerability;
         dustline_weapon_telemetry[0]=int(combat_world.weapon);
         dustline_weapon_telemetry[1]=combat_world.saw_active;
         dustline_weapon_telemetry[2]=combat_world.saw_x.data();dustline_weapon_telemetry[3]=combat_world.saw_y.data();
@@ -537,6 +610,14 @@ int main() {
         dustline_telemetry[50]=radar?radar->revisions():0;
         dustline_telemetry[51]=zoom_level;
         dustline_telemetry[52]=radar?radar->scale():0;
+        dustline_town_telemetry[0]=0x544F574E;
+        dustline_town_telemetry[1]=town?int(town->current_place()):-1;
+        dustline_town_telemetry[2]=town?town->x():0;
+        dustline_town_telemetry[3]=town?town->y():0;
+        dustline_town_telemetry[4]=town?town->direction():0;
+        dustline_town_telemetry[5]=town&&town->menu_open();
+        dustline_town_telemetry[6]=town?town->menu_selection():0;
+        dustline_town_telemetry[7]=town?town->town_id():-1;
         bn::core::update();
         missed+=bn::core::last_missed_frames();
     }

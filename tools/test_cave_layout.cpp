@@ -18,7 +18,8 @@ int main(int argc,char** argv) {
     mapgen::workspace recipe_work;
     cave_layout& map=recipe_work.layout;
     auto generate=[&](uint32_t seed) {
-        auto result=mapgen::execute(active_recipe::nodes,active_recipe::count,seed,recipe_work);
+        const auto& recipe=map_catalog::maps[0];
+        auto result=mapgen::execute(recipe.nodes,recipe.count,seed,recipe_work);
         assert(result.status==mapgen::error::ok && result.type==mapgen::kind::world);
     };
     if(argc==3) {
