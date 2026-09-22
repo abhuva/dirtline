@@ -1,0 +1,21 @@
+{
+  "browser": "Chromium via Playwright",
+  "checks": {
+    "defaultSignature": "dbf12ba4",
+    "cellularTwoPassSignature": "870a2c77",
+    "birthRuleEditChangesOutput": true,
+    "iterationPreviewIncludesZeroSteps": true,
+    "branchConnections": true,
+    "cyclesRejected": true,
+    "undoRedoRestoresOutput": true,
+    "jsonExportImportPreservesOutput": true,
+    "allFourPresets": true,
+    "nineSeedPreview": true,
+    "beforeAfterPreview": true,
+    "refinedCollisionPreview": true,
+    "graphZoomAndFit": true,
+    "noHorizontalPageOverflowAt400And800Pixels": true,
+    "consoleErrors": 0
+  },
+  "limitations": "Automated interaction and visual inspection; new generated layouts still need human driving playtests."
+}

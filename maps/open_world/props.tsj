@@ -1,0 +1,287 @@
+{
+  "type": "tileset",
+  "version": "1.10",
+  "name": "Lakeside props",
+  "tilewidth": 128,
+  "tileheight": 96,
+  "tilecount": 9,
+  "columns": 0,
+  "objectalignment": "bottomleft",
+  "tiles": [
+    {
+      "id": 0,
+      "image": "pine.png",
+      "imagewidth": 48,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "pine"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 40,
+            "height": 56,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "image": "tree.png",
+      "imagewidth": 64,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "tree"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 56,
+            "height": 56,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "image": "rocks.png",
+      "imagewidth": 48,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "rocks"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 40,
+            "height": 24,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "image": "bush.png",
+      "imagewidth": 32,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": false
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "bush"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": []
+      }
+    },
+    {
+      "id": 4,
+      "image": "garage.png",
+      "imagewidth": 128,
+      "imageheight": 96,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "garage"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 120,
+            "height": 88,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "image": "cottage.png",
+      "imagewidth": 96,
+      "imageheight": 80,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "cottage"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 88,
+            "height": 72,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "image": "fence_h.png",
+      "imagewidth": 64,
+      "imageheight": 32,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "fence_h"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 56,
+            "height": 24,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "image": "fence_v.png",
+      "imagewidth": 32,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "fence_v"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": [
+          {
+            "id": 1,
+            "type": "solid",
+            "x": 4,
+            "y": 4,
+            "width": 24,
+            "height": 56,
+            "rotation": 0,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "image": "pier.png",
+      "imagewidth": 64,
+      "imageheight": 64,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": false
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "value": "pier"
+        }
+      ],
+      "objectgroup": {
+        "type": "objectgroup",
+        "objects": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,2209 @@
+{
+  "rom_sha256": "cdadb9ab83ae6663b43eecb6e2f8e83f244968b40b2345d60abae69ff310e2cb",
+  "emulator": "libmGBA (Debian bookworm)",
+  "checks": [
+    {
+      "name": "Stationary player cannot make enemy drivers permanently park",
+      "passed": true,
+      "details": {
+        "max_idle": [
+          3,
+          0,
+          0,
+          2,
+          2
+        ],
+        "enemies": [
+          {
+            "x": 4184.689697265625,
+            "y": 4236.59619140625,
+            "vx": 0.010986328125,
+            "vy": -1.367431640625,
+            "heading": 272.034423828125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 197,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 405,
+            "moving_frames": 1491,
+            "maneuver": 0,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4124,
+            "goal_y": 4287,
+            "stalled": 0,
+            "spawn_id": 0
+          },
+          {
+            "x": 4235.467041015625,
+            "y": 4156.403564453125,
+            "vx": 0.861572265625,
+            "vy": -0.43408203125,
+            "heading": 327.984130859375,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 231,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 329,
+            "moving_frames": 1500,
+            "maneuver": 90,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4235,
+            "goal_y": 4039,
+            "stalled": 0,
+            "spawn_id": 1
+          },
+          {
+            "x": 4275.5009765625,
+            "y": 4247.33740234375,
+            "vx": 0.061767578125,
+            "vy": 1.41748046875,
+            "heading": 87.5341796875,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 171,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 216,
+            "moving_frames": 1499,
+            "maneuver": 21,
+            "side": -1,
+            "mass": 750,
+            "goal_x": 4281,
+            "goal_y": 4275,
+            "stalled": 0,
+            "spawn_id": 88
+          },
+          {
+            "x": 4071.578369140625,
+            "y": 4127.252685546875,
+            "vx": -1.3095703125,
+            "vy": -0.423828125,
+            "heading": 197.926025390625,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 401,
+            "moving_frames": 1495,
+            "maneuver": 2,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4043,
+            "goal_y": 4117,
+            "stalled": 0,
+            "spawn_id": 102
+          },
+          {
+            "x": 4143.232177734375,
+            "y": 4248.235595703125,
+            "vx": 0.71435546875,
+            "vy": 1.072021484375,
+            "heading": 54.2705078125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 279,
+            "moving_frames": 1498,
+            "maneuver": 48,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4186,
+            "goal_y": 4306,
+            "stalled": 0,
+            "spawn_id": 87
+          }
+        ]
+      }
+    },
+    {
+      "name": "Sensors see the player and other moving cars",
+      "passed": true,
+      "details": {
+        "magic": 1129270594,
+        "ticks": 1501,
+        "hp": 100,
+        "player_hits": 80,
+        "player_shots": 0,
+        "enemy_shots": 107,
+        "hits": 0,
+        "kills": 0,
+        "wall_hits": 0,
+        "expired": 26,
+        "living": 5,
+        "bullets": 1,
+        "ram": 4716,
+        "graphics": 1,
+        "invincible": 1,
+        "collisions": 0,
+        "avoidance": 973,
+        "recoveries": 2,
+        "simulation_cpu": 0.265892002734108,
+        "view_cpu": 0.08179539758487127,
+        "bumps": 4,
+        "last_bump": 0.352294921875,
+        "player_mass": 950,
+        "last_pair": 13,
+        "player_bumps": 2,
+        "enemies": [
+          {
+            "x": 4184.689697265625,
+            "y": 4236.59619140625,
+            "vx": 0.010986328125,
+            "vy": -1.367431640625,
+            "heading": 272.034423828125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 197,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 405,
+            "moving_frames": 1491,
+            "maneuver": 0,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4124,
+            "goal_y": 4287,
+            "stalled": 0,
+            "spawn_id": 0
+          },
+          {
+            "x": 4235.467041015625,
+            "y": 4156.403564453125,
+            "vx": 0.861572265625,
+            "vy": -0.43408203125,
+            "heading": 327.984130859375,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 231,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 329,
+            "moving_frames": 1500,
+            "maneuver": 90,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4235,
+            "goal_y": 4039,
+            "stalled": 0,
+            "spawn_id": 1
+          },
+          {
+            "x": 4275.5009765625,
+            "y": 4247.33740234375,
+            "vx": 0.061767578125,
+            "vy": 1.41748046875,
+            "heading": 87.5341796875,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 171,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 216,
+            "moving_frames": 1499,
+            "maneuver": 21,
+            "side": -1,
+            "mass": 750,
+            "goal_x": 4281,
+            "goal_y": 4275,
+            "stalled": 0,
+            "spawn_id": 88
+          },
+          {
+            "x": 4071.578369140625,
+            "y": 4127.252685546875,
+            "vx": -1.3095703125,
+            "vy": -0.423828125,
+            "heading": 197.926025390625,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 401,
+            "moving_frames": 1495,
+            "maneuver": 2,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4043,
+            "goal_y": 4117,
+            "stalled": 0,
+            "spawn_id": 102
+          },
+          {
+            "x": 4143.232177734375,
+            "y": 4248.235595703125,
+            "vx": 0.71435546875,
+            "vy": 1.072021484375,
+            "heading": 54.2705078125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 279,
+            "moving_frames": 1498,
+            "maneuver": 48,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4186,
+            "goal_y": 4306,
+            "stalled": 0,
+            "spawn_id": 87
+          }
+        ],
+        "projectiles": [
+          {
+            "x": 4184.185791015625,
+            "y": 4198.0068359375,
+            "remaining": 90,
+            "hostile": true
+          }
+        ],
+        "spawn_count": 163,
+        "spawned": 5,
+        "despawned": 0,
+        "respawn_delay": 1800,
+        "spawn_address": 33604912,
+        "spawn_stride": 12,
+        "spawn_range": 560,
+        "despawn_range": 800
+      }
+    },
+    {
+      "name": "Rectangle contacts prevent deep car clumping",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "name": "Enemy front guns fire only with the player ahead and use player range",
+      "passed": true,
+      "details": {
+        "magic": 1129270594,
+        "ticks": 1501,
+        "hp": 100,
+        "player_hits": 80,
+        "player_shots": 0,
+        "enemy_shots": 107,
+        "hits": 0,
+        "kills": 0,
+        "wall_hits": 0,
+        "expired": 26,
+        "living": 5,
+        "bullets": 1,
+        "ram": 4716,
+        "graphics": 1,
+        "invincible": 1,
+        "collisions": 0,
+        "avoidance": 973,
+        "recoveries": 2,
+        "simulation_cpu": 0.265892002734108,
+        "view_cpu": 0.08179539758487127,
+        "bumps": 4,
+        "last_bump": 0.352294921875,
+        "player_mass": 950,
+        "last_pair": 13,
+        "player_bumps": 2,
+        "enemies": [
+          {
+            "x": 4184.689697265625,
+            "y": 4236.59619140625,
+            "vx": 0.010986328125,
+            "vy": -1.367431640625,
+            "heading": 272.034423828125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 197,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 405,
+            "moving_frames": 1491,
+            "maneuver": 0,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4124,
+            "goal_y": 4287,
+            "stalled": 0,
+            "spawn_id": 0
+          },
+          {
+            "x": 4235.467041015625,
+            "y": 4156.403564453125,
+            "vx": 0.861572265625,
+            "vy": -0.43408203125,
+            "heading": 327.984130859375,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 231,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 329,
+            "moving_frames": 1500,
+            "maneuver": 90,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4235,
+            "goal_y": 4039,
+            "stalled": 0,
+            "spawn_id": 1
+          },
+          {
+            "x": 4275.5009765625,
+            "y": 4247.33740234375,
+            "vx": 0.061767578125,
+            "vy": 1.41748046875,
+            "heading": 87.5341796875,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 171,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 216,
+            "moving_frames": 1499,
+            "maneuver": 21,
+            "side": -1,
+            "mass": 750,
+            "goal_x": 4281,
+            "goal_y": 4275,
+            "stalled": 0,
+            "spawn_id": 88
+          },
+          {
+            "x": 4071.578369140625,
+            "y": 4127.252685546875,
+            "vx": -1.3095703125,
+            "vy": -0.423828125,
+            "heading": 197.926025390625,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 401,
+            "moving_frames": 1495,
+            "maneuver": 2,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4043,
+            "goal_y": 4117,
+            "stalled": 0,
+            "spawn_id": 102
+          },
+          {
+            "x": 4143.232177734375,
+            "y": 4248.235595703125,
+            "vx": 0.71435546875,
+            "vy": 1.072021484375,
+            "heading": 54.2705078125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 279,
+            "moving_frames": 1498,
+            "maneuver": 48,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4186,
+            "goal_y": 4306,
+            "stalled": 0,
+            "spawn_id": 87
+          }
+        ],
+        "projectiles": [
+          {
+            "x": 4184.185791015625,
+            "y": 4198.0068359375,
+            "remaining": 90,
+            "hostile": true
+          }
+        ],
+        "spawn_count": 163,
+        "spawned": 5,
+        "despawned": 0,
+        "respawn_delay": 1800,
+        "spawn_address": 33604912,
+        "spawn_stride": 12,
+        "spawn_range": 560,
+        "despawn_range": 800
+      }
+    },
+    {
+      "name": "Enemy cars use the weaker lightweight setup",
+      "passed": true,
+      "details": {
+        "magic": 1129270594,
+        "ticks": 1501,
+        "hp": 100,
+        "player_hits": 80,
+        "player_shots": 0,
+        "enemy_shots": 107,
+        "hits": 0,
+        "kills": 0,
+        "wall_hits": 0,
+        "expired": 26,
+        "living": 5,
+        "bullets": 1,
+        "ram": 4716,
+        "graphics": 1,
+        "invincible": 1,
+        "collisions": 0,
+        "avoidance": 973,
+        "recoveries": 2,
+        "simulation_cpu": 0.265892002734108,
+        "view_cpu": 0.08179539758487127,
+        "bumps": 4,
+        "last_bump": 0.352294921875,
+        "player_mass": 950,
+        "last_pair": 13,
+        "player_bumps": 2,
+        "enemies": [
+          {
+            "x": 4184.689697265625,
+            "y": 4236.59619140625,
+            "vx": 0.010986328125,
+            "vy": -1.367431640625,
+            "heading": 272.034423828125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 197,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 405,
+            "moving_frames": 1491,
+            "maneuver": 0,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4124,
+            "goal_y": 4287,
+            "stalled": 0,
+            "spawn_id": 0
+          },
+          {
+            "x": 4235.467041015625,
+            "y": 4156.403564453125,
+            "vx": 0.861572265625,
+            "vy": -0.43408203125,
+            "heading": 327.984130859375,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 231,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 329,
+            "moving_frames": 1500,
+            "maneuver": 90,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4235,
+            "goal_y": 4039,
+            "stalled": 0,
+            "spawn_id": 1
+          },
+          {
+            "x": 4275.5009765625,
+            "y": 4247.33740234375,
+            "vx": 0.061767578125,
+            "vy": 1.41748046875,
+            "heading": 87.5341796875,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 171,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 216,
+            "moving_frames": 1499,
+            "maneuver": 21,
+            "side": -1,
+            "mass": 750,
+            "goal_x": 4281,
+            "goal_y": 4275,
+            "stalled": 0,
+            "spawn_id": 88
+          },
+          {
+            "x": 4071.578369140625,
+            "y": 4127.252685546875,
+            "vx": -1.3095703125,
+            "vy": -0.423828125,
+            "heading": 197.926025390625,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 1,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 401,
+            "moving_frames": 1495,
+            "maneuver": 2,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4043,
+            "goal_y": 4117,
+            "stalled": 0,
+            "spawn_id": 102
+          },
+          {
+            "x": 4143.232177734375,
+            "y": 4248.235595703125,
+            "vx": 0.71435546875,
+            "vy": 1.072021484375,
+            "heading": 54.2705078125,
+            "hp": 3,
+            "collisions": 0,
+            "reverse": 0,
+            "avoidance": 187,
+            "recoveries": 0,
+            "explosion": 0,
+            "flash": 0,
+            "vehicle_senses": 279,
+            "moving_frames": 1498,
+            "maneuver": 48,
+            "side": 1,
+            "mass": 750,
+            "goal_x": 4186,
+            "goal_y": 4306,
+            "stalled": 0,
+            "spawn_id": 87
+          }
+        ],
+        "projectiles": [
+          {
+            "x": 4184.185791015625,
+            "y": 4198.0068359375,
+            "remaining": 90,
+            "hostile": true
+          }
+        ],
+        "spawn_count": 163,
+        "spawned": 5,
+        "despawned": 0,
+        "respawn_delay": 1800,
+        "spawn_address": 33604912,
+        "spawn_stride": 12,
+        "spawn_range": 560,
+        "despawn_range": 800
+      }
+    },
+    {
+      "name": "Controller-driven player ram transfers velocity through real car contacts",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 63413,
+          "mode": 1,
+          "setup": 0,
+          "x": 4220.305908203125,
+          "y": 4176.0,
+          "vx": 0.893798828125,
+          "vy": 0.0,
+          "heading": 0.0,
+          "slip": 0.0,
+          "surface": 2,
+          "lap_frames": 60,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.591064453125,
+          "missed": 0,
+          "camera_x": 4225,
+          "camera_y": 4170,
+          "vblank": 0.100830078125,
+          "uploaded_bytes": 256,
+          "bg_bytes": 24576,
+          "sprite_free_bytes": 27456,
+          "map": 2,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 528,
+          "tile_capacity": 192,
+          "unique_tiles": 24,
+          "renderer_working_ram_bytes": 13944,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 4652,
+          "minimap_x": 86,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 13,
+          "town": -1,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17524,
+          "scratch_bytes": 45136,
+          "free_ewram": 179480,
+          "floor_cells": 1460,
+          "generation_updates": 171,
+          "town_visits": 5,
+          "radar_x": 4208,
+          "radar_y": 4176,
+          "radar_revisions": 4,
+          "zoom_level": 3,
+          "radar_scale": 16
+        },
+        "combat": {
+          "magic": 1129270594,
+          "ticks": 60,
+          "hp": 100,
+          "player_hits": 2,
+          "player_shots": 0,
+          "enemy_shots": 2,
+          "hits": 0,
+          "kills": 0,
+          "wall_hits": 0,
+          "expired": 0,
+          "living": 5,
+          "bullets": 0,
+          "ram": 4716,
+          "graphics": 1,
+          "invincible": 1,
+          "collisions": 0,
+          "avoidance": 6,
+          "recoveries": 1,
+          "simulation_cpu": 0.21872863978127136,
+          "view_cpu": 0.0480747322852586,
+          "bumps": 1,
+          "last_bump": 1.706787109375,
+          "player_mass": 950,
+          "last_pair": 0,
+          "player_bumps": 1,
+          "enemies": [
+            {
+              "x": 4242.573974609375,
+              "y": 4176.2275390625,
+              "vx": 1.23486328125,
+              "vy": -0.001708984375,
+              "heading": 178.7841796875,
+              "hp": 3,
+              "collisions": 0,
+              "reverse": 0,
+              "avoidance": 6,
+              "recoveries": 1,
+              "explosion": 0,
+              "flash": 0,
+              "vehicle_senses": 15,
+              "moving_frames": 53,
+              "maneuver": 80,
+              "side": -1,
+              "mass": 750,
+              "goal_x": 4278,
+              "goal_y": 4292,
+              "stalled": 0,
+              "spawn_id": 0
+            },
+            {
+              "x": 4057.36669921875,
+              "y": 4210.20166015625,
+              "vx": 1.189208984375,
+              "vy": -0.396728515625,
+              "heading": 341.56494140625,
+              "hp": 3,
+              "collisions": 0,
+              "reverse": 0,
+              "avoidance": 0,
+              "recoveries": 0,
+              "explosion": 0,
+              "flash": 0,
+              "vehicle_senses": 0,
+              "moving_frames": 59,
+              "maneuver": 0,
+              "side": 1,
+              "mass": 750,
+              "goal_x": 0,
+              "goal_y": 0,
+              "stalled": 0,
+              "spawn_id": 1
+            },
+            {
+              "x": 4161.0498046875,
+              "y": 3819.1982421875,
+              "vx": 0.153564453125,
+              "vy": 1.249755859375,
+              "heading": 82.078125,
+              "hp": 3,
+              "collisions": 0,
+              "reverse": 0,
+              "avoidance": 0,
+              "recoveries": 0,
+              "explosion": 0,
+              "flash": 0,
+              "vehicle_senses": 0,
+              "moving_frames": 58,
+              "maneuver": 0,
+              "side": -1,
+              "mass": 750,
+              "goal_x": 0,
+              "goal_y": 0,
+              "stalled": 0,
+              "spawn_id": 88
+            },
+            {
+              "x": 4508.714599609375,
+              "y": 4393.9619140625,
+              "vx": -1.05810546875,
+              "vy": -0.660888671875,
+              "heading": 212.003173828125,
+              "hp": 3,
+              "collisions": 0,
+              "reverse": 0,
+              "avoidance": 0,
+              "recoveries": 0,
+              "explosion": 0,
+              "flash": 0,
+              "vehicle_senses": 0,
+              "moving_frames": 58,
+              "maneuver": 0,
+              "side": -1,
+              "mass": 750,
+              "goal_x": 0,
+              "goal_y": 0,
+              "stalled": 0,
+              "spawn_id": 102
+            },
+            {
+              "x": 3925.7041015625,
+              "y": 3809.82568359375,
+              "vx": 0.66357421875,
+              "vy": 1.033935546875,
+              "heading": 57.381591796875,
+              "hp": 3,
+              "collisions": 0,
+              "reverse": 0,
+              "avoidance": 0,
+              "recoveries": 0,
+              "explosion": 0,
+              "flash": 0,
+              "vehicle_senses": 0,
+              "moving_frames": 57,
+              "maneuver": 0,
+              "side": 1,
+              "mass": 750,
+              "goal_x": 0,
+              "goal_y": 0,
+              "stalled": 0,
+              "spawn_id": 87
+            }
+          ],
+          "projectiles": [],
+          "spawn_count": 163,
+          "spawned": 5,
+          "despawned": 0,
+          "respawn_delay": 1800,
+          "spawn_address": 33604912,
+          "spawn_stride": 12,
+          "spawn_range": 560,
+          "despawn_range": 800
+        }
+      }
+    },
+    {
+      "name": "Bumping preserves invincible player HP",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Traffic AI and contact solving stay within the measured frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.851318359375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Runtime spawn coordinates match the exported recipe",
+      "passed": true,
+      "details": {
+        "points": 163
+      }
+    },
+    {
+      "name": "World-wide encounter anchors are reachable, sparse and lightweight",
+      "passed": true,
+      "details": {
+        "points": 163,
+        "ram": 4716,
+        "record_bytes": 12
+      }
+    },
+    {
+      "name": "Kill starts one 1800-frame encounter cooldown",
+      "passed": true,
+      "details": {
+        "x": 4264,
+        "y": 4176,
+        "ready_at": 1833,
+        "slot": -1,
+        "hp": 0
+      }
+    },
+    {
+      "name": "Cooldown blocks immediate respawn; visible anchor stays empty after expiry",
+      "passed": true,
+      "details": {
+        "point": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 1833,
+          "slot": -1,
+          "hp": 0
+        },
+        "ticks": 1915
+      }
+    },
+    {
+      "name": "Joypad route traverses distant encounter districts and returns",
+      "passed": true,
+      "details": {
+        "completed": [
+          true,
+          true
+        ],
+        "path": [
+          [
+            32,
+            32
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            33
+          ],
+          [
+            34,
+            33
+          ],
+          [
+            35,
+            33
+          ],
+          [
+            36,
+            33
+          ],
+          [
+            37,
+            33
+          ],
+          [
+            38,
+            33
+          ],
+          [
+            39,
+            33
+          ],
+          [
+            40,
+            33
+          ],
+          [
+            41,
+            33
+          ],
+          [
+            42,
+            33
+          ],
+          [
+            42,
+            34
+          ],
+          [
+            42,
+            35
+          ],
+          [
+            42,
+            36
+          ],
+          [
+            42,
+            37
+          ],
+          [
+            43,
+            37
+          ],
+          [
+            43,
+            38
+          ],
+          [
+            44,
+            38
+          ],
+          [
+            45,
+            38
+          ],
+          [
+            46,
+            38
+          ],
+          [
+            46,
+            39
+          ],
+          [
+            47,
+            39
+          ],
+          [
+            48,
+            39
+          ],
+          [
+            49,
+            39
+          ],
+          [
+            50,
+            39
+          ],
+          [
+            51,
+            39
+          ],
+          [
+            52,
+            39
+          ],
+          [
+            53,
+            39
+          ]
+        ]
+      }
+    },
+    {
+      "name": "Streaming reuses five slots without duplicate point ownership",
+      "passed": true,
+      "details": {
+        "peak_active": 5,
+        "unique_encounters": 17,
+        "spawned": 22
+      }
+    },
+    {
+      "name": "Distant cars despawn without counting as kills and retain HP",
+      "passed": true,
+      "details": {
+        "despawned": 16,
+        "kills": 1,
+        "departed": [
+          1,
+          87,
+          88,
+          89,
+          91,
+          101,
+          102,
+          103,
+          104,
+          105,
+          114,
+          115,
+          117,
+          118,
+          126
+        ]
+      }
+    },
+    {
+      "name": "Returning reactivates dormant encounters and expired destroyed point",
+      "passed": true,
+      "details": {
+        "returned": [
+          1,
+          102,
+          103,
+          115
+        ],
+        "victim": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 1833,
+          "slot": 3,
+          "hp": 3
+        }
+      }
+    },
+    {
+      "name": "New streamed cars appear outside the viewport",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Spawn streaming fits measured frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.958984375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "New fixed run resets encounter state but reproduces anchors",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Single-shot survivor records two HP on its anchor",
+      "passed": true,
+      "details": {
+        "x": 4264,
+        "y": 4176,
+        "ready_at": 0,
+        "slot": 0,
+        "hp": 2
+      }
+    },
+    {
+      "name": "Damaged survivor despawns and returns with two HP, not healed",
+      "passed": true,
+      "details": {
+        "dormant": true,
+        "reactivated": true,
+        "point": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 0,
+          "slot": 4,
+          "hp": 2
+        }
+      }
+    },
+    {
+      "name": "Damaged-survivor streaming route stays within frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.88037109375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "L cycles five weapons once per press without changing vehicle setup",
+      "passed": true,
+      "details": [
+        1,
+        2,
+        3,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "Side guns fire both perpendicular directions together",
+      "passed": true,
+      "details": {
+        "shots": [
+          {
+            "x": 4160.0,
+            "y": 4156.0,
+            "remaining": 114,
+            "hostile": false
+          },
+          {
+            "x": 4160.0,
+            "y": 4196.0,
+            "remaining": 114,
+            "hostile": false
+          }
+        ],
+        "weapon": {
+          "selected": 2,
+          "saw": false,
+          "saw_x": 0.0,
+          "saw_y": 0.0,
+          "guidance": 0,
+          "explosions": 0,
+          "shots": [
+            0,
+            0,
+            2,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Side salvos remain in the bounded shared projectile pool",
+      "passed": true,
+      "details": [
+        0,
+        0,
+        32,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Chainsaw is a short circle ahead and does not create bullets",
+      "passed": true,
+      "details": {
+        "selected": 1,
+        "saw": true,
+        "saw_x": 4184.0,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Chainsaw deals two HP per contact pulse and destroys a nearby car",
+      "passed": true,
+      "details": {
+        "hp": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0
+        ],
+        "weapon": {
+          "selected": 1,
+          "saw": true,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 0,
+          "explosions": 0,
+          "shots": [
+            0,
+            7,
+            0,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            2,
+            0,
+            0,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Releasing R stops the chainsaw immediately",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Missile launches ahead before acquiring a target",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4182.0,
+            "y": 4176.0,
+            "vx": 4.0,
+            "vy": 0.0,
+            "remaining": 149,
+            "age": 1,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Missile acquires the closest living enemy after its launch delay",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 1,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4202.1005859375,
+            "y": 4176.8876953125,
+            "vx": -3.8994140625,
+            "vy": 0.8876953125,
+            "remaining": 142,
+            "age": 8,
+            "target": 1,
+            "heading": 167.250244140625,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Homing direction is refreshed every six ticks",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 2,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4178.7802734375,
+            "y": 4182.4990234375,
+            "vx": -3.8232421875,
+            "vy": 1.1728515625,
+            "remaining": 136,
+            "age": 14,
+            "target": 1,
+            "heading": 163.1083984375,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Homing missiles deal lethal damage and never exceed two active rockets",
+      "passed": true,
+      "details": {
+        "max_live": 2,
+        "weapon": {
+          "selected": 3,
+          "saw": false,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 39,
+          "explosions": 0,
+          "shots": [
+            10,
+            0,
+            0,
+            7,
+            0
+          ],
+          "hits": [
+            3,
+            0,
+            0,
+            5,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 4186.0,
+              "y": 4176.0,
+              "vx": 4.0,
+              "vy": 0.0,
+              "remaining": 148,
+              "age": 2,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 4330.0,
+              "y": 4176.0,
+              "vx": 4.0,
+              "vy": 0.0,
+              "remaining": 112,
+              "age": 38,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Trap is laid behind the car with a short arming delay",
+      "passed": true,
+      "details": {
+        "selected": 4,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 4138.0,
+            "y": 4176.0,
+            "remaining": 899,
+            "arm": 17,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Trap remains stationary and does not trigger on its owner",
+      "passed": true,
+      "details": {
+        "selected": 4,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 4138.0,
+            "y": 4176.0,
+            "remaining": 879,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Enemy contact detonates a stationary trap and applies blast damage",
+      "passed": true,
+      "details": {
+        "max_traps": 2,
+        "weapon": {
+          "selected": 4,
+          "saw": false,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 0,
+          "explosions": 1,
+          "shots": [
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 4138.0,
+              "y": 4176.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 24
+            },
+            {
+              "x": 4153.2373046875,
+              "y": 4176.0,
+              "remaining": 856,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Trap pool never exceeds six objects",
+      "passed": true,
+      "details": 2
+    },
+    {
+      "name": "Settings pauses weapon selection, traps and all weapon timers",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Pause freezes weapons and selection",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Switching weapon keeps an already deployed trap",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "New runs reset the loadout and clear every weapon pool",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "New weapons fit the measured driving frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.97998046875,
+        "missed": 0,
+        "ram": 4716
+      }
+    }
+  ]
+}

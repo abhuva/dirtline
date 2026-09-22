@@ -1,0 +1,97 @@
+{
+  "rom_sha256": "503c9c6df70277511fcd95c03043815b262adb12286d17715e8cb4eb0b98a2c9",
+  "checks": [
+    {
+      "name": "Two-output recipe allocates a separate 4096-byte ground grid",
+      "passed": true,
+      "details": 8264
+    },
+    {
+      "name": "Material recipe terrain matches exported full-map render",
+      "passed": true,
+      "details": 1.0
+    },
+    {
+      "name": "Custom materials preserve playable driving",
+      "passed": true,
+      "details": {
+        "magic": 1146442580,
+        "frame": 352,
+        "mode": 1,
+        "setup": 1,
+        "x": 4381.840576171875,
+        "y": 3898.15966796875,
+        "vx": 1.921630859375,
+        "vy": -0.715087890625,
+        "heading": 339.66064453125,
+        "slip": 0.0009765625,
+        "surface": 1,
+        "lap_frames": 270,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.405517578125,
+        "missed": 0,
+        "camera_x": 4389,
+        "camera_y": 3889,
+        "vblank": 0.08544921875,
+        "uploaded_bytes": 0,
+        "bg_bytes": 18432,
+        "sprite_free_bytes": 27904,
+        "map": 2,
+        "width": 8192,
+        "height": 8192,
+        "chunk": 497,
+        "tile_capacity": 192,
+        "unique_tiles": 16,
+        "renderer_working_ram_bytes": 13944,
+        "chunk_loads": 0,
+        "chunk_decodes": 0,
+        "chunk_cache_bytes": 4652,
+        "minimap_x": 89,
+        "minimap_y": 46,
+        "seed": 12648430,
+        "signature": 3690015652,
+        "generations": 1,
+        "town": -1,
+        "town_x": 4416,
+        "town_y": 4176,
+        "layout_bytes": 8264,
+        "scratch_bytes": 41032,
+        "free_ewram": 199456,
+        "floor_cells": 1637,
+        "generation_updates": 127,
+        "town_visits": 0,
+        "radar_x": 4344,
+        "radar_y": 3900,
+        "radar_revisions": 14,
+        "zoom_level": 0,
+        "radar_scale": 12
+      }
+    },
+    {
+      "name": "Driving surface follows the material output",
+      "passed": true,
+      "details": {
+        "material": 2,
+        "surface": 1
+      }
+    },
+    {
+      "name": "Moving camera keeps material tiles aligned with the full map",
+      "passed": true,
+      "details": 0.9971910112359551
+    },
+    {
+      "name": "Leaving wasteland releases layout and custom ground grid",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "name": "Restart regenerates both outputs consistently",
+      "passed": true,
+      "details": 1.0
+    }
+  ]
+}

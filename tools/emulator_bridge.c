@@ -8,14 +8,19 @@
 
 static struct mCore* core;
 static color_t pixels[240*160];
+static int error_lines;
 static void test_log(struct mLogger* logger, int category, enum mLogLevel level,
                      const char* format, va_list args) {
     (void)logger; (void)category;
-    if(level & (mLOG_FATAL | mLOG_ERROR)) { vfprintf(stderr,format,args); fputc('\n',stderr); }
+    if(level & (mLOG_FATAL | mLOG_ERROR)) {
+        if(error_lines++<32) { vfprintf(stderr,format,args); fputc('\n',stderr); }
+        else if(error_lines==33) fputs("Further emulator error messages suppressed.\n",stderr);
+    }
 }
 static struct mLogger logger={.log=test_log,.filter=NULL};
 
 int emulator_open(const char* path) {
+    error_lines=0;
     mLogSetDefaultLogger(&logger);
     core=mCoreFind(path);
     if(!core || !core->init(core)) return 0;

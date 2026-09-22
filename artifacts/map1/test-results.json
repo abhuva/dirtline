@@ -1,0 +1,241 @@
+{
+  "rom_sha256": "8019f69602793a2bf436ecf651f76fc559a872756ab399a1c610678f02bee411",
+  "measurements": {
+    "initial": {
+      "magic": 1296126001,
+      "frame": 33,
+      "x": 320,
+      "y": 1340,
+      "bg_tile_bytes": 30720,
+      "bg_map_bytes": 2048,
+      "bg_tile_alloc_bytes": 30720,
+      "bg_map_alloc_bytes": 2048,
+      "sprite_tile_bytes": 4992,
+      "sprite_free_bytes": 27776,
+      "car_tile_bytes": 2560,
+      "static_iwram_bytes": 11532,
+      "stack_iwram_bytes": 1276,
+      "static_ewram_bytes": 33584,
+      "heap_used_bytes": 0,
+      "heap_available_bytes": 228560,
+      "cpu_fixed": 198,
+      "missed": 0,
+      "surface_view": 0,
+      "mask_present": 1,
+      "cars_visible": 1,
+      "rom_bytes": 759552,
+      "sprite_palette_colors": 80,
+      "reserved": 0
+    },
+    "max_cpu": 0.61865234375,
+    "corners": [
+      [
+        120,
+        80
+      ],
+      [
+        1928,
+        80
+      ],
+      [
+        1928,
+        1968
+      ],
+      [
+        120,
+        1968
+      ]
+    ]
+  },
+  "checks": [
+    {
+      "name": "Title opens map lab",
+      "passed": true,
+      "details": {
+        "magic": 1296126001,
+        "frame": 33,
+        "x": 320,
+        "y": 1340,
+        "bg_tile_bytes": 30720,
+        "bg_map_bytes": 2048,
+        "bg_tile_alloc_bytes": 30720,
+        "bg_map_alloc_bytes": 2048,
+        "sprite_tile_bytes": 4992,
+        "sprite_free_bytes": 27776,
+        "car_tile_bytes": 2560,
+        "static_iwram_bytes": 11532,
+        "stack_iwram_bytes": 1276,
+        "static_ewram_bytes": 33584,
+        "heap_used_bytes": 0,
+        "heap_available_bytes": 228560,
+        "cpu_fixed": 198,
+        "missed": 0,
+        "surface_view": 0,
+        "mask_present": 1,
+        "cars_visible": 1,
+        "rom_bytes": 759552,
+        "sprite_palette_colors": 80,
+        "reserved": 0
+      }
+    },
+    {
+      "name": "Five car frames have independent tile allocations",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Five car palettes loaded",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Background tile patterns fit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Background allocation fits 64 KiB",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Sprite budget retains at least 24 KiB",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Rendered road bend matches converted map",
+      "passed": true,
+      "details": {
+        "max_channel_error": 1,
+        "x": 320,
+        "y": 1340
+      }
+    },
+    {
+      "name": "Mask toggle shows surface grid",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Rendered mask matches generated surface grid",
+      "passed": true,
+      "details": {
+        "max_channel_error": 7,
+        "x": 320,
+        "y": 1340
+      }
+    },
+    {
+      "name": "Road and dirt are both present in the mask view",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Terrain restored after mask toggle",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Rendered pixels match converted map at northwest",
+      "passed": true,
+      "details": {
+        "max_channel_error": 1,
+        "x": 120,
+        "y": 80
+      }
+    },
+    {
+      "name": "Rendered pixels match converted map at northeast",
+      "passed": true,
+      "details": {
+        "max_channel_error": 1,
+        "x": 1928,
+        "y": 80
+      }
+    },
+    {
+      "name": "Rendered pixels match converted map at southeast",
+      "passed": true,
+      "details": {
+        "max_channel_error": 1,
+        "x": 1928,
+        "y": 1968
+      }
+    },
+    {
+      "name": "Rendered pixels match converted map at southwest",
+      "passed": true,
+      "details": {
+        "max_channel_error": 1,
+        "x": 120,
+        "y": 1968
+      }
+    },
+    {
+      "name": "Camera reaches all four map corners",
+      "passed": true,
+      "details": [
+        [
+          120,
+          80
+        ],
+        [
+          1928,
+          80
+        ],
+        [
+          1928,
+          1968
+        ],
+        [
+          120,
+          1968
+        ]
+      ]
+    },
+    {
+      "name": "Five animated cars and scrolling stay within a frame",
+      "passed": true,
+      "details": {
+        "max_cpu": 0.61865234375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Exit releases map scene",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Scene reload retains the same allocation",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Exit releases map scene",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Scene reload retains the same allocation",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Exit releases map scene",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Scene reload retains the same allocation",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Original driving scene still starts after map lab",
+      "passed": true,
+      "details": null
+    }
+  ]
+}

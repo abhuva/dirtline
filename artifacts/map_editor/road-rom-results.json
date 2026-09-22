@@ -1,0 +1,51 @@
+{
+  "rom_sha256": "eac2e7a6b1d4074fbac317fbf48dcfbcf622af46ae54d2fed820f377ff7fa534",
+  "checks": [
+    {
+      "name": "Road recipe allocates ground and connection grids",
+      "passed": true,
+      "details": 12368
+    },
+    {
+      "name": "Road ROM terrain matches exported full-map render",
+      "passed": true,
+      "details": 1.0
+    },
+    {
+      "name": "Driving surface follows rendered material at every sampled frame",
+      "passed": true,
+      "details": {
+        "samples": 220,
+        "errors": []
+      }
+    },
+    {
+      "name": "Controller route crosses generated road overlay",
+      "passed": true,
+      "details": 13
+    },
+    {
+      "name": "Road driving stays within frame budget",
+      "passed": true,
+      "details": {
+        "max_cpu": 0.88427734375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "Moving camera keeps roads aligned with full-map render",
+      "passed": true,
+      "details": 1.0
+    },
+    {
+      "name": "Leaving wasteland releases road and material grids",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "name": "Restart regenerates road overlay consistently",
+      "passed": true,
+      "details": 1.0
+    }
+  ]
+}

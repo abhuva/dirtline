@@ -1,0 +1,8 @@
+{
+  "terrain_tiles": 170,
+  "terrain_tiles_exceeding_15_opaque_colors": 165,
+  "decoration_8bpp_bytes": 1088,
+  "decoration_4bpp_bytes": 544,
+  "decoration_pixels_identical": true,
+  "terrain_palette_entries": 192
+}

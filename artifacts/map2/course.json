@@ -1,0 +1,71 @@
+{
+  "width": 1280,
+  "height": 1280,
+  "start": [
+    540,
+    1105
+  ],
+  "finish_x": 640,
+  "finish_y": [
+    1070,
+    1140
+  ],
+  "checkpoints": [
+    [
+      1179,
+      909
+    ],
+    [
+      1121,
+      497
+    ],
+    [
+      1160,
+      150
+    ],
+    [
+      768,
+      144
+    ],
+    [
+      374,
+      137
+    ],
+    [
+      246,
+      250
+    ],
+    [
+      411,
+      505
+    ],
+    [
+      857,
+      786
+    ],
+    [
+      823,
+      969
+    ],
+    [
+      421,
+      905
+    ],
+    [
+      164,
+      990
+    ],
+    [
+      540,
+      1105
+    ]
+  ],
+  "source_sha256": "ab7b6784c03cfc8f97722490cf909ff88e33a5909603f1ea49bbd9683dd0c8d0",
+  "unique_rom_tiles": 25403,
+  "tile_rom_bytes": 1625792,
+  "streaming_slots": 672,
+  "streaming_vram_bytes": 43008,
+  "surface_cell_size": 4,
+  "road_cells": 26368,
+  "shoulder_cells": 3578
+}

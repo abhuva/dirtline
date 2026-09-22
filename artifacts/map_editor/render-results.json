@@ -1,0 +1,11 @@
+{
+  "cases": 7,
+  "tilesPerCase": 1048576,
+  "nativeWasmTileParity": true,
+  "groundIdParity": true,
+  "surfaceParity": true,
+  "fullPngSize": [
+    8192,
+    8192
+  ]
+}

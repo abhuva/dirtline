@@ -1,0 +1,206 @@
+{
+  "width": 16384,
+  "height": 16384,
+  "start": [
+    512,
+    1536
+  ],
+  "route": [
+    [
+      512,
+      1536
+    ],
+    [
+      1024,
+      1536
+    ],
+    [
+      1728,
+      1536
+    ],
+    [
+      1776,
+      1488
+    ],
+    [
+      1776,
+      1344
+    ],
+    [
+      1664,
+      1248
+    ],
+    [
+      1280,
+      1248
+    ],
+    [
+      1136,
+      1216
+    ],
+    [
+      1024,
+      1152
+    ],
+    [
+      896,
+      1152
+    ],
+    [
+      768,
+      1152
+    ],
+    [
+      624,
+      1264
+    ],
+    [
+      624,
+      1424
+    ],
+    [
+      576,
+      1488
+    ],
+    [
+      512,
+      1536
+    ],
+    [
+      3008,
+      1536
+    ],
+    [
+      3072,
+      1600
+    ],
+    [
+      3072,
+      3520
+    ],
+    [
+      3008,
+      3584
+    ],
+    [
+      1088,
+      3584
+    ],
+    [
+      1024,
+      3520
+    ],
+    [
+      1024,
+      1600
+    ],
+    [
+      960,
+      1536
+    ],
+    [
+      512,
+      1536
+    ],
+    [
+      15296,
+      1536
+    ],
+    [
+      15360,
+      1600
+    ],
+    [
+      15360,
+      5568
+    ],
+    [
+      15296,
+      5632
+    ],
+    [
+      1088,
+      5632
+    ],
+    [
+      1024,
+      5696
+    ],
+    [
+      1024,
+      9664
+    ],
+    [
+      1088,
+      9728
+    ],
+    [
+      15296,
+      9728
+    ],
+    [
+      15360,
+      9792
+    ],
+    [
+      15360,
+      15808
+    ],
+    [
+      15296,
+      15872
+    ],
+    [
+      1088,
+      15872
+    ],
+    [
+      1024,
+      15808
+    ],
+    [
+      1024,
+      1600
+    ],
+    [
+      960,
+      1536
+    ],
+    [
+      512,
+      1536
+    ]
+  ],
+  "props": 9296,
+  "unique_tiles": 1397,
+  "tile_rom_bytes": 89408,
+  "source_chunk_patterns": 101,
+  "metatiles": 541,
+  "metatile_rom_bytes": 4328,
+  "collision_rom_bytes": 8656,
+  "chunks": 4096,
+  "unique_chunks": 101,
+  "radar_surface_rom_bytes": 6464,
+  "chunk_rom_bytes": 28880,
+  "uncompressed_chunk_rom_bytes": 59904,
+  "compression_enabled": true,
+  "chunk_cache_data_bytes": 4608,
+  "resident_terrain_vram_bytes": 30720,
+  "unreachable_cells": 0,
+  "source_sha256": "52a6d2805c39a212464de197a50adf8591d8917496e04c3c6b2be7e4994debb4",
+  "total_world_rom_bytes": 137736,
+  "window_tiles": [
+    31,
+    21
+  ],
+  "camera_windows_checked": 4096551,
+  "distinct_neighbourhoods": 123,
+  "representative_windows_audited": 109607,
+  "max_visible_unique_tiles": 476,
+  "busiest_camera": [
+    536,
+    1384
+  ],
+  "average_visible_unique_tiles": 160.67,
+  "tile_slots": 480
+}

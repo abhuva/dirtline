@@ -1,0 +1,1348 @@
+{
+  "rom_sha256": "cdadb9ab83ae6663b43eecb6e2f8e83f244968b40b2345d60abae69ff310e2cb",
+  "emulator": "libmGBA (Debian bookworm)",
+  "checks": [
+    {
+      "name": "World-wide encounter anchors are reachable, sparse and lightweight",
+      "passed": true,
+      "details": {
+        "points": 163,
+        "ram": 4716,
+        "record_bytes": 12
+      }
+    },
+    {
+      "name": "Kill starts one 1800-frame encounter cooldown",
+      "passed": true,
+      "details": {
+        "x": 4264,
+        "y": 4176,
+        "ready_at": 1833,
+        "slot": -1,
+        "hp": 0
+      }
+    },
+    {
+      "name": "Cooldown blocks immediate respawn; visible anchor stays empty after expiry",
+      "passed": true,
+      "details": {
+        "point": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 1833,
+          "slot": -1,
+          "hp": 0
+        },
+        "ticks": 1915
+      }
+    },
+    {
+      "name": "Joypad route traverses distant encounter districts and returns",
+      "passed": true,
+      "details": {
+        "completed": [
+          true,
+          true
+        ],
+        "path": [
+          [
+            32,
+            32
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            33
+          ],
+          [
+            34,
+            33
+          ],
+          [
+            35,
+            33
+          ],
+          [
+            36,
+            33
+          ],
+          [
+            37,
+            33
+          ],
+          [
+            38,
+            33
+          ],
+          [
+            39,
+            33
+          ],
+          [
+            40,
+            33
+          ],
+          [
+            41,
+            33
+          ],
+          [
+            42,
+            33
+          ],
+          [
+            42,
+            34
+          ],
+          [
+            42,
+            35
+          ],
+          [
+            42,
+            36
+          ],
+          [
+            42,
+            37
+          ],
+          [
+            43,
+            37
+          ],
+          [
+            43,
+            38
+          ],
+          [
+            44,
+            38
+          ],
+          [
+            45,
+            38
+          ],
+          [
+            46,
+            38
+          ],
+          [
+            46,
+            39
+          ],
+          [
+            47,
+            39
+          ],
+          [
+            48,
+            39
+          ],
+          [
+            49,
+            39
+          ],
+          [
+            50,
+            39
+          ],
+          [
+            51,
+            39
+          ],
+          [
+            52,
+            39
+          ],
+          [
+            53,
+            39
+          ]
+        ]
+      }
+    },
+    {
+      "name": "Streaming reuses five slots without duplicate point ownership",
+      "passed": true,
+      "details": {
+        "peak_active": 5,
+        "unique_encounters": 17,
+        "spawned": 22
+      }
+    },
+    {
+      "name": "Distant cars despawn without counting as kills and retain HP",
+      "passed": true,
+      "details": {
+        "despawned": 16,
+        "kills": 1,
+        "departed": [
+          1,
+          87,
+          88,
+          89,
+          91,
+          101,
+          102,
+          103,
+          104,
+          105,
+          114,
+          115,
+          117,
+          118,
+          126
+        ]
+      }
+    },
+    {
+      "name": "Returning reactivates dormant encounters and expired destroyed point",
+      "passed": true,
+      "details": {
+        "returned": [
+          1,
+          102,
+          103,
+          115
+        ],
+        "victim": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 1833,
+          "slot": 3,
+          "hp": 3
+        }
+      }
+    },
+    {
+      "name": "New streamed cars appear outside the viewport",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Spawn streaming fits measured frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.958984375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "New fixed run resets encounter state but reproduces anchors",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Single-shot survivor records two HP on its anchor",
+      "passed": true,
+      "details": {
+        "x": 4264,
+        "y": 4176,
+        "ready_at": 0,
+        "slot": 0,
+        "hp": 2
+      }
+    },
+    {
+      "name": "Damaged survivor despawns and returns with two HP, not healed",
+      "passed": true,
+      "details": {
+        "dormant": true,
+        "reactivated": true,
+        "point": {
+          "x": 4264,
+          "y": 4176,
+          "ready_at": 0,
+          "slot": 4,
+          "hp": 2
+        }
+      }
+    },
+    {
+      "name": "Damaged-survivor streaming route stays within frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.88037109375,
+        "missed": 0
+      }
+    },
+    {
+      "name": "L cycles five weapons once per press without changing vehicle setup",
+      "passed": true,
+      "details": [
+        1,
+        2,
+        3,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "Side guns fire both perpendicular directions together",
+      "passed": true,
+      "details": {
+        "shots": [
+          {
+            "x": 4160.0,
+            "y": 4156.0,
+            "remaining": 114,
+            "hostile": false
+          },
+          {
+            "x": 4160.0,
+            "y": 4196.0,
+            "remaining": 114,
+            "hostile": false
+          }
+        ],
+        "weapon": {
+          "selected": 2,
+          "saw": false,
+          "saw_x": 0.0,
+          "saw_y": 0.0,
+          "guidance": 0,
+          "explosions": 0,
+          "shots": [
+            0,
+            0,
+            2,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Side salvos remain in the bounded shared projectile pool",
+      "passed": true,
+      "details": [
+        0,
+        0,
+        32,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Chainsaw is a short circle ahead and does not create bullets",
+      "passed": true,
+      "details": {
+        "selected": 1,
+        "saw": true,
+        "saw_x": 4184.0,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Chainsaw deals two HP per contact pulse and destroys a nearby car",
+      "passed": true,
+      "details": {
+        "hp": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0
+        ],
+        "weapon": {
+          "selected": 1,
+          "saw": true,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 0,
+          "explosions": 0,
+          "shots": [
+            0,
+            7,
+            0,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            2,
+            0,
+            0,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Releasing R stops the chainsaw immediately",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Missile launches ahead before acquiring a target",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4182.0,
+            "y": 4176.0,
+            "vx": 4.0,
+            "vy": 0.0,
+            "remaining": 149,
+            "age": 1,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Missile acquires the closest living enemy after its launch delay",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 1,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4202.1005859375,
+            "y": 4176.8876953125,
+            "vx": -3.8994140625,
+            "vy": 0.8876953125,
+            "remaining": 142,
+            "age": 8,
+            "target": 1,
+            "heading": 167.250244140625,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Homing direction is refreshed every six ticks",
+      "passed": true,
+      "details": {
+        "selected": 3,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 2,
+        "explosions": 0,
+        "shots": [
+          10,
+          0,
+          0,
+          1,
+          0
+        ],
+        "hits": [
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 4178.7802734375,
+            "y": 4182.4990234375,
+            "vx": -3.8232421875,
+            "vy": 1.1728515625,
+            "remaining": 136,
+            "age": 14,
+            "target": 1,
+            "heading": 163.1083984375,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Homing missiles deal lethal damage and never exceed two active rockets",
+      "passed": true,
+      "details": {
+        "max_live": 2,
+        "weapon": {
+          "selected": 3,
+          "saw": false,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 39,
+          "explosions": 0,
+          "shots": [
+            10,
+            0,
+            0,
+            7,
+            0
+          ],
+          "hits": [
+            3,
+            0,
+            0,
+            5,
+            0
+          ],
+          "missiles": [
+            {
+              "x": 4186.0,
+              "y": 4176.0,
+              "vx": 4.0,
+              "vy": 0.0,
+              "remaining": 148,
+              "age": 2,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 4330.0,
+              "y": 4176.0,
+              "vx": 4.0,
+              "vy": 0.0,
+              "remaining": 112,
+              "age": 38,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Trap is laid behind the car with a short arming delay",
+      "passed": true,
+      "details": {
+        "selected": 4,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 4138.0,
+            "y": 4176.0,
+            "remaining": 899,
+            "arm": 17,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Trap remains stationary and does not trigger on its owner",
+      "passed": true,
+      "details": {
+        "selected": 4,
+        "saw": false,
+        "saw_x": 4234.023681640625,
+        "saw_y": 4176.0,
+        "guidance": 0,
+        "explosions": 0,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 4138.0,
+            "y": 4176.0,
+            "remaining": 879,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Enemy contact detonates a stationary trap and applies blast damage",
+      "passed": true,
+      "details": {
+        "max_traps": 2,
+        "weapon": {
+          "selected": 4,
+          "saw": false,
+          "saw_x": 4234.023681640625,
+          "saw_y": 4176.0,
+          "guidance": 0,
+          "explosions": 1,
+          "shots": [
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 4138.0,
+              "y": 4176.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 24
+            },
+            {
+              "x": 4153.2373046875,
+              "y": 4176.0,
+              "remaining": 856,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Trap pool never exceeds six objects",
+      "passed": true,
+      "details": 2
+    },
+    {
+      "name": "Settings pauses weapon selection, traps and all weapon timers",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Pause freezes weapons and selection",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Switching weapon keeps an already deployed trap",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "New runs reset the loadout and clear every weapon pool",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "New weapons fit the measured driving frame budget",
+      "passed": true,
+      "details": {
+        "cpu": 0.97998046875,
+        "missed": 0,
+        "ram": 4716
+      }
+    }
+  ]
+}

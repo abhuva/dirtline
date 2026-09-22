@@ -1,0 +1,19 @@
+{
+  "width": 8192,
+  "height": 8192,
+  "logical_grid": [
+    64,
+    64
+  ],
+  "cell_size": 128,
+  "fixed_seed": 12648430,
+  "fixed_signature": 3690015652,
+  "fixed_floor_cells": 1637,
+  "towns": 6,
+  "unique_tiles": 170,
+  "tile_slots": 192,
+  "terrain_vram_bytes": 12288,
+  "palette_colors": 192,
+  "art_source_sha256": "a876409aea497f051cf071c2814de19fe3dcb871cff636416a4bfffbda92594a",
+  "reference_sha256": "9866d3f19667810f4c25ce2aa56ef11047713fc7f1bd7c9b2fad3fbb5f9b89b4"
+}

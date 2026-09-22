@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "name": "Original wasteland",
+  "seed": 12648430,
+  "output": 3,
+  "nodes": [
+    {"id":1,"type":"random","label":"Scatter walls","inputs":{},"stream":0,"p":[47,2],"x":40,"y":80},
+    {"id":2,"type":"cellular","label":"Shape the canyons","inputs":{"a":1},"stream":0,"p":[5,480,496,2,8],"x":280,"y":80},
+    {"id":3,"type":"world","label":"Make it playable","inputs":{"a":2},"stream":0,"p":[],"x":520,"y":80}
+  ]
+}

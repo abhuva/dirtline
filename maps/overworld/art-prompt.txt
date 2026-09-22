@@ -1,0 +1,11 @@
+Built-in image generation, derived from maps/open_world/wasteland.png (style reference).
+The user referred to maps/overworld/wastelands.png; the actual supplied file was
+maps/open_world/wasteland.png. The supplied image is preserved unchanged.
+
+Use case: stylized-concept
+Asset type: production pixel-art wasteland game tileset atlas for a Game Boy Advance elevated top-down driving game.
+Input images: Image 1 is a STYLE AND MATERIAL reference only, not an edit target. Match its warm golden sand, terracotta canyon cliffs, stony hardpan and small rusted settlements. Do not reproduce the whole scene.
+Primary request: a precisely aligned 4-column by 2-row atlas on a 1024 by 512 canvas, each cell exactly 256 square, no gutters, no labels, no borders.
+Top row: four opaque seamless TOP-DOWN material swatches, edge-to-edge. Column 1 pale golden compact sand with restrained grain. Column 2 slightly darker stony gravel ground. Column 3 pale ochre cracked dry hardpan. Column 4 weathered dark-grey asphalt fragments embedded in dust, unmarked, no lane lines.
+Bottom row: column 1 opaque top-down ochre sandstone plateau texture, chunky layered rock, darker than walkable sand. Column 2 opaque vertical terracotta cliff-face texture with repeating rock pillars seen in elevated top-down view, lit at upper left, shaded lower cracks, no sky or horizon. Column 3 isolated small overworld SETTLEMENT ICON, a cluster of two tiny rust-roof shacks and a water tank on a compact stone foundation, centered with generous transparent padding, fixed elevated top-down view, unmistakable town marker rather than full-size explorable buildings. Column 4 isolated small ruined-outpost icon in the same style and scale, generous transparent padding.
+Style: crisp readable pixel art with deliberate clusters, small restrained palette, no antialiasing, no blur, no photorealistic surface noise. Town silhouettes should remain clear when reduced to 64x64 pixels. Textures will be reduced to 32x32. No cars, characters, writing, UI, text, grids or watermarks. Top six material cells fully opaque; unused padding around the two icons genuinely transparent, not a checkerboard.

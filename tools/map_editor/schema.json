@@ -1,0 +1,482 @@
+{
+  "version": 3,
+  "operations": [
+    {
+      "id": "random",
+      "name": "Random fill",
+      "kind": "mask",
+      "inputs": {},
+      "random": true,
+      "parameters": [
+        [
+          "Wall density %",
+          47,
+          0,
+          100
+        ],
+        [
+          "Solid border",
+          2,
+          0,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "cellular",
+      "name": "Cellular automata",
+      "kind": "mask",
+      "inputs": {
+        "a": "mask",
+        "mask": "mask?"
+      },
+      "parameters": [
+        [
+          "Iterations",
+          5,
+          0,
+          32
+        ],
+        [
+          "Birth counts",
+          480,
+          0,
+          511,
+          "rule"
+        ],
+        [
+          "Survival counts",
+          496,
+          0,
+          511,
+          "rule"
+        ],
+        [
+          "Solid border",
+          2,
+          0,
+          8
+        ],
+        [
+          "Neighbours",
+          8,
+          4,
+          8,
+          "neighbours"
+        ]
+      ]
+    },
+    {
+      "id": "radial",
+      "name": "Radial gradient",
+      "kind": "field",
+      "inputs": {},
+      "parameters": [
+        [
+          "Center X",
+          32,
+          0,
+          63
+        ],
+        [
+          "Center Y",
+          32,
+          0,
+          63
+        ],
+        [
+          "Radius",
+          30,
+          1,
+          90
+        ],
+        [
+          "Invert",
+          0,
+          0,
+          1,
+          "toggle"
+        ]
+      ]
+    },
+    {
+      "id": "threshold",
+      "name": "Threshold",
+      "kind": "mask",
+      "inputs": {
+        "a": "field"
+      },
+      "parameters": [
+        [
+          "Threshold",
+          128,
+          0,
+          255
+        ],
+        [
+          "Invert",
+          0,
+          0,
+          1,
+          "toggle"
+        ]
+      ]
+    },
+    {
+      "id": "combine",
+      "name": "Combine masks",
+      "kind": "mask",
+      "inputs": {
+        "a": "mask",
+        "b": "mask"
+      },
+      "parameters": [
+        [
+          "Operation",
+          0,
+          0,
+          3,
+          "combine"
+        ]
+      ]
+    },
+    {
+      "id": "blend",
+      "name": "Blend fields",
+      "kind": "field",
+      "inputs": {
+        "a": "field",
+        "b": "field",
+        "mask": "mask?"
+      },
+      "parameters": [
+        [
+          "B weight / 255",
+          128,
+          0,
+          255
+        ]
+      ]
+    },
+    {
+      "id": "invert",
+      "name": "Invert mask",
+      "kind": "mask",
+      "inputs": {
+        "a": "mask"
+      },
+      "parameters": []
+    },
+    {
+      "id": "largest",
+      "name": "Keep largest floor",
+      "kind": "mask",
+      "inputs": {
+        "a": "mask"
+      },
+      "parameters": []
+    },
+    {
+      "id": "noise",
+      "name": "Value noise",
+      "kind": "field",
+      "inputs": {},
+      "random": true,
+      "parameters": [
+        [
+          "Scale (cells)",
+          16,
+          1,
+          32
+        ],
+        [
+          "Octaves",
+          3,
+          1,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "plasma",
+      "name": "Plasma",
+      "kind": "field",
+      "inputs": {},
+      "random": true,
+      "parameters": [
+        [
+          "Roughness / 255",
+          150,
+          0,
+          255
+        ]
+      ]
+    },
+    {
+      "id": "voronoi",
+      "name": "Voronoi distance",
+      "kind": "field",
+      "inputs": {},
+      "random": true,
+      "parameters": [
+        [
+          "Sites",
+          12,
+          2,
+          32
+        ],
+        [
+          "Distance mode",
+          0,
+          0,
+          1,
+          "voronoi"
+        ],
+        [
+          "Distance scale",
+          16,
+          1,
+          64
+        ]
+      ]
+    },
+    {
+      "id": "world",
+      "name": "Playable world",
+      "kind": "world",
+      "inputs": {
+        "a": "mask"
+      },
+      "parameters": []
+    },
+    {
+      "id": "material_fill",
+      "name": "Fill material",
+      "kind": "material",
+      "inputs": {},
+      "parameters": [
+        [
+          "Material ID",
+          0,
+          0,
+          255,
+          "material"
+        ]
+      ]
+    },
+    {
+      "id": "material_bands",
+      "name": "Field to materials",
+      "kind": "material",
+      "inputs": {
+        "a": "field"
+      },
+      "parameters": [
+        [
+          "Boundary 1",
+          96,
+          0,
+          255
+        ],
+        [
+          "Boundary 2",
+          144,
+          0,
+          255
+        ],
+        [
+          "Boundary 3",
+          192,
+          0,
+          255
+        ],
+        [
+          "Low material",
+          0,
+          0,
+          255,
+          "material"
+        ],
+        [
+          "Middle material",
+          1,
+          0,
+          255,
+          "material"
+        ],
+        [
+          "High material",
+          2,
+          0,
+          255,
+          "material"
+        ],
+        [
+          "Peak material",
+          3,
+          0,
+          255,
+          "material"
+        ]
+      ]
+    },
+    {
+      "id": "material_paint",
+      "name": "Paint material",
+      "kind": "material",
+      "inputs": {
+        "a": "material",
+        "mask": "mask"
+      },
+      "parameters": [
+        [
+          "Paint material ID",
+          1,
+          0,
+          255,
+          "material"
+        ]
+      ]
+    },
+    {
+      "id": "materials",
+      "name": "Ground materials",
+      "kind": "material",
+      "inputs": {
+        "a": "material"
+      },
+      "parameters": []
+    },
+    {
+      "id": "material_patches",
+      "name": "Original ground patches",
+      "kind": "material",
+      "inputs": {},
+      "parameters": []
+    },
+    {
+      "id": "roads",
+      "name": "Town roads",
+      "kind": "world",
+      "inputs": {
+        "a": "world"
+      },
+      "parameters": [
+        [
+          "Road width (pixels)",
+          160,
+          8,
+          256
+        ],
+        [
+          "Road material",
+          3,
+          0,
+          255,
+          "material"
+        ]
+      ]
+    },
+    {
+      "id": "spawns",
+      "name": "Enemy spawns",
+      "kind": "spawns",
+      "inputs": {
+        "a": "field?"
+      },
+      "random": true,
+      "parameters": [
+        [
+          "Target count",
+          258,
+          0,
+          258
+        ],
+        [
+          "Minimum spacing (pixels)",
+          128,
+          0,
+          1024
+        ],
+        [
+          "Starter encounters",
+          1,
+          0,
+          1,
+          "toggle"
+        ]
+      ]
+    },
+    {
+      "id": "decoration",
+      "name": "Decoration",
+      "kind": "decoration",
+      "inputs": {
+        "a": "field?"
+      },
+      "random": true,
+      "parameters": [
+        [
+          "Density %",
+          30,
+          0,
+          100
+        ],
+        [
+          "Dry grass weight",
+          40,
+          0,
+          100
+        ],
+        [
+          "Low shrub weight",
+          20,
+          0,
+          100
+        ],
+        [
+          "Pebbles weight",
+          20,
+          0,
+          100
+        ],
+        [
+          "Dry twigs weight",
+          20,
+          0,
+          100
+        ],
+        [
+          "Keep roads clear",
+          1,
+          0,
+          1,
+          "toggle"
+        ]
+      ]
+    },
+    {
+      "id": "field_fill",
+      "name": "Constant field",
+      "kind": "field",
+      "inputs": {},
+      "parameters": [
+        [
+          "Value",
+          255,
+          0,
+          255
+        ]
+      ]
+    },
+    {
+      "id": "mask_field",
+      "name": "Mask to field",
+      "kind": "field",
+      "inputs": {
+        "a": "mask"
+      },
+      "parameters": []
+    }
+  ]
+}

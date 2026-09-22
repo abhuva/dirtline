@@ -1,7 +1,7 @@
 """Original, deterministic pixel art, collision data, and synthesized audio.
 
-Uses a shared track definition for rendering, surface queries and checkpoints.
-All drawing is code-native; no commercial game assets are used.
+Imports map2 through import_map2.py; retains the original procedural course
+generator for reference. No commercial game assets are used.
 """
 from pathlib import Path
 import json
@@ -264,15 +264,93 @@ def sprites():
     d.rectangle((2,17,6,22),fill=14)
     d.rectangle((2,26,5,29),fill=8)
     save('particles',fx,'sprite',height=8)
+    # Tiny combat UI/effects extend the existing procedural sprite palette.
+    bullet=img((8,24),sprite=True); d=ImageDraw.Draw(bullet)
+    d.rectangle((2,3,5,4),fill=7); d.rectangle((3,2,4,5),fill=8)
+    d.rectangle((2,11,5,12),fill=10); d.rectangle((3,10,4,13),fill=8)
+    d.rectangle((2,18,5,21),fill=6);d.point((3,19),fill=7)
+    save('combat_bullet',bullet,'sprite',height=8)
+    # Original 4bpp weapon art. Pre-rotated missiles avoid affine sprite costs.
+    saw=img((32,128),sprite=True)
+    for frame in range(4):
+        d=ImageDraw.Draw(saw);cy=frame*32+16
+        points=[]
+        for k in range(24):
+            a=(k/24+frame/48)*math.tau;r=11 if k%2==0 else 8
+            points.append((round(16+math.cos(a)*r),round(cy+math.sin(a)*r)))
+        d.polygon(points,fill=12,outline=3)
+        d.ellipse((9,cy-7,23,cy+7),fill=14,outline=7)
+        d.line((10,cy-2,22,cy+2),fill=3,width=2)
+        d.ellipse((13,cy-3,19,cy+3),fill=8,outline=9)
+    save('weapon_saw',saw,'sprite',height=32,bpp_mode='bpp_4')
+    missile=img((16,256),sprite=True)
+    for frame in range(16):
+        d=ImageDraw.Draw(missile);a=frame*math.tau/16;cs=math.cos(a);sn=math.sin(a)
+        def poly(points,fill):
+            d.polygon([(round(7.5+x*cs-y*sn),round(frame*16+7.5+x*sn+y*cs)) for x,y in points],fill=fill)
+        poly([(-7,0),(-3,-2),(-3,2)],8)
+        poly([(-5,-4),(-1,-2),(4,0),(-1,2),(-5,4)],3)
+        poly([(-4,-2),(2,-2),(6,0),(2,2),(-4,2)],12)
+        poly([(2,-2),(6,0),(2,2)],10)
+    save('weapon_missile',missile,'sprite',height=16,bpp_mode='bpp_4')
+    trap=img((16,32),sprite=True)
+    for frame in range(2):
+        d=ImageDraw.Draw(trap);y=frame*16
+        d.ellipse((2,y+4,13,y+13),fill=1)
+        d.rectangle((4,y+3,11,y+11),fill=14,outline=3)
+        d.line((4,y+9,11,y+9),fill=8,width=2)
+        d.rectangle((6,y+4,9,y+6),fill=10 if frame else 2)
+    save('weapon_trap',trap,'sprite',height=16,bpp_mode='bpp_4')
+    blast=img((32,128),sprite=True)
+    for frame in range(4):
+        d=ImageDraw.Draw(blast);y=frame*32;r=(7,15,13,8)[frame]
+        d.ellipse((16-r,y+16-r,16+r,y+16+r),fill=10 if frame<2 else 9)
+        d.ellipse((16-r//2,y+16-r//2,16+r//2,y+16+r//2),fill=7 if frame==0 else 8)
+        if frame>=2:d.ellipse((12,y+12,20,y+20),fill=0)
+    save('weapon_blast',blast,'sprite',height=32,bpp_mode='bpp_4')
+    icons=img((16,80),sprite=True)
+    for frame in range(5):
+        d=ImageDraw.Draw(icons);y=frame*16
+        if frame==0:
+            d.rectangle((3,y+6,13,y+9),fill=12);d.rectangle((3,y+9,6,y+13),fill=9)
+        elif frame==1:
+            icons.paste(saw.crop((8,8,24,24)),(0,y))
+        elif frame==2:
+            d.polygon([(1,y+8),(5,y+4),(5,y+12)],fill=6)
+            d.polygon([(14,y+8),(10,y+4),(10,y+12)],fill=6)
+            d.rectangle((6,y+6,9,y+12),fill=12)
+        elif frame==3:icons.paste(missile.crop((0,0,16,16)),(0,y))
+        else:icons.paste(trap.crop((0,16,16,32)),(0,y))
+    save('weapon_icons',icons.resize((8,40),Image.Resampling.NEAREST),'sprite',height=8,bpp_mode='bpp_4')
+    hp=img((16,24),sprite=True); d=ImageDraw.Draw(hp)
+    for frame in range(3):
+        y=frame*8; d.rectangle((0,y+2,15,y+6),fill=1)
+        for pip in range(frame+1): d.rectangle((2+pip*4,y+3,4+pip*4,y+5),fill=10 if frame==0 else 8 if frame==1 else 6)
+    save('combat_hp',hp,'sprite',height=8)
+    burst=img((16,64),sprite=True); d=ImageDraw.Draw(burst)
+    for frame in range(4):
+        y=frame*16; r=(4,7,6,3)[frame]
+        d.ellipse((8-r,y+8-r,8+r,y+8+r),fill=10 if frame<2 else 9)
+        if frame<3: d.ellipse((6,y+6,10,y+10),fill=7 if frame==0 else 8)
+    save('combat_burst',burst,'sprite',height=16)
     dot=img((8,8),sprite=True)
     ImageDraw.Draw(dot).rectangle((2,2,5,5),fill=8)
     save('dot',dot,'sprite')
+    enemy_dot=img((8,8),sprite=True)
+    ImageDraw.Draw(enemy_dot).rectangle((3,3,4,4),fill=10)
+    save('enemy_dot',enemy_dot,'sprite')
+    # Dedicated overview palette: transparent, dark floor, bright wall, grey
+    # road, warm town dots. Runtime fills the 64x64 sprite from logical cells.
+    overview=img((8,8),sprite=True)
+    colors=[(255,0,255),(24,24,24),(224,224,224),(112,112,112),(248,200,64)]+[(0,0,0)]*11
+    overview.putpalette([c for rgb in colors for c in rgb]+[0]*(768-48))
+    save('overview_palette',overview,'sprite')
     font=img((8,8*94),sprite=True)
     for i in range(94):
         label(font,1,i*8,chr(33+i),12)
     save('font',font,'sprite',height=8)
 
-def screens():
+def screens(path, palette):
     title=img((256,256),1)
     d=ImageDraw.Draw(title)
     # Visible viewport in a centered 256x256 BG: (8,48)..(247,207).
@@ -284,24 +362,19 @@ def screens():
         x=22+i*31
         d.line((x,190-int(i*10.7),x+15,185-int(i*10.7)),fill=12,width=2)
     label(title,24,64,'DUSTLINE',12,4)
-    label(title,26,101,'PROVING GROUNDS',14)
-    label(title,26,120,'DRIVING PROTOTYPE / 01',11)
-    d.rectangle((20,153,235,197),fill=1)
-    label(title,30,160,'LIFT. ROTATE. POWER OUT.',12)
-    label(title,54,180,'PRESS A TO DRIVE',11)
-    save('title',title,'regular_bg',bpp_mode='bpp_4')
+    label(title,26,101,'CHOOSE YOUR MAP',14)
+    label(title,26,116,'COMBAT PROTOTYPE / 11',11)
+    d.rectangle((20,132,235,205),fill=1)
+    label(title,30,195,'UP/DOWN CHOOSE  A DRIVE',11)
+    title.putpalette(palette)
+    save('title',title,'regular_bg',bpp_mode='bpp_8')
     hud=img((256,256),0)
     d=ImageDraw.Draw(hud)
-    d.rectangle((8,48,247,70),fill=1)
-    d.line((8,71,247,71),fill=13)
-    d.rectangle((8,195,247,207),fill=1)
-    d.line((8,194,247,194),fill=13)
-    # A 46x46 minimap in the lower right; same track and landmarks.
-    d.rectangle((197,144,245,191),fill=1)
-    mini=[(200+x*42/1024,146+y*42/1024) for x,y in PATH]
-    d.line(mini,fill=7,width=2)
-    d.rectangle((217,179,220,182),fill=11)
-    save('hud',hud,'regular_bg',bpp_mode='bpp_4')
+    d.rectangle((8,48,247,59),fill=1)
+    hud.putpalette(palette)
+    save('hud',hud,'regular_bg',bpp_mode='bpp_8')
+    blank=img((256,256),1); blank.putpalette(palette)
+    save('menu_blank',blank,'regular_bg',bpp_mode='bpp_8')
     pause=img((256,256),1)
     d=ImageDraw.Draw(pause)
     d.rectangle((16,56,239,198),outline=13,width=2)
@@ -309,16 +382,18 @@ def screens():
     label(pause,32,97,'A       THROTTLE',12)
     label(pause,32,109,'B       BRAKE / REVERSE',12)
     label(pause,32,121,'LEFT/RIGHT  STEER',12)
-    label(pause,32,133,'L / R   CHANGE SETUP',14)
-    label(pause,32,145,'SELECT  RESET RUN',12)
+    label(pause,32,133,'L/R SETUP IN TOWN ONLY',14)
+    label(pause,32,145,'SELECT  MAP MENU',12)
+    label(pause,32,157,'L WEAPON / R FIRE',11)
     label(pause,32,168,'LIFT BEFORE TIGHT TURNS',11)
     label(pause,32,184,'START   BACK TO TRACK',12)
-    save('pause',pause,'regular_bg',bpp_mode='bpp_4')
+    pause.putpalette(palette)
+    save('pause',pause,'regular_bg',bpp_mode='bpp_8')
 
 def audio():
     rng=random.Random(14)
     rate=16000
-    for name,duration in [('engine',0.30),('bump',0.13),('chime',0.20),('skid',0.15)]:
+    for name,duration in [('engine',0.30),('bump',0.13),('chime',0.20),('skid',0.15),('gun',0.07)]:
         samples=[]
         for i in range(int(rate*duration)):
             t=i/rate
@@ -329,6 +404,8 @@ def audio():
                 value=rng.uniform(-1,1)*(1-t/duration)**2*0.6
             elif name=='skid':
                 value=(rng.uniform(-0.4,0.4)+math.sin(math.tau*950*t)*0.16)*0.35
+            elif name=='gun':
+                value=(rng.uniform(-1,1)*0.6+math.sin(math.tau*180*t)*0.4)*(1-t/duration)**3
             else:
                 value=math.sin(math.tau*(660 if t<0.10 else 880)*t)*0.25
             samples.append(int(max(-1,min(1,value*env))*30000))
@@ -336,10 +413,51 @@ def audio():
             f.setparams((1,2,rate,len(samples),'NONE','not compressed'))
             f.writeframes(struct.pack('<'+'h'*len(samples),*samples))
 
+def decoration_tiles(palette):
+    """Four original 16px cosmetic patches; index zero stays transparent."""
+    patches=[]
+    for kind in range(4):
+        im=Image.new('P',(16,16),0);im.putpalette(palette);d=ImageDraw.Draw(im)
+        if kind==0:  # Dry grass, narrow stalks and shaded roots.
+            for x,y,h in [(3,12,5),(6,13,8),(9,12,6),(12,11,4)]:
+                d.line((x,y,x-1,y-h),fill=9);d.line((x+1,y,x+2,y-h+2),fill=10)
+            d.line((3,13,12,13),fill=8)
+        elif kind==1:  # Low scrub, with scattered holes between leaves.
+            for x,y,r in [(5,9,3),(9,7,4),(12,10,2)]:
+                d.ellipse((x-r,y-r,x+r,y+r),fill=4)
+                d.line((x-r+1,y-1,x+1,y-2),fill=6)
+            d.line((7,11,8,14),fill=8)
+        elif kind==2:
+            for x,y,w in [(3,9,3),(8,6,4),(11,12,3)]:
+                d.rectangle((x,y,x+w,y+2),fill=3);d.line((x,y,x+w-1,y),fill=7)
+        else:
+            d.line((3,13,11,4),fill=8,width=2);d.line((3,12,11,3),fill=10)
+            d.line((7,8,3,5),fill=9);d.line((8,7,13,8),fill=9)
+        patches.append(im)
+    tiles=[bytes(64)]
+    for im in patches:
+        for y in (0,8):
+            for x in (0,8):tiles.append(im.crop((x,y,x+8,y+8)).tobytes())
+    header='#pragma once\n#include "bn_tile.h"\nnamespace decoration_art {\ninline constexpr bn::tile tiles[]={\n'
+    packed=[bytes(tile[i] | (tile[i+1]<<4) for i in range(0,64,2)) for tile in tiles]
+    header+='\n'.join('{{'+','.join(hex(v) for v in struct.unpack('<8I',tile))+'}},' for tile in packed)+'\n};\n}\n'
+    (GEN/'decoration_art.h').write_text(header)
+    atlas=Image.new('P',(64,16),0);atlas.putpalette(palette)
+    for i,im in enumerate(patches):atlas.paste(im,(i*16,0))
+    atlas.save(ROOT/'artifacts/wasteland/decoration.png')
+    return list(b''.join(tiles))
+
 if __name__=='__main__':
     (ROOT/'artifacts').mkdir(exist_ok=True)
-    track()
+    from compile_recipe import generate as generate_recipe
+    generate_recipe()
+    from import_map2 import generate
+    path, palette = generate(save, PALETTE, smooth)
     sprites()
-    screens()
+    screens(path, palette)
+    from open_world import generate as generate_open_world
+    generate_open_world(palette,save,label)
+    from wasteland_assets import generate as generate_wasteland
+    generate_wasteland(palette,save,label)
     audio()
     print('Generated track, car directions, UI, font, particles and audio.')

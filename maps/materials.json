@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "fallback": 0,
+  "materials": [
+    {"id": 0, "name": "Sand", "texture": 0, "surface": 2, "color": "#d8b77b"},
+    {"id": 1, "name": "Gravel", "texture": 1, "surface": 2, "color": "#a99170"},
+    {"id": 2, "name": "Hardpan", "texture": 2, "surface": 1, "color": "#b99c60"},
+    {"id": 3, "name": "Asphalt", "texture": 3, "surface": 1, "color": "#62645c"}
+  ]
+}

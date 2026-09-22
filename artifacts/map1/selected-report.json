@@ -1,0 +1,28 @@
+{
+  "source_size": [
+    2049,
+    2049
+  ],
+  "world_size": [
+    2048,
+    2048
+  ],
+  "source_sha256": "53497dc16e06664cf640f30a5791a314ee1d80d596801a4823412d235f04e79e",
+  "conversion": "BOX to 512x512, 15-color median cut, GBA RGB5 palette, nearest to 2048x2048",
+  "unique_tiles_before_grit": 911,
+  "tile_bytes_before_grit": 29152,
+  "map_rom_bytes": 131072,
+  "surface_rom_bytes": 65536,
+  "car_frame_bytes": 512,
+  "five_independent_car_frames_bytes": 2560,
+  "mask": {
+    "present": true,
+    "interpretation": "white >=128 road; black <128 dirt",
+    "extrema": [
+      0,
+      255
+    ],
+    "road_cells": 3989,
+    "dirt_cells": 61547
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "status": "offline estimate only; runtime chunk arrays remain uncompressed",
+  "codec": "independent LZ77 chunks; raw fallback; 4-byte alignment",
+  "raw_layout_bytes": 32896,
+  "estimated_compressed_layout_bytes": 13612,
+  "estimated_saved_bytes": 19284,
+  "estimated_saved_percent": 58.6,
+  "includes_chunk_offsets_and_id_grid": true,
+  "roundtripped_chunks": 64,
+  "decoded_bytes_per_chunk": 512,
+  "nine_chunk_working_set_bytes": 4608
+}

@@ -1,0 +1,14 @@
+{
+  "status": "enabled in ROM; decoded on demand into a fixed nine-slot RAM cache",
+  "codec": "independent LZ77 chunks; raw fallback; 4-byte alignment",
+  "raw_layout_bytes": 59904,
+  "compressed_layout_bytes": 28880,
+  "saved_bytes": 31024,
+  "saved_percent": 51.8,
+  "compressed_chunks": 101,
+  "raw_chunks": 0,
+  "includes_chunk_offsets_and_id_grid": true,
+  "roundtripped_chunks": 101,
+  "decoded_bytes_per_chunk": 512,
+  "nine_chunk_working_set_bytes": 4608
+}

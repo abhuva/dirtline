@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "name": "Two rules + radial mask",
+  "seed": 12648430,
+  "output": 8,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "random",
+      "label": "Random fill",
+      "inputs": {},
+      "stream": 0,
+      "p": [
+        47,
+        2
+      ],
+      "x": 35,
+      "y": 45
+    },
+    {
+      "id": 2,
+      "type": "cellular",
+      "label": "Cellular automata",
+      "inputs": {
+        "a": 1
+      },
+      "stream": 0,
+      "p": [
+        2,
+        480,
+        496,
+        2,
+        8
+      ],
+      "x": 270,
+      "y": 45
+    },
+    {
+      "id": 3,
+      "type": "cellular",
+      "label": "Cellular automata",
+      "inputs": {
+        "a": 2
+      },
+      "stream": 0,
+      "p": [
+        3,
+        496,
+        504,
+        2,
+        8
+      ],
+      "x": 505,
+      "y": 45
+    },
+    {
+      "id": 4,
+      "type": "radial",
+      "label": "Radial gradient",
+      "inputs": {},
+      "stream": 0,
+      "p": [
+        32,
+        32,
+        35,
+        0
+      ],
+      "x": 35,
+      "y": 235
+    },
+    {
+      "id": 5,
+      "type": "threshold",
+      "label": "Threshold",
+      "inputs": {
+        "a": 4
+      },
+      "stream": 0,
+      "p": [
+        210,
+        0
+      ],
+      "x": 270,
+      "y": 235
+    },
+    {
+      "id": 6,
+      "type": "combine",
+      "label": "Combine masks",
+      "inputs": {
+        "a": 3,
+        "b": 5
+      },
+      "stream": 0,
+      "p": [
+        0
+      ],
+      "x": 740,
+      "y": 45
+    },
+    {
+      "id": 7,
+      "type": "largest",
+      "label": "Keep largest floor",
+      "inputs": {
+        "a": 6
+      },
+      "stream": 0,
+      "p": [],
+      "x": 975,
+      "y": 45
+    },
+    {
+      "id": 8,
+      "type": "world",
+      "label": "Playable world",
+      "inputs": {
+        "a": 7
+      },
+      "stream": 0,
+      "p": [],
+      "x": 1210,
+      "y": 45
+    }
+  ]
+}

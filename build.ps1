@@ -1,4 +1,4 @@
-param([switch]$Clean)
+param([switch]$Clean, [string]$Recipe = 'maps/wasteland.json')
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $butanoCommit = 'c66094ae514c74068f992a4896c5e1f234e9f6e2'
@@ -19,7 +19,7 @@ if ($Clean) {
     docker run --rm --mount $mount dustline-build:1 make clean
     if ($LASTEXITCODE -ne 0) { throw 'Clean failed.' }
 }
-docker run --rm --mount $mount dustline-build:1 python3 tools/generate_assets.py
+docker run --rm --mount $mount --env "DUSTLINE_RECIPE=$Recipe" dustline-build:1 python3 tools/generate_assets.py
 if ($LASTEXITCODE -ne 0) { throw 'Asset generation failed.' }
 docker run --rm --mount $mount dustline-build:1 make -j4
 if ($LASTEXITCODE -ne 0) { throw 'ROM compilation failed.' }

@@ -1,0 +1,20 @@
+[
+  {
+    "mode": "active",
+    "spawns": 163,
+    "patches": 5644,
+    "nativeWasmParity": true
+  },
+  {
+    "mode": "masked",
+    "spawns": 24,
+    "patches": 2761,
+    "nativeWasmParity": true
+  },
+  {
+    "mode": "zero",
+    "spawns": 0,
+    "patches": 0,
+    "nativeWasmParity": true
+  }
+]

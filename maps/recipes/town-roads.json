@@ -1,0 +1,112 @@
+{
+  "version": 2,
+  "name": "Natural ground + town roads",
+  "seed": 12648430,
+  "output": 7,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "random",
+      "label": "Scatter walls",
+      "inputs": {},
+      "stream": 0,
+      "p": [
+        47,
+        2
+      ],
+      "x": 40,
+      "y": 80
+    },
+    {
+      "id": 2,
+      "type": "cellular",
+      "label": "Shape the canyons",
+      "inputs": {
+        "a": 1
+      },
+      "stream": 0,
+      "p": [
+        5,
+        480,
+        496,
+        2,
+        8
+      ],
+      "x": 280,
+      "y": 80
+    },
+    {
+      "id": 3,
+      "type": "world",
+      "label": "Make it playable",
+      "inputs": {
+        "a": 2
+      },
+      "stream": 0,
+      "p": [],
+      "x": 520,
+      "y": 80
+    },
+    {
+      "id": 4,
+      "type": "noise",
+      "label": "Value noise",
+      "inputs": {},
+      "stream": 4,
+      "p": [
+        12,
+        3
+      ],
+      "x": 40,
+      "y": 280
+    },
+    {
+      "id": 5,
+      "type": "material_bands",
+      "label": "Field to materials",
+      "inputs": {
+        "a": 4
+      },
+      "stream": 0,
+      "p": [
+        96,
+        144,
+        192,
+        0,
+        1,
+        2,
+        3
+      ],
+      "x": 280,
+      "y": 280
+    },
+    {
+      "id": 6,
+      "type": "materials",
+      "label": "Ground materials",
+      "inputs": {
+        "a": 5
+      },
+      "stream": 0,
+      "p": [],
+      "x": 520,
+      "y": 280
+    },
+    {
+      "id": 7,
+      "type": "roads",
+      "label": "Town roads",
+      "inputs": {
+        "a": 3
+      },
+      "stream": 0,
+      "p": [
+        160,
+        3
+      ],
+      "x": 760,
+      "y": 45
+    }
+  ],
+  "materialOutput": 6
+}

@@ -1,0 +1,69 @@
+{
+  "source_size": [
+    2049,
+    2049
+  ],
+  "output_size": [
+    2048,
+    2048
+  ],
+  "source_sha256": "53497dc16e06664cf640f30a5791a314ee1d80d596801a4823412d235f04e79e",
+  "source_colors": 46298,
+  "mask_present": false,
+  "candidates": [
+    {
+      "name": "15-colors-1px",
+      "colors": 15,
+      "pixel_size": 1,
+      "unique_tiles": 53606,
+      "tile_bytes": 1715392,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": false
+    },
+    {
+      "name": "15-colors-2px",
+      "colors": 15,
+      "pixel_size": 2,
+      "unique_tiles": 36922,
+      "tile_bytes": 1181504,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": false
+    },
+    {
+      "name": "15-colors-4px",
+      "colors": 15,
+      "pixel_size": 4,
+      "unique_tiles": 911,
+      "tile_bytes": 29152,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": true
+    },
+    {
+      "name": "15-colors-8px",
+      "colors": 15,
+      "pixel_size": 8,
+      "unique_tiles": 15,
+      "tile_bytes": 480,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": true
+    },
+    {
+      "name": "63-colors-2px",
+      "colors": 63,
+      "pixel_size": 2,
+      "unique_tiles": 56178,
+      "tile_bytes": 3595392,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": false
+    },
+    {
+      "name": "63-colors-4px",
+      "colors": 63,
+      "pixel_size": 4,
+      "unique_tiles": 8801,
+      "tile_bytes": 563264,
+      "map_rom_bytes": 131072,
+      "fits_1024_patterns": false
+    }
+  ]
+}
