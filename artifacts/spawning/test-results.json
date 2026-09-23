@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "64db55cf5f226ee995601ed896be5b1f739dbb75d2bf07aebb62669e8f8ec365",
+  "rom_sha256": "fe178830fa15911f309abdfa73b29a0f181a5ea2f95ad5317eb8592554ca16e6",
   "emulator": "libmGBA (Debian bookworm)",
   "checks": [
     {
@@ -224,7 +224,7 @@
       "name": "Spawn streaming fits measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.780029296875,
+        "cpu": 0.77978515625,
         "missed": 0
       }
     },
@@ -263,7 +263,7 @@
       "name": "Damaged-survivor streaming route stays within frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.79931640625,
+        "cpu": 0.83154296875,
         "missed": 0
       }
     },
@@ -1329,7 +1329,7 @@
       "name": "New weapons fit the measured driving frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.728515625,
+        "cpu": 0.656494140625,
         "missed": 0,
         "ram": 4732
       }

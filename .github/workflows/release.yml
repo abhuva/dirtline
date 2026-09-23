@@ -48,11 +48,12 @@ jobs:
           mkdir -p dist/licenses
           cp dustline.gba dist/dustline.gba
           cp readme.txt dist/readme.txt
+          cp LICENSE dist/LICENSE
           cp .tools/butano/licenses/*.txt dist/licenses/
           sha256sum dist/dustline.gba > dist/dustline.gba.sha256
           (
             cd dist
-            zip -r dustline-latest.zip dustline.gba dustline.gba.sha256 readme.txt licenses
+            zip -r dustline-latest.zip dustline.gba dustline.gba.sha256 readme.txt LICENSE licenses
           )
 
       - name: Publish rolling release

@@ -2,6 +2,7 @@
 
 [![Build and publish ROM](https://github.com/abhuva/dirtline/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/abhuva/dirtline/actions/workflows/release.yml)
 [![Download latest ROM](https://img.shields.io/badge/download-latest%20ROM-d8a657)](https://github.com/abhuva/dirtline/releases/latest/download/dustline.gba)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/license-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 An original driving and combat RPG prototype built for the Game Boy Advance.
 Dustline combines momentum-heavy arcade handling, controlled slides, procedural
@@ -94,5 +95,10 @@ names, physics, and world design.
 
 Dustline uses [Butano](https://github.com/GValiente/butano) and devkitARM. The
 full upstream notice set ships in `dist/licenses/` and in each packaged release.
-Game-specific code and assets have not yet been assigned a public redistribution
-license.
+
+Except for separately identified third-party material, Dustline's game-specific
+code, artwork, audio, documentation, and compiled ROM are licensed under the
+[Creative Commons Attribution-ShareAlike 4.0 International License](LICENSE).
+Credit **Dustline by Marc Bielert**, link to this repository and the license, and
+indicate whether you made changes. Third-party components remain under their
+respective licenses.

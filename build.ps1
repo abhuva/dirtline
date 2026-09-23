@@ -28,5 +28,6 @@ Copy-Item -LiteralPath 'dustline.gba' -Destination 'dist/dustline.gba'
 New-Item -ItemType Directory -Force dist/licenses | Out-Null
 Copy-Item -Path '.tools/butano/licenses/*.txt' -Destination 'dist/licenses/' -Force
 Copy-Item -LiteralPath 'readme.txt' -Destination 'dist/readme.txt'
+Copy-Item -LiteralPath 'LICENSE' -Destination 'dist/LICENSE'
 Get-FileHash -Algorithm SHA256 dist/dustline.gba
 Write-Host 'Playable ROM: dist/dustline.gba'

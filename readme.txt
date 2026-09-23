@@ -211,6 +211,7 @@ checkout mounted at /work to avoid Windows path-with-spaces problems.
 Output:
   dist/dustline.gba      Playable ROM
   dist/readme.txt        This document
+  dist/LICENSE           Dustline's CC BY-SA 4.0 license
   dist/licenses/        Upstream runtime/dependency license notices
   dustline.elf           Local debugging symbols (not committed)
   build/                Intermediate compiler/asset outputs (not committed)
@@ -451,6 +452,13 @@ The test script runs the actual dist ROM in headless libmGBA 0.10.1, sends
 normal GBA joypad input, and reads exported telemetry through ELF symbols.
 It never teleports the car or writes game state to make tests pass.
 
+The current run passes 262 of 264 checks. Two route-dependent assertions need
+updating for the current catalog: the map-1 settings route reaches a town prompt
+instead of reopening settings, and the catalog-switch check expects a nearby
+encounter where that map currently has none. The remaining generation, driving,
+town, combat, streaming, weapon and frame-budget checks pass. See
+artifacts/test-results.json for the exact results.
+
 It checks title catalog enumeration, every enabled map's fixed seed, repeatable
 generation, acceleration, camera look-ahead, pause and frame budget. Exact
 results and peak timings are recorded in artifacts/test-results.json, excluding
@@ -633,7 +641,12 @@ mGBA by endrift and contributors (test tooling):
 Pillow (asset generation and screenshots):
   https://python-pillow.org/
 
-dist/licenses contains Butano's upstream dependency notices. Some notices
-cover optional backends not enabled by this build. Game-specific code has
-not been assigned a public redistribution license; choose one before a
-public source release if desired.
+Except for separately identified third-party material, Dustline's game-specific
+code, artwork, audio, documentation and compiled ROM are licensed under the
+Creative Commons Attribution-ShareAlike 4.0 International License. Credit
+"Dustline by Marc Bielert", link to the project and license, and indicate changes.
+See LICENSE and https://creativecommons.org/licenses/by-sa/4.0/ for the terms.
+
+dist/licenses contains Butano's upstream dependency notices. Some notices cover
+optional backends not enabled by this build. Third-party components remain under
+their respective licenses.
