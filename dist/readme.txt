@@ -217,7 +217,9 @@ Output:
 
 The first build needs internet access and downloads sizeable dependencies.
 Later builds reuse .tools/butano and the local dustline-build:1 Docker image.
-No remote Git repository is created and no global PATH is changed.
+The project is hosted at https://github.com/abhuva/dirtline; pushes to main are
+built automatically and published at https://github.com/abhuva/dirtline/releases/latest.
+The local build script does not change global PATH settings.
 
 To force a clean rebuild:
   powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -Clean
