@@ -10,18 +10,20 @@ inline int material(const cave_layout& layout,const uint8_t* ground,int x,int y,
     if(roads && roads->contains(x,y)) return roads->material;
     return ground ? ground[(y/128)*64+x/128] : layout.material(x,y);
 }
-inline int surface(const cave_layout& layout,const uint8_t* ground,int x,int y,const road_network* roads=nullptr) {
+inline int surface(const cave_layout& layout,const uint8_t* ground,int x,int y,const road_network* roads=nullptr,
+                   const uint8_t* surfaces=ground_materials::surfaces) {
     if(layout.solid(x,y) || layout.town_solid(x,y)) return 3;
-    return ground_materials::surfaces[material(layout,ground,x,y,roads)];
+    return surfaces[material(layout,ground,x,y,roads)];
 }
-inline uint16_t reference(const cave_layout& layout,const uint8_t* ground,int x,int y,const road_network* roads=nullptr) {
+inline uint16_t reference(const cave_layout& layout,const uint8_t* ground,int x,int y,const road_network* roads=nullptr,
+                          const uint8_t* textures=ground_materials::textures) {
     const int px=x*8+4,py=y*8+4,town=layout.town_graphic_at(px,py);
     if(town>=0) {
         const auto point=layout.town(town);
         return uint16_t(96+(town%2)*64+((py-(point.y-64))/8)*8+(px-(point.x-32))/8);
     }
     const int texture=layout.solid(px,py) ? (layout.solid(px,py+24)?4:5) :
-        ground_materials::textures[material(layout,ground,px,py,roads)];
+        textures[material(layout,ground,px,py,roads)];
     return uint16_t(texture*16+(y%4)*4+x%4);
 }
 }

@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "materials": [
+    {"key":"sun-sand","name":"Sun Sand","base":0,"surface":2,"color":"#d8b77b","transform":[1.08,1.00,0.82,8,3,-4]},
+    {"key":"sun-gravel","name":"Sun Gravel","base":1,"surface":2,"color":"#aa8b67","transform":[1.08,0.94,0.78,5,0,-5]},
+    {"key":"sun-hardpan","name":"Sun Hardpan","base":2,"surface":1,"color":"#bd9855","transform":[1.12,0.93,0.70,6,0,-8]},
+    {"key":"sun-asphalt","name":"Faded Asphalt","base":3,"surface":1,"color":"#67675e","transform":[1.02,0.98,0.90,2,1,0]},
+
+    {"key":"rust-dust","name":"Rust Dust","base":0,"surface":2,"color":"#b96f4f","transform":[1.18,0.72,0.58,8,-4,-7]},
+    {"key":"rust-gravel","name":"Iron Gravel","base":1,"surface":2,"color":"#8e6254","transform":[1.10,0.73,0.68,5,-3,-2]},
+    {"key":"rust-hardpan","name":"Oxide Hardpan","base":2,"surface":1,"color":"#a96743","transform":[1.18,0.74,0.55,5,-4,-8]},
+    {"key":"rust-asphalt","name":"Oil Road","base":3,"surface":1,"color":"#49464a","transform":[0.82,0.78,0.82,-2,-1,2]},
+
+    {"key":"ash-dust","name":"Ash Dust","base":0,"surface":2,"color":"#9b9990","transform":[0.78,0.82,0.84,14,14,15]},
+    {"key":"ash-gravel","name":"Cinder Gravel","base":1,"surface":2,"color":"#77777b","transform":[0.72,0.76,0.84,8,8,13]},
+    {"key":"ash-hardpan","name":"Grey Hardpan","base":2,"surface":1,"color":"#8d8778","transform":[0.76,0.78,0.78,10,10,10]},
+    {"key":"ash-asphalt","name":"Blacktop","base":3,"surface":1,"color":"#444951","transform":[0.72,0.78,0.92,0,2,8]},
+
+    {"key":"salt-crust","name":"Salt Crust","base":0,"surface":2,"color":"#d6d1b6","transform":[0.92,1.02,1.08,24,25,25]},
+    {"key":"salt-shingle","name":"Salt Shingle","base":1,"surface":2,"color":"#aaa99e","transform":[0.84,0.94,1.02,16,17,20]},
+    {"key":"salt-hardpan","name":"Pale Hardpan","base":2,"surface":1,"color":"#c2b98e","transform":[0.94,1.00,0.94,20,20,15]},
+    {"key":"salt-road","name":"Bleached Road","base":3,"surface":1,"color":"#737b7c","transform":[0.88,1.00,1.08,11,13,14]},
+
+    {"key":"lush-grass","name":"Lush Grass","base":0,"surface":2,"color":"#4f8d50","generator":"lush-grass","transform":[1,1,1,0,0,0]},
+    {"key":"forest-moss","name":"Forest Moss","base":1,"surface":2,"color":"#376c43","generator":"forest-moss","transform":[1,1,1,0,0,0]},
+    {"key":"factory-yard","name":"Factory Yard","base":2,"surface":1,"color":"#788078","generator":"factory-yard","transform":[1,1,1,0,0,0]},
+    {"key":"machine-road","name":"Machine Road","base":3,"surface":1,"color":"#46535a","generator":"machine-road","transform":[1,1,1,0,0,0]}
+  ],
+  "decorations": [
+    {"key":"dry-grass","name":"Dry Grass","base":0,"transform":[1.05,0.96,0.72,5,1,-5]},
+    {"key":"low-shrub","name":"Low Shrub","base":1,"transform":[0.82,1.00,0.72,-4,3,-5]},
+    {"key":"pebbles","name":"Pebbles","base":2,"transform":[0.94,0.92,0.86,2,1,0]},
+    {"key":"dry-twigs","name":"Dry Twigs","base":3,"transform":[1.02,0.82,0.65,3,-2,-5]},
+    {"key":"wire-grass","name":"Wire Grass","base":0,"transform":[0.92,0.72,0.52,5,-3,-6]},
+    {"key":"rust-scrap","name":"Rust Scrap","base":2,"transform":[1.22,0.62,0.48,7,-5,-7]},
+    {"key":"oil-brush","name":"Oil Brush","base":1,"transform":[0.58,0.62,0.66,-3,-2,1]},
+    {"key":"iron-shards","name":"Iron Shards","base":3,"transform":[0.86,0.78,0.78,4,1,2]},
+    {"key":"ash-tuft","name":"Ash Tuft","base":0,"transform":[0.72,0.76,0.82,8,8,13]},
+    {"key":"cinder-shrub","name":"Cinder Shrub","base":1,"transform":[0.62,0.68,0.76,3,4,9]},
+    {"key":"char-stones","name":"Char Stones","base":2,"transform":[0.58,0.62,0.70,2,3,8]},
+    {"key":"dead-branches","name":"Dead Branches","base":3,"transform":[0.70,0.68,0.66,4,3,2]},
+    {"key":"salt-grass","name":"Salt Grass","base":0,"transform":[0.82,0.96,1.02,17,19,20]},
+    {"key":"blue-shrub","name":"Blue Shrub","base":1,"transform":[0.68,0.88,1.05,7,13,20]},
+    {"key":"salt-chunks","name":"Salt Chunks","base":2,"transform":[0.88,0.98,1.06,18,20,23]},
+    {"key":"driftwood","name":"Driftwood","base":3,"transform":[0.92,0.82,0.66,9,6,1]},
+    {"key":"fern-clump","name":"Fern Clump","base":0,"generator":"fern-clump","transform":[1,1,1,0,0,0]},
+    {"key":"wild-flowers","name":"Wild Flowers","base":1,"generator":"wild-flowers","transform":[1,1,1,0,0,0]},
+    {"key":"pipe-scrap","name":"Pipe Scrap","base":2,"generator":"pipe-scrap","transform":[1,1,1,0,0,0]},
+    {"key":"machine-vent","name":"Machine Vent","base":3,"generator":"machine-vent","transform":[1,1,1,0,0,0]}
+  ],
+  "wallSets": [
+    {"key":"sun-canyon","name":"Sun Canyon","transform":[1.04,0.94,0.78,5,1,-5]},
+    {"key":"rust-ridge","name":"Rust Ridge","transform":[1.16,0.70,0.56,7,-4,-7]},
+    {"key":"ash-cliff","name":"Ash Cliff","transform":[0.70,0.75,0.84,8,8,14]},
+    {"key":"salt-bluff","name":"Salt Bluff","transform":[0.88,1.00,1.08,18,20,23]},
+    {"key":"forest-works","name":"Forest Works","generator":"forest-works","transform":[1,1,1,0,0,0]}
+  ],
+  "townSets": [
+    {"key":"frontier","name":"Frontier Town","transform":[1.00,0.94,0.80,3,1,-3]},
+    {"key":"rustworks","name":"Rustworks","transform":[1.12,0.70,0.58,6,-3,-6]},
+    {"key":"ashpost","name":"Ash Post","transform":[0.72,0.78,0.88,7,8,14]},
+    {"key":"salt-harbor","name":"Salt Harbor","transform":[0.84,0.98,1.10,14,18,25]},
+    {"key":"greenworks","name":"Greenworks","generator":"greenworks","transform":[1,1,1,0,0,0]}
+  ]
+}

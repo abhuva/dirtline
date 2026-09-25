@@ -1,5 +1,6 @@
 #pragma once
 #include "cave_layout.h"
+#include "spawn_profiles.h"
 
 // Persistent encounter records, not simulated vehicles. Shared with host tests.
 // One anchor per 512px sector containing reachable floor, plus the starter pair.
@@ -10,7 +11,8 @@ struct enemy_spawns {
         int ready_at=0;
         int8_t slot=-1;
         uint8_t hp=3;
-        uint16_t reserved=0;
+        uint8_t profile=0;
+        uint8_t reward_rolls=0;
     };
     point points[capacity];
     int count=0;
@@ -39,7 +41,8 @@ struct enemy_spawns {
     }
     // Select from the established, reachable sector anchors. Counts are targets;
     // zero mask weights and spacing can reduce the number actually available.
-    void generate_recipe(const cave_layout& cave,const uint8_t* field,int target,int minimum_spacing,
+    void generate_recipe(const cave_layout& cave,const uint8_t* field,const uint8_t* types,
+                         int target,int minimum_spacing,
                          bool starters,uint32_t stream,cave_layout::progress_fn progress=nullptr) {
         generate(cave,progress);
         uint16_t weights[capacity]{};bool selected[capacity]{};
@@ -66,7 +69,12 @@ struct enemy_spawns {
             if(progress && placed%8==0)progress(placed);
         }
         int out=0;
-        for(int i=0;i<count;++i)if(selected[i])points[out++]=points[i];
+        for(int i=0;i<count;++i)if(selected[i]) {
+            points[out]=points[i];
+            int cell=(points[i].y/128)*64+points[i].x/128;
+            points[out].profile=types?types[cell]:0;
+            ++out;
+        }
         count=out;
     }
 private:

@@ -2,7 +2,7 @@
 import {JSDOM} from '../build/map-editor-ui/node_modules/jsdom/lib/api.js';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {compile,makeNode,presets,LUT_MAX_POINTS,defaultLutColor} from './map_editor/recipe.mjs';
+import {compile,makeNode,presets,LUT_MAX_POINTS,defaultLutColor,normalizeSpawnProfiles} from './map_editor/recipe.mjs';
 const read = path => readFile(new URL('../'+path,import.meta.url),'utf8');
 const art=JSON.parse(await read('tools/map_editor/generated/art.json'));
 const schema=JSON.parse(await read('tools/map_editor/schema.json'));
@@ -12,7 +12,7 @@ const dom=new JSDOM(await read('tools/map_editor/index.html'),{url:'http://local
 const w=dom.window;
 // jsdom has no native PointerEvent handler properties; bridge to its event dispatcher.
 Object.defineProperty(w.HTMLElement.prototype,'onpointerdown',{set(fn){if(this._pointerDown)this.removeEventListener('pointerdown',this._pointerDown);this._pointerDown=fn;this.addEventListener('pointerdown',fn);},get(){return this._pointerDown;}});
-Object.assign(w,{structuredClone,compile,makeNode,presets,LUT_MAX_POINTS,defaultLutColor,Worker:class {constructor(){w.testWorker=this;}postMessage(data){w.lastProgram=data;}},fetch:async(url,options={})=>{
+Object.assign(w,{structuredClone,compile,makeNode,presets,LUT_MAX_POINTS,defaultLutColor,normalizeSpawnProfiles,Worker:class {constructor(){w.testWorker=this;}postMessage(data){w.lastProgram=data;}},fetch:async(url,options={})=>{
   const path=String(url);
   if(path.includes('schema'))return {ok:true,status:200,json:async()=>structuredClone(schema)};
   if(path.includes('art.json'))return {ok:true,status:200,json:async()=>structuredClone(art)};
@@ -51,6 +51,9 @@ $('preset').value='natural-ground';$('preset').dispatchEvent(new w.Event('change
 let recipe=JSON.parse(w.localStorage.getItem('dustline.recipe.v1'));
 assert.equal(recipe.version,2);assert.equal(recipe.materialOutput,6);assert.equal(recipe.output,3);
 assert.equal(w.lastProgram.textures,true);assert.equal(w.lastProgram.materialProgram.at(-1)[0],14);
+click($('art-bank'));assert.equal($('material-bindings').children.length,4);assert.equal($('decoration-bindings').children.length,4);assert.equal($('world-bindings').children.length,2);
+edit('Material slot 2 ID',7);assert.equal(JSON.parse(w.localStorage.getItem('dustline.recipe.v1')).artProfile.materials[1].id,7);
+edit('Material slot 2 ID',1);click($('close-art'));
 select(5);await wait();assert.ok(w.document.querySelector('.lut-chart'));assert.ok(w.lastProgram.histogramProgram);assert.equal(w.document.querySelector('.lut-node-row').children.length,2);assert.equal(w.document.querySelector('.lut-node-row .setting.full'),null);
 assert.equal(w.document.querySelector('.lut-chart svg').getAttribute('preserveAspectRatio'),'none');
 const histogram=new Uint16Array(256);histogram[42]=4096;
@@ -103,6 +106,7 @@ console.log('PASS road editor DOM: preset, width/material edits, output switchin
 $('preset').value='populated-wasteland';$('preset').dispatchEvent(new w.Event('change'));await wait();
 recipe=JSON.parse(w.localStorage.getItem('dustline.recipe.v1'));
 assert.equal(recipe.version,3);assert.equal(w.lastProgram.spawnProgram.at(-1)[0],17);assert.equal(w.lastProgram.decorationProgram.at(-1)[0],18);
+click($('population-bank'));assert.equal($('population-bindings').children.length,1);click($('add-population'));assert.equal($('population-bindings').children.length,2);click($('close-population'));
 select(recipe.spawnOutput);edit('Target count',24);await wait();
 assert.equal(w.lastProgram.program.at(-1)[0],16);assert.equal(w.lastProgram.spawnProgram.at(-1)[5],24);
 click($('pin-settings'));select(recipe.output);edit('Minimum spacing (pixels)',384);await wait();

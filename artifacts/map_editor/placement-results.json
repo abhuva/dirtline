@@ -1,14 +1,14 @@
 [
   {
     "mode": "active",
-    "spawns": 163,
-    "patches": 5644,
+    "spawns": 61,
+    "patches": 3266,
     "nativeWasmParity": true
   },
   {
     "mode": "masked",
     "spawns": 24,
-    "patches": 2761,
+    "patches": 6719,
     "nativeWasmParity": true
   },
   {

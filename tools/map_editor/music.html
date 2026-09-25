@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dustline · Music Workshop</title><link rel="icon" href="data:,">
+  <link rel="stylesheet" href="music.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><b>D</b><div><strong>DUSTLINE</strong><span>MUSIC WORKSHOP</span></div></div>
+    <nav><a href="index.html">Map workshop</a><button id="save" class="primary">Save + generate</button><button id="download">Export JSON</button></nav>
+  </header>
+  <main>
+    <aside>
+      <span class="eyebrow">GENERATOR</span><h1>Tracker settings</h1>
+      <label>Title<input id="title" maxlength="20"></label>
+      <div class="pair"><label>BPM<input id="bpm" type="number" min="80" max="180"></label><label>Seed<input id="seed" type="number" min="0" max="4294967295"></label></div>
+      <div class="pair"><label>Root<select id="root"></select></label><label>Scale<select id="scale"><option value="minor_pentatonic">Minor pentatonic</option><option value="natural_minor">Natural minor</option><option value="dorian">Dorian</option></select></label></div>
+      <label>Generated B-pattern variation <output id="variation-value"></output><input id="variation" type="range" min="0" max="100"></label>
+      <p class="help">Each section is a 16-step motif. The generator creates a second two-bar variation, then packs both into the same 8-channel MOD used by the ROM.</p>
+      <span class="eyebrow">MIX</span><div id="volumes"></div>
+    </aside>
+    <section class="composer">
+      <div class="composer-head"><div><span class="eyebrow">ADAPTIVE SECTIONS</span><h1>Pattern composer</h1></div><div id="sections" class="section-tabs"></div></div>
+      <div class="transport"><button id="play" class="primary">▶ Play loop</button><button id="stop">■ Stop</button><span id="now">Stopped</span><span class="spacer"></span><span>Click tonal cells to cycle scale notes · right-click to clear</span></div>
+      <div class="ruler"><span></span><div id="beats"></div></div>
+      <div id="grid" class="grid"></div>
+      <div class="legend"><span><i class="beat-one"></i>Beat</span><span><i class="active-note"></i>Note / hit</span><span><i class="playhead"></i>Playhead</span></div>
+    </section>
+    <aside class="reference">
+      <span class="eyebrow">GBA REFERENCE</span><h1>Generated output</h1>
+      <p>The browser loop is immediate. This WAV is rendered from the exact expanded patterns and instrument samples written into the MOD.</p>
+      <audio id="reference" controls preload="metadata"></audio>
+      <dl><dt>Format</dt><dd>8CHN ProTracker MOD</dd><dt>Sections</dt><dd>Cruise · Drive · Danger · Combat</dd><dt>Transition</dt><dd>Quantized every two bars</dd><dt>ROM path</dt><dd>audio/dustline_drive.mod</dd></dl>
+      <div id="status" role="status">Loading shared music source…</div>
+      <p class="help">Saving updates the source JSON, MOD, generated section table and WAV. Run <code>./build.ps1</code> afterward to place changes in the ROM.</p>
+    </aside>
+  </main>
+  <footer><span>ONE SOURCE · BROWSER + GBA</span><span>LOCAL WORKSPACE <i></i></span></footer>
+  <script type="module" src="music.mjs"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "operations": [
     {
       "id": "random",
@@ -319,7 +319,8 @@
       "name": "Enemy spawns",
       "kind": "spawns",
       "inputs": {
-        "a": "field?"
+        "a": "field?",
+        "b": "field?"
       },
       "random": true,
       "parameters": [

@@ -1,54 +1,54 @@
 {
   "terrain_tiles": 180,
-  "terrain_tiles_exceeding_15_opaque_colors": 91,
+  "terrain_tiles_exceeding_15_opaque_colors": 89,
   "decoration_8bpp_bytes": 1088,
   "decoration_4bpp_bytes": 544,
   "decoration_pixels_identical": true,
-  "terrain_palette_entries": 80,
+  "terrain_palette_entries": 112,
   "decoration_palette_entries": 16,
   "decoration_alpha": "binary, transparent border on every patch",
   "texture_repeat_contrast": [
     {
       "material": "Dusty soil",
-      "wrap_h": 4.83,
-      "inside_h": 5.6,
-      "wrap_v": 2.67,
-      "inside_v": 5.74
+      "wrap_h": 2.25,
+      "inside_h": 4.31,
+      "wrap_v": 2.0,
+      "inside_v": 4.36
     },
     {
       "material": "Gravel",
-      "wrap_h": 6.25,
-      "inside_h": 7.85,
-      "wrap_v": 5.17,
-      "inside_v": 8.15
+      "wrap_h": 4.75,
+      "inside_h": 7.47,
+      "wrap_v": 4.0,
+      "inside_v": 7.66
     },
     {
       "material": "Cracked hardpan",
       "wrap_h": 4.58,
-      "inside_h": 8.33,
-      "wrap_v": 4.0,
-      "inside_v": 8.19
+      "inside_h": 7.33,
+      "wrap_v": 3.5,
+      "inside_v": 7.19
     },
     {
       "material": "Worn asphalt",
-      "wrap_h": 3.75,
-      "inside_h": 6.48,
-      "wrap_v": 7.67,
-      "inside_v": 6.52
+      "wrap_h": 3.42,
+      "inside_h": 6.1,
+      "wrap_v": 5.83,
+      "inside_v": 6.05
     },
     {
       "material": "Plateau top",
-      "wrap_h": 9.67,
-      "inside_h": 13.39,
-      "wrap_v": 10.25,
-      "inside_v": 13.99
+      "wrap_h": 7.67,
+      "inside_h": 11.97,
+      "wrap_v": 7.83,
+      "inside_v": 12.63
     },
     {
       "material": "Cliff face",
-      "wrap_h": 12.17,
-      "inside_h": 22.96,
-      "wrap_v": 6.42,
-      "inside_v": 12.4
+      "wrap_h": 11.33,
+      "inside_h": 21.41,
+      "wrap_v": 6.33,
+      "inside_v": 11.45
     }
   ]
 }

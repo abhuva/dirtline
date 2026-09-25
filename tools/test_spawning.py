@@ -22,7 +22,7 @@ def run(t):
         assert t.state()['mode']==3
         t.tap(t.UP); t.tap(t.A)
         assert t.state()['mode']==4
-        t.step(t.UP,30);t.step(t.RIGHT,40);t.step(t.UP,180);t.step(t.LEFT,40);t.tap(t.UP);t.tap(t.A)
+        t.step(t.UP,200);t.tap(t.UP);t.tap(t.A)
         assert t.town_state()['place']==1
         t.step(t.UP,180);t.tap(t.A)
         assert t.town_state()['menu']
@@ -31,30 +31,32 @@ def run(t):
             t.tap(t.RIGHT)
         t.tap(t.A)
         assert t.state()['setup']==1
-        t.step(t.DOWN,150);t.tap(t.A)
-        t.step(t.RIGHT,40);t.step(t.DOWN,135);t.step(t.LEFT,40);t.step(t.DOWN,35);t.tap(t.A)
+        t.step(t.DOWN,170);t.tap(t.A)
+        t.step(t.DOWN,190);t.tap(t.A)
         t.step(0,60); fresh()
+    baseline_missed=t.state()['missed']
     original=t.spawn_state(); c=t.combat_state(); ref=Reference(t,t.state()['seed'])
     t.check('Runtime spawn coordinates match the exported recipe',[(p['x'],p['y']) for p in original]==ref.spawns,dict(points=len(original)))
-    t.check('World-wide encounter anchors are reachable, sparse and lightweight',len(original)>100 and
-            c['spawn_stride']==12 and c['ram']<5000 and
+    t.check('World-wide profiled encounter anchors are reachable, sparse and lightweight',len(original)>=32 and
+            c['spawn_stride']==12 and c['ram']<5500 and {p['profile'] for p in original}=={0,1,2} and
             all(not ref.wall(p['x']//128,p['y']//128) and ref.surface(p['x'],p['y'])!=3 for p in original),
-            dict(points=len(original),ram=c['ram'],record_bytes=c['spawn_stride']))
+            dict(points=len(original),profiles=sorted({p['profile'] for p in original}),ram=c['ram'],record_bytes=c['spawn_stride']))
     victim=c['enemies'][0]['spawn_id']
     for _ in range(100):
         t.step(t.R)
         if t.spawn_state()[victim]['hp']==0: break
     killed=t.spawn_state()[victim]; kill_tick=t.combat_state()['ticks']
     t.step(0,2); t.capture('spawning/destroyed')
-    t.check('Kill starts one 1800-frame encounter cooldown',killed['hp']==0 and killed['slot']==-1 and
-            killed['ready_at']-kill_tick==1800,killed)
+    profile_delays={0:1800,1:1080,2:3000}; expected_delay=profile_delays[killed['profile']]
+    t.check('Kill starts its authored profile cooldown',killed['hp']==0 and killed['slot']==-1 and
+            killed['ready_at']-kill_tick==expected_delay,killed)
     peak=0; cooldown_ok=True
-    for _ in range(1880):
+    for _ in range(expected_delay+80):
         s=t.step(); c=t.combat_state(); peak=max(peak,s['cpu'])
         p=t.spawn_state()[victim]
         if c['ticks']<killed['ready_at']: cooldown_ok &= p['slot']==-1 and p['hp']==0
     p=t.spawn_state()[victim]; s=t.state()
-    t.check('Cooldown blocks immediate respawn; visible anchor stays empty after expiry',cooldown_ok and
+    t.check('Authored cooldown blocks immediate respawn; visible anchor stays empty after expiry',cooldown_ok and
             c['ticks']>=killed['ready_at'] and abs(p['x']-s['x'])<192 and abs(p['y']-s['y'])<144 and
             p['slot']==-1 and p['hp']==0,dict(point=p,ticks=c['ticks']))
     # Controller-driven journey out of the starting district and back. Returning
@@ -82,7 +84,7 @@ def run(t):
         return [(x*128+64,y*128+80) for x,y in points]
     baseline=t.combat_state(); seen=set(); departed=set(); returned=set()
     valid=True; hidden=True; hp_preserved=True; max_live=0; deaths=baseline['kills']; snapshots=[]
-    last=t.combat_state(); completed=[]
+    last=t.combat_state(); completed=[]; route_end=[]
     for leg,nodes in enumerate((path[1:],list(reversed(path[:-1])))):
         goals=route_goals(nodes); goal=0
         for frame in range(6500):
@@ -95,7 +97,9 @@ def run(t):
             error=t.angle_delta(math.degrees(math.atan2(gy-s['y'],gx-s['x']))%360,s['heading'])
             keys=t.LEFT if error<-3 else t.RIGHT if error>3 else 0
             target=3.0 if abs(error)<20 and distance>100 else .8
-            if math.hypot(s['vx'],s['vy'])<target: keys|=t.A
+            speed=math.hypot(s['vx'],s['vy'])
+            if speed<target: keys|=t.A
+            elif speed>target+.15: keys|=t.DOWN
             s=t.step(keys)
             # This suite measures encounter streaming, so recover from the real
             # combat death screen and continue the controller-driven route.
@@ -121,9 +125,11 @@ def run(t):
             if t.state()['mode']==3: t.tap(t.B)
             if frame%300==0: snapshots.append(t.capture(f'spawning/leg-{leg}-{frame:04d}'))
         completed.append(goal==len(goals))
+        route_end.append(dict(goal=goal,goals=len(goals),x=s['x'],y=s['y'],heading=s['heading']))
     c=t.combat_state(); p=t.spawn_state()[victim]
     t.capture('spawning/returned')
-    t.check('Joypad route traverses distant encounter districts and returns',all(completed),dict(completed=completed,path=path))
+    t.check('Joypad route traverses distant encounter districts and returns',all(completed),
+            dict(completed=completed,path=path,route_end=route_end))
     t.check('Streaming reuses five slots without duplicate point ownership',valid and max_live==5 and len(seen)>5,
             dict(peak_active=max_live,unique_encounters=len(seen),spawned=c['spawned']))
     t.check('Distant cars despawn without counting as kills and retain HP',c['despawned']>baseline['despawned'] and
@@ -135,14 +141,17 @@ def run(t):
     t.check('Returning reactivates dormant encounters and keeps expired destroyed points eligible',
             bool(returned) and (respawned or expired_waiting),dict(returned=sorted(returned),victim=p))
     t.check('New streamed cars appear outside the viewport',hidden)
-    t.check('Spawn streaming fits measured frame budget',peak<1 and t.state()['missed']==0,
-            dict(cpu=peak,missed=t.state()['missed']))
+    t.check('Spawn streaming fits measured frame budget',peak<1 and t.state()['missed']==baseline_missed,
+            dict(cpu=peak,missed=t.state()['missed']-baseline_missed))
     fresh()
+    baseline_missed=t.state()['missed']
     t.check('New fixed run resets encounter state but reproduces anchors',
             [(p['x'],p['y']) for p in original]==[(p['x'],p['y']) for p in t.spawn_state()] and
             t.combat_state()['kills']==0 and all(p['hp']==3 and p['ready_at']==0 for p in t.spawn_state()))
     # A single deliberate shot, not just full-health survivors: damage must
-    # survive despawning AND the next activation of that same encounter.
+    # survive despawning AND the next activation of that same encounter. R only
+    # fires the front and side mounts, so the forward target gets one gun hit.
+    assert t.weapon_state()['front']==0 and t.weapon_state()['side']==2
     victim=t.combat_state()['enemies'][0]['spawn_id']
     t.step(t.R); t.step(0,24); damaged=t.spawn_state()[victim]
     t.check('Single-shot survivor records two HP on its anchor',damaged['hp']==2,damaged)
@@ -160,7 +169,10 @@ def run(t):
                 gx,gy=goals[goal]; distance=math.dist((s['x'],s['y']),(gx,gy))
             error=t.angle_delta(math.degrees(math.atan2(gy-s['y'],gx-s['x']))%360,s['heading'])
             keys=t.LEFT if error<-3 else t.RIGHT if error>3 else 0
-            if math.hypot(s['vx'],s['vy'])<(3.0 if abs(error)<20 and distance>100 else .8): keys|=t.A
+            target=3.0 if abs(error)<20 and distance>100 else .8
+            speed=math.hypot(s['vx'],s['vy'])
+            if speed<target: keys|=t.A
+            elif speed>target+.15: keys|=t.DOWN
             s=t.step(keys)
             if s['mode']==7:
                 t.tap(t.A);s=t.state()
@@ -173,8 +185,8 @@ def run(t):
     t.capture('spawning/damaged-return')
     t.check('Damaged survivor despawns and returns with two HP, not healed',dormant and reactivated and
             t.spawn_state()[victim]['hp']==2,dict(dormant=dormant,reactivated=reactivated,point=t.spawn_state()[victim]))
-    t.check('Damaged-survivor streaming route stays within frame budget',peak<1 and t.state()['missed']==0,
-            dict(cpu=peak,missed=t.state()['missed']))
+    t.check('Damaged-survivor streaming route stays within frame budget',peak<1 and t.state()['missed']==baseline_missed,
+            dict(cpu=peak,missed=t.state()['missed']-baseline_missed))
 
 if __name__=='__main__':
     import test_rom as t

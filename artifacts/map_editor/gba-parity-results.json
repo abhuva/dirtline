@@ -1,8 +1,8 @@
 {
-  "cases": 339,
+  "cases": 390,
   "nativeGbaByteParity": true,
-  "emulatorFrames": 41100,
-  "renderCases": 6,
+  "emulatorFrames": 47040,
+  "renderCases": 7,
   "renderAndSurfaceParity": true,
-  "diagnosticRomSha256": "1d34cade0be9e22d6ba2d5ce32e16b33307c647fd0770648c417eedeb6978566"
+  "diagnosticRomSha256": "5ebe43b4f64e52fb8a5ba3ee4d9ae2eb0aa880a3790731946964f28fac8fb76a"
 }

@@ -6,7 +6,8 @@
 
 An original driving and combat RPG prototype built for the Game Boy Advance.
 Dustline combines momentum-heavy arcade handling, controlled slides, procedural
-wastelands, roaming enemy drivers, and outposts with garages and vehicle setups.
+wastelands, roaming enemy drivers, and outposts offering contracts, garages, and
+vehicle setups.
 
 ![Dustline gameplay](artifacts/demo.gif)
 
@@ -17,8 +18,9 @@ from the latest release and open it with [mGBA](https://mgba.io/) or RetroArch's
 Nintendo - Game Boy Advance (mGBA) core. This is a complete homebrew ROM; no base
 game, patch, or GBA BIOS is required.
 
-The current build is an in-development prototype. It has no cartridge saves,
-quests, inventory, shop economy, or persistent progression yet.
+The current build is an in-development prototype. Contracts and earned credits
+last for the current run only; there are no cartridge saves, inventory, shop
+economy, or persistent progression yet.
 
 ## Controls
 
@@ -26,16 +28,30 @@ quests, inventory, shop economy, or persistent progression yet.
 | --- | --- | --- |
 | A | Accelerate | Confirm, interact, enter doors |
 | B | Brake, then reverse | Cancel |
-| Left / Right | Steer | Choose map, setup, or setting |
+| Left / Right | Steer | Choose or adjust menu values |
+| Up / Down | Minimap zoom in/out | Choose handling property; walk in towns |
 | L | Cycle weapon | — |
 | R | Use selected weapon | — |
-| Select | Open settings | Return from pause to map selection |
+| Select | Open vehicle lab | Return from pause to map selection |
 | Start | Pause | Resume |
-| D-pad | Left/right steer; up/down unused | Walk in towns |
+| D-pad | Steer and adjust minimap zoom | Navigate menus or walk in towns |
 
 Try releasing the throttle before a bend, turning through it, and applying power
 again on exit. The car retains momentum while coasting, and its heading can differ
 from its direction of travel.
+
+Ground now has distinct handling character: loose material develops a gentle
+wander and longer slides, gravel chatters, hardpan produces a light rumble, and
+roads remain stable. The HUD label follows the same road-aware material sample as
+the physics.
+
+Press Select while driving to open the Handling Lab. It exposes acceleration,
+maximum speed, grip, steering, neutral coast drag, brake force and mass over deliberately broad test ranges;
+Up/Down chooses a property, Left/Right adjusts it, and A restores the fitted
+garage preset. L/R also reaches Weapon Loadout and Audio Control panels. Audio
+Control independently adjusts music and sound-effect volume in 10% steps and
+provides a master mute; these choices persist for the current session. Music
+starts at 0%, while sound effects start at 100%.
 
 ## What's in the prototype
 
@@ -44,10 +60,15 @@ from its direction of travel.
 - Fixed elevated 2D presentation with momentum, grip-limited sliding, braking,
   reverse, terrain collisions, and three distinct vehicle setups.
 - Streaming terrain, a zoomable minimap, outposts, walkable towns, and a garage.
+- Signed town services with proximity-based, animated button prompts.
+- Deterministic courier and marked-raider contracts from town dispatch boards.
+- A separate race office with hub-to-outpost road events and generated open or
+  closed wilderness courses, sequential gates, scoring, payouts and course-abort rules.
 - Pooled enemy drivers and five weapons: gun, saw, side guns, homing missiles,
   and traps.
-- Player health, a rechargeable shield, synthesized audio, and original pixel art.
-- A local browser-based procedural map workshop shared with the ROM generator.
+- Player health, a rechargeable shield, synthesized effects, an adaptive
+  eight-channel tracker soundtrack, and original pixel art.
+- Local browser-based map and music workshops shared with the ROM generators.
 
 For the complete gameplay notes, current limitations, architecture, map-workshop
 guide, and verification details, see [readme.txt](readme.txt).
@@ -75,6 +96,53 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\test.ps1
 The automated checks use headless mGBA and normal GBA joypad input. They verify
 generation, driving, collisions, scenes, settings, combat, spawning, and frame
 budgets; they are not a substitute for subjective controller playtesting.
+
+## Start the development tool
+
+Dustline includes a local browser-based Map Workshop. It requires Docker Desktop
+(using Linux containers) and Python 3. From the repository root, run the game
+build once so the workshop has the generated terrain art:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+Then build and start the workshop:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\map-editor.ps1
+```
+
+Keep that terminal open and visit **[http://127.0.0.1:8765](http://127.0.0.1:8765)**.
+Press `Ctrl+C` in the terminal to stop it. After the first workshop build, use
+the faster startup command when its C++/WebAssembly engine has not changed:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\map-editor.ps1 -NoBuild
+```
+
+Use `-Port 9000` to choose another local port. Changes saved with **In game**
+enabled are compiled into the ROM the next time `build.ps1` runs. The workshop
+runs entirely on `127.0.0.1`; it does not require an external account or service.
+
+Open **[http://127.0.0.1:8765/music.html](http://127.0.0.1:8765/music.html)**
+for the Music Workshop. It edits the shared `music/dustline-drive.json` source,
+offers immediate browser playback, and generates the same eight-channel MOD,
+section table, and reference WAV used by the GBA build. Music switches among
+cruise, fast-driving, nearby-enemy, and combat arrangements at two-bar boundaries.
+The current *Dustline Horizon* study keeps one melodic signal across those states:
+soft-attack pad and desert-air loops carry the quiet sections, while bass,
+percussion, countermelody, and glass chimes enter as danger rises.
+Its warm instrument bank uses seamless rounded bass curves, a long detuned chorus
+pad, circularly filtered wind noise, and separately decaying lead/chime partials
+instead of raw saw and pulse oscillators.
+Save in the workshop, then run `build.ps1` to include the new version in the ROM.
+
+Use **Art bank** to choose each map's four ground assets and material IDs, four
+foreground decorations, wall set, and town set. The build packs one deduplicated
+tile/palette bank for every distinct in-game profile; only the selected map's
+bank is loaded into GBA VRAM. Save the map, rebuild, and reload the workshop to
+see source-art changes or a newly packed profile in the game-texture preview.
 
 ## Continuous delivery
 

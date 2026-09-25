@@ -1,4 +1,4 @@
-import {compile, makeNode, LUT_MAX_POINTS, defaultLutColor} from './recipe.mjs';
+import {compile, makeNode, LUT_MAX_POINTS, defaultLutColor, normalizeSpawnProfiles} from './recipe.mjs';
 
 const $ = id => document.getElementById(id);
 const element = (tag, className, text) => {
@@ -9,7 +9,22 @@ const element = (tag, className, text) => {
 };
 const clone = value => structuredClone(value);
 const schema = await fetch('./schema.json').then(r => r.json());
-const materialCatalog=(await fetch('./generated/art.json').then(r=>r.json())).catalog.materials;
+const artData=await fetch('./generated/art.json').then(r=>r.json());
+const assetCatalog=artData.catalog;
+const materialAssets=new Map(assetCatalog.materials.map(asset=>[asset.key,asset]));
+const decorationAssets=new Map(assetCatalog.decorations.map(asset=>[asset.key,asset]));
+let materialCatalog=[];
+function normalizedArtProfile(value){
+  if(typeof value==='string')value=assetCatalog.presets[value];
+  value=value&&typeof value==='object'?clone(value):clone(assetCatalog.presets.sun);
+  value.materials=Array.isArray(value.materials)&&value.materials.length===4?value.materials:clone(assetCatalog.presets.sun.materials);
+  value.decorations=Array.isArray(value.decorations)&&value.decorations.length===4?value.decorations:clone(assetCatalog.presets.sun.decorations);
+  value.materials=value.materials.map((binding,index)=>({id:Number.isInteger(binding.id)?binding.id:index,asset:materialAssets.has(binding.asset)?binding.asset:assetCatalog.presets.sun.materials[index].asset,enabled:binding.enabled!==false}));
+  value.decorations=value.decorations.map((binding,index)=>({asset:decorationAssets.has(binding.asset)?binding.asset:assetCatalog.presets.sun.decorations[index].asset,enabled:binding.enabled!==false}));
+  if(!assetCatalog.wallSets.some(asset=>asset.key===value.wallSet))value.wallSet=assetCatalog.presets.sun.wallSet;
+  if(!assetCatalog.townSets.some(asset=>asset.key===value.townSet))value.townSet=assetCatalog.presets.sun.townSet;
+  return value;
+}
 const libraryResponse=await fetch('/api/library');
 if(!libraryResponse.ok)throw new Error(`Could not load the map library (${libraryResponse.status}).`);
 const libraryEnvelope=await libraryResponse.json();
@@ -18,7 +33,7 @@ const ops = new Map(schema.operations.map(o => [o.id,o]));
 const savedSelection=localStorage.getItem('dustline.map-selection.v1');
 let currentId=library.maps.some(entry=>entry.id===savedSelection)?savedSelection:library.maps[0].id;
 let currentEntry=library.maps.find(entry=>entry.id===currentId);
-let recipe=clone(currentEntry.recipe),includeInGame=currentEntry.includeInGame;
+let recipe=clone(currentEntry.recipe),includeInGame=currentEntry.includeInGame;recipe.artProfile=normalizedArtProfile(recipe.artProfile);recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);
 let selected=recipe.output??recipe.nodes[0]?.id??null,pending=null,dirty=false;
 let undo = [], redo = [], sequence = 0, ready = false, timer, lastResponse, iteration = null;
 let zoom=1,panX=0,panY=0;
@@ -29,7 +44,7 @@ let cancelConnectionDrag = null, suppressPortClick = false;
 try {
   const saved=JSON.parse(localStorage.getItem('dustline.map-draft.v1'));
   if(saved?.id===currentId&&saved.revision===libraryRevision&&saved.recipe){
-    recipe=saved.recipe;includeInGame=Boolean(saved.includeInGame);selected=recipe.output??recipe.nodes[0]?.id??null;dirty=true;
+    recipe=saved.recipe;recipe.artProfile=normalizedArtProfile(recipe.artProfile);recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);includeInGame=Boolean(saved.includeInGame);selected=recipe.output??recipe.nodes[0]?.id??null;dirty=true;
   }
 } catch { /* A broken draft must never prevent opening the workshop. */ }
 const worker = new Worker('./worker.mjs', {type:'module'});
@@ -52,6 +67,14 @@ worker.onmessage = ({data}) => {
   lastResponse = data; draw(data);
 };
 function message(text, type='') { $('notice').textContent = text; $('notice').className = type; }
+function syncMaterialCatalog(){
+  recipe.artProfile=normalizedArtProfile(recipe.artProfile);
+  materialCatalog=recipe.artProfile.materials.filter(binding=>binding.enabled).map(binding=>{
+    const asset=materialAssets.get(binding.asset);return {...asset,id:binding.id};
+  });
+  const list=$('material-ids');
+  if(list)list.replaceChildren(...materialCatalog.map(material=>{const option=element('option','',material.name);option.value=material.id;return option;}));
+}
 function remember() { undo.push(clone(recipe)); if (undo.length > 80) undo.shift(); redo = []; }
 function save() {
   dirty=true;
@@ -90,6 +113,7 @@ function arrange() {
   }
 }
 function render() {
+  syncMaterialCatalog();
   if(pinnedSettings!==null && !recipe.nodes.some(n=>n.id===pinnedSettings))pinnedSettings=null;
   $('recipe-name').value = recipe.name ?? 'Untitled recipe'; $('seed').value = recipe.seed;
   $('include-in-game').checked=includeInGame;updateMapControls();
@@ -493,7 +517,7 @@ function renderInspector() {
     settings.append(element('p','setting-help','Interpret each input field value as a ground material ID for one 128 × 128 world-pixel cell. This output controls ground art and grip independently of wall/floor.'));
     const legacy=element('button','','Use original ground rules');legacy.onclick=()=>change(()=>{delete recipe.materialOutput;if(recipe.version<3)recipe.version=1;});settings.append(legacy);
   }
-  if(n.type==='spawns')settings.append(element('p','placement-help','Applied to the final world. Input A: 0 forbids spawning; higher values increase relative likelihood. Count is limited by valid anchors and spacing. Starter encounters count toward the target and respect the field.'));
+  if(n.type==='spawns')settings.append(element('p','placement-help','Applied to the final world. Input A controls density: 0 forbids spawning and higher values increase likelihood. Input B is categorical: its byte value selects a Population profile for each anchor. Build regions with Constant field, Stepped LUT, and Paint field value.'));
   if(n.type==='decoration')settings.append(element('p','placement-help','Applied to the final world. Input A multiplies density (0 = none, 255 = full). Four type weights are normalized automatically; all zero disables decoration. Positions stay fixed when type weights change.'));
   root.append(settings);
 }
@@ -537,7 +561,7 @@ function generate() {
     const seeds=view==='seeds'?Array.from({length:9},(_,i)=>(recipe.seed+i)>>>0):null;
     message(exportError || 'Generating…',exportError?'warning':'');
     const categoricalColors=node?.type==='field_lut'?lutPreviewColors(node):null;
-    worker.postMessage({id:sequence,program:compiled.program,materialProgram,spawnProgram,decorationProgram,histogramProgram,histogramNode:histogramProgram?settingsNode.id:null,categorical:!!categoricalColors,categoricalColors,showSpawns:$('show-spawns').checked,seed:recipe.seed,collision:$('layer').value==='collision' && !seeds,textures:$('layer').value==='textures',seeds,compare});
+    worker.postMessage({id:sequence,mapId:currentId,program:compiled.program,materialProgram,spawnProgram,decorationProgram,spawnProfiles:recipe.spawnProfiles,histogramProgram,histogramNode:histogramProgram?settingsNode.id:null,categorical:!!categoricalColors,categoricalColors,showSpawns:$('show-spawns').checked,seed:recipe.seed,collision:$('layer').value==='collision' && !seeds,textures:$('layer').value==='textures',seeds,compare});
   } catch(error) {
     $('export').disabled=true; $('preview').setAttribute('aria-busy','false');
     $('preview-label').textContent='INVALID GRAPH · PREVIOUS PREVIEW'; message(error.message,'error');
@@ -576,8 +600,7 @@ function paint(output,regionView=false,refined=true,categoricalColors=null) {
 function markers(ctx,output,x,y,size) {
   if(output.meta[1]!==2) return;
   if($('show-spawns').checked && output.spawns){
-    ctx.fillStyle='#f04040';
-    for(let i=0;i<output.spawns.length;i+=2)ctx.fillRect(x+output.spawns[i]/8192*size-1,y+output.spawns[i+1]/8192*size-1,3,3);
+    for(let i=0;i<output.spawns.length;i+=2){ctx.fillStyle=recipe.spawnProfiles.find(profile=>profile.id===output.spawnTypes?.[i/2])?.color??'#f04040';ctx.fillRect(x+output.spawns[i]/8192*size-1,y+output.spawns[i+1]/8192*size-1,3,3);}
   }
   for(let i=0;i<7;++i) {
     const px=output.meta[6+i*2]/8192*size+x,py=output.meta[7+i*2]/8192*size+y;
@@ -593,7 +616,7 @@ function draw(data) {
   const categoricalColors=data.categorical?data.categoricalColors??[]:null;
   const legend=categoricalColors?[...new Set(first.cells)].sort((a,b)=>a-b).map(value=>[`Output ${value}`,categoricalColors[value]??defaultLutColor(value)]):
     first.meta[1]===3 || first.texture ? materialCatalog.map(m=>[m.name,m.color]) : [['Floor','#d8b77b'],['Wall','#28483d'],['Spawn','#f08b5b'],['Outpost','#e7f6bc']];
-  if(first.spawns && $('show-spawns').checked)legend.push(['Enemy spawns','#f04040']);
+  if(first.spawns && $('show-spawns').checked)for(const profile of recipe.spawnProfiles)legend.push([profile.name,profile.color]);
   $('legend').replaceChildren(...legend.map(([name,color])=>{const item=element('span'),swatch=element('i');swatch.style.background=color;item.append(swatch,document.createTextNode(name));return item;}));
   if(grid) {
     data.outputs.forEach((output,i)=>{
@@ -660,7 +683,7 @@ function resetEditorState(){
 function discardAllowed(){return !dirty||window.confirm('Discard unsaved changes to this map?');}
 function loadMap(id){
   const entry=library.maps.find(entry=>entry.id===id);if(!entry)return;
-  currentId=id;currentEntry=entry;recipe=clone(entry.recipe);includeInGame=entry.includeInGame;dirty=false;
+  currentId=id;currentEntry=entry;recipe=clone(entry.recipe);recipe.artProfile=normalizedArtProfile(recipe.artProfile);recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);includeInGame=entry.includeInGame;dirty=false;
   localStorage.setItem('dustline.map-selection.v1',id);localStorage.setItem('dustline.recipe.v1',JSON.stringify(recipe));localStorage.removeItem('dustline.map-draft.v1');
   resetEditorState();render();message(`Loaded ${recipe.name}.`);
 }
@@ -696,7 +719,7 @@ $('preset').onchange=()=>{const id=$('preset').value;if(discardAllowed())loadMap
 $('new-map').onclick=()=>{
   if(!discardAllowed())return;
   const name=window.prompt('Name for the new map','Untitled map')?.trim();if(!name)return;
-  currentId=null;recipe={version:3,name,seed:crypto.getRandomValues(new Uint32Array(1))[0],nodes:[]};includeInGame=false;dirty=true;
+  currentId=null;recipe={version:4,name,seed:crypto.getRandomValues(new Uint32Array(1))[0],nodes:[],artProfile:normalizedArtProfile('sun'),spawnProfiles:normalizeSpawnProfiles()};includeInGame=false;dirty=true;
   resetEditorState();save();render();message('New draft. Add nodes, then Save to add it to the shared library.');
 };
 $('save-map').onclick=()=>saveMap(false);$('save-as').onclick=()=>saveMap(true);
@@ -707,8 +730,82 @@ $('delete-map').onclick=async()=>{
   const replacement=next.maps[Math.min(index,next.maps.length-1)].id;
   await writeLibrary(next,replacement,`${recipe.name} deleted from the shared library.`);
 };
+function assetSelect(items,value,onchange){
+  const select=element('select');
+  for(const item of items){const option=element('option','',item.name);option.value=item.key;select.append(option);}
+  select.value=value;select.onchange=()=>onchange(select.value);return select;
+}
+function previewImage(key,name){
+  const image=element('img');image.src=`generated/previews/${key}.png`;image.alt=name;return image;
+}
+function artProfileError(){
+  const enabled=recipe.artProfile.materials.filter(binding=>binding.enabled);
+  if(!enabled.length)return 'Enable at least one ground material.';
+  const ids=enabled.map(binding=>binding.id);
+  if(new Set(ids).size!==ids.length)return 'Enabled ground materials need unique IDs.';
+  return '';
+}
+function renderArtDialog(){
+  syncMaterialCatalog();
+  const profile=recipe.artProfile,bankIndex=currentId==null?undefined:artData.mapBanks[currentId],bank=bankIndex==null?null:artData.banks[bankIndex];
+  const error=artProfileError();
+  $('art-bank-status').textContent=error||`${bank?`${bank.uniqueTiles} unique terrain tiles / ${bank.tileSlots} reserved`:'Bank not built yet'} · ${profile.materials.filter(binding=>binding.enabled).length}/4 materials · ${profile.decorations.filter(binding=>binding.enabled).length}/4 decorations${dirty?' · rebuild required':''}`;
+  $('art-bank-status').classList.toggle('error',Boolean(error));
+  const materialRows=profile.materials.map((binding,index)=>{
+    const asset=materialAssets.get(binding.asset),row=element('div','asset-binding');
+    const enabled=element('input');enabled.type='checkbox';enabled.checked=binding.enabled;
+    enabled.onchange=()=>{change(()=>{binding.enabled=enabled.checked;});renderArtDialog();};
+    const id=element('input');id.type='number';id.min=0;id.max=255;id.step=1;id.value=binding.id;id.setAttribute('aria-label',`Material slot ${index+1} ID`);
+    id.onchange=()=>{if(id.validity.valid&&id.value!=='')change(()=>{binding.id=Number(id.value);});renderArtDialog();};
+    const select=assetSelect(assetCatalog.materials,binding.asset,value=>{change(()=>{binding.asset=value;});renderArtDialog();});
+    const meta=element('span','asset-meta',`${asset.surface===1?'firm grip':'loose grip'} · 16 source tiles`);
+    const toggle=element('label','');toggle.append(enabled,document.createTextNode(`Slot ${index+1}`));
+    meta.prepend(toggle);row.append(previewImage(asset.key,asset.name),select,id,meta);return row;
+  });
+  $('material-bindings').replaceChildren(...materialRows);
+  const decorationRows=profile.decorations.map((binding,index)=>{
+    const asset=decorationAssets.get(binding.asset),row=element('div','asset-binding');
+    const enabled=element('input');enabled.type='checkbox';enabled.checked=binding.enabled;
+    enabled.onchange=()=>{change(()=>{binding.enabled=enabled.checked;});renderArtDialog();};
+    const select=assetSelect(assetCatalog.decorations,binding.asset,value=>{change(()=>{binding.asset=value;});renderArtDialog();});
+    const toggle=element('label','');toggle.append(enabled,document.createTextNode(`Slot ${index+1}`));
+    row.append(previewImage(asset.key,asset.name),select,toggle,element('span','asset-meta',`Decoration type ${index+1} · 4 tiles`));return row;
+  });
+  $('decoration-bindings').replaceChildren(...decorationRows);
+  const worldRows=[['Walls','wallSet',assetCatalog.wallSets],['Towns','townSet',assetCatalog.townSets]].map(([label,key,items])=>{
+    const asset=items.find(item=>item.key===profile[key]),row=element('div','asset-binding world');
+    const select=assetSelect(items,profile[key],value=>{change(()=>{profile[key]=value;});renderArtDialog();});
+    row.append(previewImage(asset.key,asset.name),element('span','asset-meta',label),select);return row;
+  });
+  $('world-bindings').replaceChildren(...worldRows);
+}
+$('art-bank').onclick=()=>{renderArtDialog();$('art-dialog').showModal();};
+$('close-art').onclick=()=>$('art-dialog').close();
+function populationField(label,control){const wrapper=element('label','',label);wrapper.append(control);return wrapper;}
+function renderPopulationDialog(){
+  recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);
+  const ids=recipe.spawnProfiles.map(profile=>profile.id),duplicate=new Set(ids).size!==ids.length;
+  $('population-status').textContent=duplicate?'Profile IDs must be unique.':`${recipe.spawnProfiles.length}/8 profiles · field values without a matching profile use the first profile`;
+  $('population-status').classList.toggle('error',duplicate);
+  const rows=recipe.spawnProfiles.map((profile,index)=>{
+    const row=element('div','population-binding');
+    const color=element('input','profile-color');color.type='color';color.value=profile.color;
+    color.oninput=()=>change(()=>{profile.color=color.value;recipe.version=4;});
+    const name=element('input');name.maxLength=18;name.value=profile.name;name.onchange=()=>change(()=>{profile.name=name.value.trim();recipe.version=4;});
+    const number=(value,min,max,apply)=>{const input=element('input');input.type='number';input.min=min;input.max=max;input.value=value;input.onchange=()=>{if(input.validity.valid&&input.value!=='')change(()=>{apply(Number(input.value));recipe.version=4;});};return input;};
+    const enemy=element('select');for(const [value,label] of [['scout','Scout'],['raider','Raider'],['heavy','Heavy']]){const option=element('option','',label);option.value=value;enemy.append(option);}enemy.value=profile.enemy;enemy.onchange=()=>change(()=>{profile.enemy=enemy.value;recipe.version=4;});
+    const blueprint=element('select');for(const [value,label] of [['none','None'],['salvage_magnet','Salvage magnet'],['tuned_injector','Tuned injector'],['reinforced_plating','Reinforced plating']]){const option=element('option','',label);option.value=value;blueprint.append(option);}blueprint.value=profile.blueprint;blueprint.onchange=()=>change(()=>{profile.blueprint=blueprint.value;recipe.version=4;});
+    const remove=element('button','','Delete');remove.disabled=recipe.spawnProfiles.length===1;remove.onclick=()=>{change(()=>{recipe.spawnProfiles.splice(index,1);recipe.version=4;});renderPopulationDialog();};
+    row.append(populationField('Color',color),populationField('Name',name),populationField('ID',number(profile.id,0,255,value=>profile.id=value)),populationField('Enemy',enemy),populationField('Respawn s',number(profile.respawnSeconds,1,600,value=>profile.respawnSeconds=value)),populationField('Scrap %',number(profile.scrapChance,0,100,value=>profile.scrapChance=value)),populationField('Scrap min',number(profile.scrapMin,0,15,value=>profile.scrapMin=value)),populationField('Scrap max',number(profile.scrapMax,0,15,value=>profile.scrapMax=value)),populationField('Blueprint',blueprint),populationField('BP %',number(profile.blueprintChance,0,100,value=>profile.blueprintChance=value)),populationField('Energy %',number(profile.energyChance,0,100,value=>profile.energyChance=value)),populationField('Energy min',number(profile.energyMin,0,100,value=>profile.energyMin=value)),populationField('Energy max',number(profile.energyMax,0,100,value=>profile.energyMax=value)),remove);
+    return row;
+  });
+  $('population-bindings').replaceChildren(...rows);$('add-population').disabled=recipe.spawnProfiles.length>=8;
+}
+$('population-bank').onclick=()=>{renderPopulationDialog();$('population-dialog').showModal();};
+$('close-population').onclick=()=>$('population-dialog').close();
+$('add-population').onclick=()=>{if(recipe.spawnProfiles.length>=8)return;const ids=new Set(recipe.spawnProfiles.map(profile=>profile.id));let id=0;while(ids.has(id))++id;const colors=['#ef6c5b','#65b9dc','#e4bd57','#a889d6','#79bc7b','#d77faa','#8ac6b1','#d68e5d'];change(()=>{recipe.spawnProfiles.push({id,name:`Profile ${id}`,color:colors[recipe.spawnProfiles.length],enemy:'raider',respawnSeconds:30,scrapChance:70,scrapMin:1,scrapMax:3,blueprint:'none',blueprintChance:0,energyChance:25,energyMin:8,energyMax:16});recipe.version=4;});renderPopulationDialog();};
 document.querySelector('.section-label span').textContent=schema.operations.length;
-materialCatalog.forEach(m=>{const option=element('option','',m.name);option.value=m.id;$('material-ids').append(option);});
+syncMaterialCatalog();
 schema.operations.forEach(op=>{
   const button=element('button',op.kind);button.append(element('span','',op.kind==='field'?'≈':op.id==='world'?'↗':'+'),document.createTextNode(op.name));
   button.onclick=()=>{
@@ -723,8 +820,8 @@ schema.operations.forEach(op=>{
       recipe.nodes.push(n);selected=id;$('view').value='selected';
       if(op.kind==='world')recipe.output=id;
       if(op.id==='materials'){recipe.version=Math.max(2,recipe.version);recipe.materialOutput=id;}
-      if(op.id==='spawns'){recipe.version=3;recipe.spawnOutput=id;}
-      if(op.id==='decoration'){recipe.version=3;recipe.decorationOutput=id;}
+      if(op.id==='spawns'){recipe.version=4;recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);recipe.spawnOutput=id;}
+      if(op.id==='decoration'){recipe.version=Math.max(3,recipe.version);recipe.decorationOutput=id;}
     });
     const added=recipe.nodes.at(-1);panX=$('graph').clientWidth/2-((Number(added.x)||0)+95)*zoom;panY=$('graph').clientHeight/2-((Number(added.y)||0)+70)*zoom;renderGraph();
   };
@@ -781,8 +878,8 @@ $('delete').onclick=()=>change(()=>{
 });
 $('set-output').onclick=()=>change(()=>{const type=recipe.nodes.find(n=>n.id===selected).type;
   if(type==='materials'){recipe.materialOutput=selected;recipe.version=Math.max(2,recipe.version);}
-  else if(type==='spawns'){recipe.spawnOutput=selected;recipe.version=3;}
-  else if(type==='decoration'){recipe.decorationOutput=selected;recipe.version=3;}
+  else if(type==='spawns'){recipe.spawnOutput=selected;recipe.version=4;recipe.spawnProfiles=normalizeSpawnProfiles(recipe.spawnProfiles);}
+  else if(type==='decoration'){recipe.decorationOutput=selected;recipe.version=Math.max(3,recipe.version);}
   else recipe.output=selected;$('view').value='final';});
 function download(blob,name){const url=URL.createObjectURL(blob),a=element('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('export').onclick=()=>{
@@ -800,7 +897,7 @@ $('import-file').onchange=async()=>{
     const imported=JSON.parse(await file.text());compile(imported,schema);
     for(const n of imported.nodes){n.x=Math.max(0,Math.min(10000,Number(n.x)||0));n.y=Math.max(0,Math.min(10000,Number(n.y)||0));n.inputs??={};n.label=String(n.label??ops.get(n.type).name).slice(0,80);}
     if(!discardAllowed())return;
-    currentId=null;recipe=imported;includeInGame=false;dirty=true;resetEditorState();save();render();
+    currentId=null;recipe=imported;recipe.artProfile=normalizedArtProfile(recipe.artProfile);includeInGame=false;dirty=true;resetEditorState();save();render();
     message('Imported as a new draft. Use Save to add it to the shared library.');
   }catch(error){message(`Import failed: ${error.message}`,'error');}
   $('import-file').value='';
@@ -816,7 +913,7 @@ $('render-map').onclick=()=>{
     $('render-image').removeAttribute('src');$('render-status').textContent='Rendering full map…';$('render-dialog').showModal();
     const spawnProgram=recipe.spawnOutput==null?null:compile(previewRecipe,schema,recipe.spawnOutput).program;
     const decorationProgram=recipe.decorationOutput==null?null:compile(previewRecipe,schema,recipe.decorationOutput).program;
-    worker.postMessage({id:renderRequest,render:true,program:world.program,materialProgram,spawnProgram,decorationProgram,showSpawns:$('show-spawns').checked,seed:recipe.seed});
+    worker.postMessage({id:renderRequest,render:true,mapId:currentId,program:world.program,materialProgram,spawnProgram,decorationProgram,spawnProfiles:recipe.spawnProfiles,showSpawns:$('show-spawns').checked,seed:recipe.seed});
   }catch(error){message(error.message,'error');}
 };
 $('close-render').onclick=()=>$('render-dialog').close();

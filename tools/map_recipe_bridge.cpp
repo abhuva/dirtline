@@ -22,6 +22,15 @@ bool spawn_ready=false,decoration_active=false;
 mapgen::node last_node;
 uint32_t current_seed=0;
 uint16_t point_coordinates[enemy_spawns::capacity*2];
+uint8_t point_profiles[enemy_spawns::capacity];
+uint8_t material_textures[256];
+uint8_t material_surfaces[256];
+bool material_lookups_ready=false;
+void ensure_material_lookups() {
+    if(material_lookups_ready)return;
+    for(int i=0;i<256;++i){material_textures[i]=ground_materials::textures[i];material_surfaces[i]=ground_materials::surfaces[i];}
+    material_lookups_ready=true;
+}
 #ifndef MAP_RECIPE_GBA_PROBE
 uint8_t decoration_tiles[1024*1024];
 #endif
@@ -32,6 +41,8 @@ uint16_t render_tiles[1024*1024];
 }
 extern "C" {
 mapgen::node* recipe_input() { return nodes; }
+uint8_t* recipe_material_textures() { ensure_material_lookups();return material_textures; }
+uint8_t* recipe_material_surfaces() { ensure_material_lookups();return material_surfaces; }
 const uint8_t* recipe_cells() { return result.data; }
 const uint32_t* recipe_meta() { return metadata; }
 int recipe_run(int count,uint32_t seed) {
@@ -59,7 +70,7 @@ int recipe_run(int count,uint32_t seed) {
 }
 int recipe_apply_spawns() {
     if(!world_ready || result.status!=mapgen::error::ok || result.type!=mapgen::kind::spawns)return 1;
-    spawn_points.generate_recipe(work.layout,result.data,last_node.p[0],last_node.p[1],last_node.p[2],last_node.stream);
+    spawn_points.generate_recipe(work.layout,result.data,result.auxiliary,last_node.p[0],last_node.p[1],last_node.p[2],last_node.stream);
     spawn_ready=true;return 0;
 }
 int recipe_spawn_count() {
@@ -70,6 +81,10 @@ int recipe_spawn_count() {
 const uint16_t* recipe_spawns() {
     for(int i=0;i<recipe_spawn_count();++i){point_coordinates[i*2]=spawn_points.points[i].x;point_coordinates[i*2+1]=spawn_points.points[i].y;}
     return point_coordinates;
+}
+const uint8_t* recipe_spawn_types() {
+    for(int i=0;i<recipe_spawn_count();++i)point_profiles[i]=spawn_points.points[i].profile;
+    return point_profiles;
 }
 int recipe_apply_decoration() {
     if(!world_ready || result.status!=mapgen::error::ok || result.type!=mapgen::kind::decoration)return 1;
@@ -97,16 +112,18 @@ const uint8_t* recipe_ground() {
 uint32_t recipe_render_signature() {
     uint32_t value=2166136261u;
     for(int y=0;y<1024;y+=7)for(int x=0;x<1024;x+=7) {
-        value=(value^wasteland_tiles::reference(work.layout,ground_active?ground:nullptr,x,y,&work.roads))*16777619u;
-        value=(value^wasteland_tiles::surface(work.layout,ground_active?ground:nullptr,x*8+4,y*8+4,&work.roads))*16777619u;
+        ensure_material_lookups();
+        value=(value^wasteland_tiles::reference(work.layout,ground_active?ground:nullptr,x,y,&work.roads,material_textures))*16777619u;
+        value=(value^wasteland_tiles::surface(work.layout,ground_active?ground:nullptr,x*8+4,y*8+4,&work.roads,material_surfaces))*16777619u;
     }
     return value;
 }
 #ifdef __EMSCRIPTEN__
 const uint16_t* recipe_tiles() {
     if(!world_ready)return nullptr;
+    ensure_material_lookups();
     for(int y=0;y<1024;++y)for(int x=0;x<1024;++x)
-        render_tiles[y*1024+x]=wasteland_tiles::reference(work.layout,ground_active?ground:nullptr,x,y,&work.roads);
+        render_tiles[y*1024+x]=wasteland_tiles::reference(work.layout,ground_active?ground:nullptr,x,y,&work.roads,material_textures);
     return render_tiles;
 }
 const uint8_t* recipe_collision() {
@@ -161,7 +178,7 @@ int main(int argc,char** argv) {
             input=std::fopen(argv[4],"rb");if(!input){std::fclose(output);return 3;}
             count=int(std::fread(nodes,sizeof(mapgen::node),mapgen::max_nodes,input));std::fclose(input);
             status=recipe_run(count,uint32_t(std::strtoul(argv[2],nullptr,0)));
-            if(status || recipe_apply_materials()){std::fclose(output);return 5;}
+            if(status || recipe_apply_materials()){std::fprintf(stderr,"material branch failed: %d\\n",status);std::fclose(output);return 5;}
         }
         std::fwrite(recipe_ground(),1,4096,output);
         for(int y=0;y<1024;++y)for(int x=0;x<1024;++x){
@@ -174,11 +191,13 @@ int main(int argc,char** argv) {
                 input=std::fopen(argv[arg],"rb");if(!input){std::fclose(output);return 3;}
                 count=int(std::fread(nodes,sizeof(mapgen::node),mapgen::max_nodes,input));std::fclose(input);
                 status=recipe_run(count,uint32_t(std::strtoul(argv[2],nullptr,0)));
-                if(status || (arg==5?recipe_apply_spawns():recipe_apply_decoration())){std::fclose(output);return 5;}
+                int applied=arg==5?recipe_apply_spawns():recipe_apply_decoration();
+                if(status || applied){std::fprintf(stderr,"placement branch %d failed: status=%d apply=%d type=%d\\n",arg,status,applied,int(result.type));std::fclose(output);return 5;}
             }
             std::fwrite(recipe_decorations(),1,1024*1024,output);
             uint32_t points=recipe_spawn_count();std::fwrite(&points,4,1,output);
             std::fwrite(recipe_spawns(),4,points,output);
+            std::fwrite(recipe_spawn_types(),1,points,output);
         }
     }
     std::fclose(output); return status;

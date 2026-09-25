@@ -6,6 +6,10 @@ docker run --rm --mount $mount dustline-build:1 python3 tools/test_map_library.p
 if ($LASTEXITCODE -ne 0) { throw 'Shared map library persistence test failed.' }
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_wasteland_art.py
 if ($LASTEXITCODE -ne 0) { throw 'Wasteland art masks, palette or repeat checks failed.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_art_profiles.py
+if ($LASTEXITCODE -ne 0) { throw 'Per-map art bank validation failed.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_music.py
+if ($LASTEXITCODE -ne 0) { throw 'Adaptive music generation test failed.' }
 
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_map_storage.py
 if ($LASTEXITCODE -ne 0) { throw 'Build audit regression tests failed.' }
@@ -25,6 +29,14 @@ docker run --rm --mount $mount dustline-build:1 g++ -std=c++17 -O2 -Wall -Wextra
 if ($LASTEXITCODE -ne 0) { throw 'Could not compile vehicle contact tests.' }
 docker run --rm --mount $mount dustline-build:1 ./build/test_vehicle_contact
 if ($LASTEXITCODE -ne 0) { throw 'Vehicle contact physics tests failed.' }
+docker run --rm --mount $mount dustline-build:1 g++ -std=c++17 -O2 -Wall -Wextra -Iinclude tools/test_mission.cpp src/mission.cpp -o build/test_mission
+if ($LASTEXITCODE -ne 0) { throw 'Could not compile mission-state tests.' }
+docker run --rm --mount $mount dustline-build:1 ./build/test_mission
+if ($LASTEXITCODE -ne 0) { throw 'Mission-state tests failed.' }
+docker run --rm --mount $mount dustline-build:1 g++ -std=c++17 -O2 -Wall -Wextra -Iinclude tools/test_race.cpp src/race.cpp -o build/test_race
+if ($LASTEXITCODE -ne 0) { throw 'Could not compile race-state tests.' }
+docker run --rm --mount $mount dustline-build:1 ./build/test_race
+if ($LASTEXITCODE -ne 0) { throw 'Race route/state tests failed.' }
 docker run --rm --mount $mount dustline-build:1 g++ -std=c++17 -O2 -Wall -Wextra -Iinclude tools/test_terrain_cache.cpp -o build/test_terrain_cache
 if ($LASTEXITCODE -ne 0) { throw 'Could not compile tile cache stress test.' }
 docker run --rm --mount $mount dustline-build:1 ./build/test_terrain_cache
@@ -42,6 +54,16 @@ docker run --rm --mount $mount dustline-build:1 ./build/test_cave_layout
 if ($LASTEXITCODE -ne 0) { throw 'Cave connectivity test failed.' }
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_town_scene.py
 if ($LASTEXITCODE -ne 0) { throw 'Walkable town scene test failed; see artifacts/town.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_missions.py
+if ($LASTEXITCODE -ne 0) { throw 'Contract-board test failed; see artifacts/missions.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_races.py
+if ($LASTEXITCODE -ne 0) { throw 'Race-office or generated-course test failed; see artifacts/races.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_art_banks_rom.py
+if ($LASTEXITCODE -ne 0) { throw 'Per-map ROM art-bank switching failed; see artifacts/art-banks.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_music_rom.py
+if ($LASTEXITCODE -ne 0) { throw 'Adaptive music ROM test failed.' }
+docker run --rm --mount $mount dustline-build:1 python3 tools/test_audio_rom.py
+if ($LASTEXITCODE -ne 0) { throw 'Audio controls or motor-settling ROM test failed.' }
 docker run --rm --mount $mount dustline-build:1 python3 tools/test_rom.py
 if ($LASTEXITCODE -ne 0) { throw 'ROM verification failed; see artifacts/test-results.json and captures.' }
 

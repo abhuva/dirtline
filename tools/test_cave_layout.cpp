@@ -1,6 +1,7 @@
 #include "cave_layout.h"
 #include "enemy_spawns.h"
 #include "generated/wasteland_recipe.h"
+#include <array>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -78,6 +79,13 @@ int main(int argc,char** argv) {
             auto town=map.town(t);
             assert(seen[town.y/128*map.columns+town.x/128] && clear(map,town.x,town.y));
             assert(map.nearby_town(town.x,town.y)==t);
+            const int centre_y=town.y-32;
+            for(const auto& offset : std::array<std::array<int,2>,4>{{
+                    {{71,0}},{{-71,0}},{{0,71}},{{0,-71}}}})
+                assert(map.nearby_town(town.x+offset[0],centre_y+offset[1])==t);
+            for(const auto& offset : std::array<std::array<int,2>,4>{{
+                    {{73,0}},{{-73,0}},{{0,73}},{{0,-73}}}})
+                assert(map.nearby_town(town.x+offset[0],centre_y+offset[1])!=t);
             for(int prev=0;prev<t;++prev) {
                 auto other=map.town(prev);
                 assert(std::abs(town.x-other.x)+std::abs(town.y-other.y)>=8*128);

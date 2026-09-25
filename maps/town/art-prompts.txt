@@ -3,22 +3,54 @@ BUILT-IN IMAGE GENERATION PROMPTS
 
 Exterior
 --------
-Use case: stylized-concept
-Asset type: source artwork for a Game Boy Advance top-down town background
-Input image: Image 1 is a style reference only; create original artwork and do not copy its exact layout or objects.
-Primary request: Create a square, straight top-down pixel-art desert settlement map that can be explored on foot. It needs a clear entrance centered on the south edge, a broad connected sandy walking area, a prominent mechanic garage along the north side with one clearly readable centered doorway, a water tower, scrap piles, cacti, rocks, fencing, and two smaller closed buildings.
-Style/medium: polished 16-bit-era pixel art, warm canyon desert, rugged post-apocalyptic roadside settlement, crisp deliberate pixel clusters and readable silhouettes.
-Composition/framing: strict orthographic top-down game map, no perspective tilt, no characters, no UI, no labels, no text. Keep the center and paths open enough for a 16x24 player sprite. Solid cliffs and buildings should form obvious boundaries. The garage doorway must be reachable from the south entrance.
-Lighting/mood: bright warm daylight with ochre sand, rusted metal, deep brown shadows.
-Constraints: seamless visual edges within the square; all content inside frame; no vehicles blocking paths; no logos, words, watermark, interface, tile grid, or black borders. Favor repeated ground texture over unique noisy detail so it remains readable after reduction to 256x256 and 16 colors.
+Use case: production-game-asset source, reduced by the asset pipeline to a
+256x256, 15-colour Game Boy Advance regular background.
+
+Use the three attached town images as broad style and composition references
+only. Create an original Dustline location rather than copying their layouts.
+Draw a lively, modern wasteland outpost where civilization has transformed but
+has not collapsed: maintained homes and workshops, an active market, water and
+solar infrastructure, planters, lamps, repaired surfaces, and restrained wear.
+Use a strict 90-degree orthographic top-down view with no isometric tilt. Build
+the scene on a modular 16-pixel-like tile rhythm with simple rectangular building
+footprints and readable axis-aligned collision edges. Put a broad north-south
+street through the center, an open gate centered on the south edge, a mechanic
+garage with a centered entrance at the north, a dispatch building to the west,
+and a matching race office on the east,
+and smaller mixed-use buildings around the street. Keep all walking routes clear
+for a small overhead player sprite. Polished modern pixel art with crisp clusters,
+muted teal, concrete blue, warm ochre, rust, and sun-faded accents. No characters,
+UI, labels, text, logos, perspective walls, irregular cliff silhouettes, total
+ruin, black border, or watermark.
 
 Garage interior
 ---------------
-Use case: stylized-concept
-Asset type: source artwork for a Game Boy Advance top-down garage interior background
-Input image: Image 1 is the exterior town artwork whose original pixel-art style and palette should be matched; create a new interior.
-Primary request: Create a square, strict top-down pixel-art mechanic garage interior. Include a centered exit door on the south wall, a clear open walking route to a mechanic counter near the north wall, one mechanic standing behind the counter, workbenches, tool cabinets, tires, oil drums, engine parts, and a parked car chassis off to one side.
-Style/medium: polished 16-bit-era pixel art matching the warm rusted desert settlement, crisp deliberate pixel clusters and readable silhouettes.
-Composition/framing: orthographic top-down game map with solid room walls around the perimeter. Keep the center route open for a 16x24 player sprite. The mechanic must be clearly reachable across the counter from the southern door.
-Lighting/mood: warm workshop lighting, rust orange, dusty brown, dark steel, small pale highlights.
-Constraints: no perspective tilt, no UI, no dialogue box, no labels, no text, no logos, no watermark, no tile grid. Keep all important objects away from the southern entry path and preserve obvious collision boundaries. Favor repeated floor texture so it remains readable after reduction to 256x256 and 16 colors.
+Use the completed exterior as the palette and visual-style reference. Create an
+original active mechanic garage in the same strict 90-degree orthographic
+top-down pixel-art style. Use modular rectangular architecture and fixtures: a
+wide open central aisle, a long mechanic counter against the north wall, a
+centered exit at the south, organized tool walls, workbenches, tires, parts,
+two service bays, and one car chassis parked off the walking route. Make this a
+working community garage rather than an abandoned ruin. Preserve obvious,
+axis-aligned collision footprints and enough clearance for the overhead player.
+No characters, dialogue, UI, labels, text, logos, perspective tilt, irregular
+walls, black border, or watermark.
+
+Player sprite sheet - final corrected pass
+------------------------------------------
+Create a production pixel-art walking sheet for the town player, matching the
+town palette. Show the same distinctive wasteland courier/mechanic in a teal
+jacket, orange scarf, practical trousers, boots, and compact backpack. The camera
+must be a steep 75-80 degree top-down view: the crown of the hair, shoulders,
+backpack, and boots are the dominant readable forms, with strong foreshortening
+and very little profile view. The result should feel more zoomed out than the
+environment while retaining a high-quality silhouette and crisp pixel clusters.
+Arrange exactly twelve separate, consistently aligned sprites in a clean 3-column
+by 4-row sheet: rows are south, west, east, north; columns are idle, left step,
+right step. Keep one consistent character identity and proportions in every
+frame. Transparent background, no floor shadows baked into the source, labels,
+text, UI, extra objects, logos, border, or watermark.
+
+The first player generation was edited with the same request while preserving
+the sheet layout, clothing, palette, and character identity; the edit specifically
+corrected the overly side-on camera and foreshortening.

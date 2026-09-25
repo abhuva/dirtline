@@ -5,9 +5,10 @@
       "id": "wasteland",
       "includeInGame": true,
       "recipe": {
-        "version": 3,
+        "version": 4,
         "name": "Wasteland",
         "seed": 12648431,
+        "artProfile": "sun",
         "output": 7,
         "nodes": [
           {
@@ -63,8 +64,8 @@
               12,
               3
             ],
-            "x": 35,
-            "y": 235
+            "x": 528.4596115536172,
+            "y": 316.335869709613
           },
           {
             "id": 5,
@@ -77,15 +78,21 @@
             "p": [
               3,
               0,
-              96,
+              102,
               1,
-              144,
+              167,
               2,
-              255,
-              3
+              12,
+              0
             ],
-            "x": 270,
-            "y": 235
+            "x": 805.4375756274081,
+            "y": 296.1214896961408,
+            "colors": [
+              "#248aff",
+              "#47ff7e",
+              "#e7ff33",
+              "#248aff"
+            ]
           },
           {
             "id": 6,
@@ -96,8 +103,8 @@
             },
             "stream": 0,
             "p": [],
-            "x": 505,
-            "y": 235
+            "x": 1163.9782773112368,
+            "y": 281.87842283957934
           },
           {
             "id": 7,
@@ -118,37 +125,311 @@
             "id": 8,
             "type": "spawns",
             "label": "Enemy spawns",
-            "inputs": {},
+            "inputs": {
+              "a": 24,
+              "b": 21
+            },
             "stream": 8,
             "p": [
-              258,
+              61,
               128,
               1
             ],
-            "x": 800,
-            "y": 280
+            "x": 1217.6584239821848,
+            "y": 1521.981829493771
           },
           {
             "id": 9,
             "type": "decoration",
             "label": "Decoration",
-            "inputs": {},
+            "inputs": {
+              "a": 13
+            },
             "stream": 9,
             "p": [
-              30,
-              40,
-              20,
+              70,
+              58,
+              52,
               20,
               20,
               1
             ],
+            "x": 1203.1458395885616,
+            "y": 557.1347151546173
+          },
+          {
+            "id": 10,
+            "type": "random",
+            "label": "Random fill",
+            "inputs": {},
+            "stream": 10,
+            "p": [
+              47,
+              2
+            ],
+            "x": 0,
+            "y": 1105.6314281993145
+          },
+          {
+            "id": 11,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 2,
+              "b": 10
+            },
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 228.92478744627886,
+            "y": 959.6846451276052
+          },
+          {
+            "id": 12,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              32,
+              30,
+              1
+            ],
+            "x": 333.1039743041993,
+            "y": 821.9999786376951
+          },
+          {
+            "id": 13,
+            "type": "blend",
+            "label": "Blend fields",
+            "inputs": {
+              "a": 14,
+              "b": 12,
+              "mask": 15
+            },
+            "stream": 0,
+            "p": [
+              255
+            ],
+            "x": 744.8800274658196,
+            "y": 712.2799877929689
+          },
+          {
+            "id": 14,
+            "type": "field_fill",
+            "label": "Constant field",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 321.55999389648434,
+            "y": 683.0160317993165
+          },
+          {
+            "id": 15,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 11
+            },
+            "stream": 0,
+            "p": [],
+            "x": 502.77402825295314,
+            "y": 905.7465537325779
+          },
+          {
+            "id": 16,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              32,
+              28,
+              0
+            ],
+            "x": 258.3033255170156,
+            "y": 1719.3329539355577
+          },
+          {
+            "id": 17,
+            "type": "field_fill",
+            "label": "Constant field",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 283.90103765654976,
+            "y": 1484.5118334859408
+          },
+          {
+            "id": 18,
+            "type": "blend",
+            "label": "Blend fields",
+            "inputs": {
+              "b": 16,
+              "a": 17,
+              "mask": 19
+            },
+            "stream": 0,
+            "p": [
+              121
+            ],
+            "x": 781.1559181642292,
+            "y": 1538.5456909275767
+          },
+          {
+            "id": 19,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 2
+            },
+            "stream": 0,
+            "p": [],
+            "x": 465.2316535701548,
+            "y": 1301.5896403485544
+          },
+          {
+            "id": 20,
+            "type": "radial",
+            "label": "North south population",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              63,
+              63,
+              0
+            ],
+            "x": 520,
+            "y": 1830
+          },
+          {
+            "id": 21,
+            "type": "field_lut",
+            "label": "Enemy profile bands",
+            "inputs": {
+              "a": 20
+            },
+            "stream": 0,
+            "p": [
+              2,
+              2,
+              40,
+              0,
+              170,
+              1
+            ],
+            "colors": [
+              "#d7a33d",
+              "#ef6c5b",
+              "#65b9dc"
+            ],
             "x": 800,
-            "y": 490
+            "y": 1830
+          },
+          {
+            "id": 22,
+            "type": "radial",
+            "label": "Starter density",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              32,
+              32,
+              8,
+              1
+            ],
+            "x": 520,
+            "y": 2050
+          },
+          {
+            "id": 23,
+            "type": "threshold",
+            "label": "Starter area",
+            "inputs": {
+              "a": 22
+            },
+            "stream": 0,
+            "p": [
+              150,
+              0
+            ],
+            "x": 800,
+            "y": 2050
+          },
+          {
+            "id": 24,
+            "type": "field_paint",
+            "label": "Keep starter encounters",
+            "inputs": {
+              "a": 18,
+              "mask": 23
+            },
+            "stream": 0,
+            "p": [
+              255
+            ],
+            "x": 1050,
+            "y": 1830
           }
         ],
         "materialOutput": 6,
         "spawnOutput": 8,
-        "decorationOutput": 9
+        "decorationOutput": 9,
+        "spawnProfiles": [
+          {
+            "id": 0,
+            "name": "Raider",
+            "color": "#ef6c5b",
+            "enemy": "raider",
+            "respawnSeconds": 30,
+            "scrapChance": 100,
+            "scrapMin": 1,
+            "scrapMax": 3,
+            "blueprint": "tuned_injector",
+            "blueprintChance": 4,
+            "energyChance": 25,
+            "energyMin": 8,
+            "energyMax": 16
+          },
+          {
+            "id": 1,
+            "name": "Northern scout",
+            "color": "#65b9dc",
+            "enemy": "scout",
+            "respawnSeconds": 18,
+            "scrapChance": 55,
+            "scrapMin": 1,
+            "scrapMax": 2,
+            "blueprint": "tuned_injector",
+            "blueprintChance": 3,
+            "energyChance": 35,
+            "energyMin": 6,
+            "energyMax": 12
+          },
+          {
+            "id": 2,
+            "name": "Southern heavy",
+            "color": "#d7a33d",
+            "enemy": "heavy",
+            "respawnSeconds": 50,
+            "scrapChance": 90,
+            "scrapMin": 2,
+            "scrapMax": 5,
+            "blueprint": "reinforced_plating",
+            "blueprintChance": 8,
+            "energyChance": 45,
+            "energyMin": 12,
+            "energyMax": 24
+          }
+        ]
       }
     },
     {
@@ -158,6 +439,7 @@
         "version": 3,
         "name": "Two rules + radial mask",
         "seed": 12648430,
+        "artProfile": "rust",
         "output": 13,
         "nodes": [
           {
@@ -405,6 +687,7 @@
         "version": 1,
         "name": "Plasma basin",
         "seed": 12648430,
+        "artProfile": "ash",
         "output": 6,
         "nodes": [
           {
@@ -414,10 +697,10 @@
             "inputs": {},
             "stream": 1,
             "p": [
-              150
+              172
             ],
-            "x": 40,
-            "y": 45
+            "x": 195.9471942461839,
+            "y": 93.21004303342293
           },
           {
             "id": 2,
@@ -426,13 +709,13 @@
             "inputs": {},
             "stream": 0,
             "p": [
-              32,
+              29,
               32,
               30,
               0
             ],
-            "x": 275,
-            "y": 45
+            "x": 171.06599351875852,
+            "y": 329.6699409291058
           },
           {
             "id": 3,
@@ -444,10 +727,10 @@
             },
             "stream": 0,
             "p": [
-              105
+              125
             ],
-            "x": 510,
-            "y": 45
+            "x": 471.4151708418275,
+            "y": 171.84668930523355
           },
           {
             "id": 4,
@@ -458,11 +741,11 @@
             },
             "stream": 0,
             "p": [
-              142,
+              138,
               0
             ],
-            "x": 40,
-            "y": 245
+            "x": 750.4200011063094,
+            "y": 192.5640000077435
           },
           {
             "id": 5,
@@ -479,8 +762,8 @@
               2,
               8
             ],
-            "x": 275,
-            "y": 245
+            "x": 1034.1692115846402,
+            "y": 148.1165678987809
           },
           {
             "id": 6,
@@ -491,8 +774,8 @@
             },
             "stream": 0,
             "p": [],
-            "x": 510,
-            "y": 245
+            "x": 1334.4136415242701,
+            "y": 107.01951557701275
           }
         ]
       }
@@ -504,6 +787,7 @@
         "version": 3,
         "name": "Voronoi passages",
         "seed": 12648438,
+        "artProfile": "salt",
         "output": 8,
         "nodes": [
           {
@@ -681,6 +965,7 @@
         "version": 2,
         "name": "Natural ground",
         "seed": 12648430,
+        "artProfile": "sun",
         "output": 3,
         "nodes": [
           {
@@ -789,6 +1074,7 @@
         "version": 2,
         "name": "Town roads",
         "seed": 12648430,
+        "artProfile": "rust",
         "output": 7,
         "nodes": [
           {
@@ -907,11 +1193,12 @@
     },
     {
       "id": "populated-wasteland",
-      "includeInGame": true,
+      "includeInGame": false,
       "recipe": {
         "version": 3,
-        "name": "Populated wasteland",
-        "seed": 12648435,
+        "name": "Neu draft",
+        "seed": 12648451,
+        "artProfile": "ash",
         "output": 7,
         "nodes": [
           {
@@ -924,8 +1211,8 @@
               47,
               2
             ],
-            "x": 0,
-            "y": 51.088510252978104
+            "x": 671.8652985932803,
+            "y": 894.1831978604032
           },
           {
             "id": 2,
@@ -936,26 +1223,26 @@
             },
             "stream": 0,
             "p": [
-              5,
-              480,
-              496,
+              25,
+              6,
+              54,
               2,
               8
             ],
-            "x": 238.91510782265442,
-            "y": 43.48014098987679
+            "x": 972.8677864107904,
+            "y": 865.3904539147172
           },
           {
             "id": 3,
             "type": "world",
             "label": "Make it playable",
             "inputs": {
-              "a": 2
+              "a": 21
             },
             "stream": 0,
             "p": [],
-            "x": 564.0882634050452,
-            "y": 41.084892177345594
+            "x": 3086.451656280803,
+            "y": 909.5180451789364
           },
           {
             "id": 4,
@@ -967,8 +1254,8 @@
               12,
               3
             ],
-            "x": 74.69977757389745,
-            "y": 261.34328504697737
+            "x": 135.4597720182073,
+            "y": 465.71767772607495
           },
           {
             "id": 5,
@@ -988,8 +1275,8 @@
               192,
               3
             ],
-            "x": 439.0828708861333,
-            "y": 244.0334589945435,
+            "x": 532.9845847046518,
+            "y": 418.02790712896444,
             "colors": [
               "#759bc7",
               "#63aaa2",
@@ -1002,12 +1289,12 @@
             "type": "materials",
             "label": "Ground materials",
             "inputs": {
-              "a": 5
+              "a": 23
             },
             "stream": 0,
             "p": [],
-            "x": 880.7441907216678,
-            "y": 238.59457737166122
+            "x": 1869.2457294534006,
+            "y": 220.5591716829887
           },
           {
             "id": 7,
@@ -1021,22 +1308,24 @@
               160,
               3
             ],
-            "x": 889.377485167394,
-            "y": 53.258178514053334
+            "x": 3466.3969579110926,
+            "y": 913.8836946242494
           },
           {
             "id": 8,
             "type": "spawns",
             "label": "Enemy spawns",
-            "inputs": {},
+            "inputs": {
+              "a": 22
+            },
             "stream": 8,
             "p": [
               258,
               128,
               1
             ],
-            "x": 908.7260746549997,
-            "y": 427.5245591951428
+            "x": 1564.34087629212,
+            "y": 500.9371073746816
           },
           {
             "id": 9,
@@ -1067,8 +1356,202 @@
               10,
               2
             ],
-            "x": 428.0162469436717,
-            "y": 594.8164278861125
+            "x": 474.96715653040917,
+            "y": 674.909372911928
+          },
+          {
+            "id": 11,
+            "type": "largest",
+            "label": "Keep largest floor",
+            "inputs": {
+              "a": 14
+            },
+            "stream": 0,
+            "p": [],
+            "x": 1664.718423144273,
+            "y": 867.7754394060316
+          },
+          {
+            "id": 12,
+            "type": "radial",
+            "label": "Radial gradient",
+            "inputs": {},
+            "stream": 0,
+            "p": [
+              19,
+              18,
+              38,
+              0
+            ],
+            "x": 719.0652967643291,
+            "y": 1103.010492001967
+          },
+          {
+            "id": 13,
+            "type": "threshold",
+            "label": "Threshold",
+            "inputs": {
+              "a": 12
+            },
+            "stream": 0,
+            "p": [
+              128,
+              0
+            ],
+            "x": 970.473663088168,
+            "y": 1075.977031350172
+          },
+          {
+            "id": 14,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 2,
+              "b": 13
+            },
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 1310.2066519240695,
+            "y": 897.5619834710743
+          },
+          {
+            "id": 15,
+            "type": "random",
+            "label": "Random fill",
+            "inputs": {},
+            "stream": 15,
+            "p": [
+              20,
+              2
+            ],
+            "x": 721.7476581715101,
+            "y": 1400.8957222613003
+          },
+          {
+            "id": 16,
+            "type": "cellular",
+            "label": "Cellular automata",
+            "inputs": {
+              "a": 15
+            },
+            "stream": 0,
+            "p": [
+              5,
+              8,
+              14,
+              2,
+              8
+            ],
+            "x": 1038.0294123671902,
+            "y": 1361.4203634523517
+          },
+          {
+            "id": 17,
+            "type": "largest",
+            "label": "Keep largest floor",
+            "inputs": {
+              "a": 16
+            },
+            "stream": 0,
+            "p": [],
+            "x": 1623.8386617689682,
+            "y": 1413.313163012561
+          },
+          {
+            "id": 18,
+            "type": "invert",
+            "label": "Invert mask",
+            "inputs": {
+              "a": 13
+            },
+            "stream": 0,
+            "p": [],
+            "x": 1624.2111928296376,
+            "y": 1182.528155962387
+          },
+          {
+            "id": 19,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 18,
+              "b": 17
+            },
+            "stream": 0,
+            "p": [
+              0
+            ],
+            "x": 2093.001511800922,
+            "y": 1391.7619340926697
+          },
+          {
+            "id": 20,
+            "type": "combine",
+            "label": "Combine masks",
+            "inputs": {
+              "a": 11,
+              "b": 19
+            },
+            "stream": 0,
+            "p": [
+              1
+            ],
+            "x": 2505.3381008317256,
+            "y": 1067.193848389956
+          },
+          {
+            "id": 21,
+            "type": "largest",
+            "label": "Keep largest floor",
+            "inputs": {
+              "a": 20
+            },
+            "stream": 0,
+            "p": [],
+            "x": 2894.3613957246994,
+            "y": 1152.922817144819
+          },
+          {
+            "id": 22,
+            "type": "noise",
+            "label": "Value noise",
+            "inputs": {},
+            "stream": 22,
+            "p": [
+              16,
+              3
+            ],
+            "x": 1182.2450443322625,
+            "y": 256.52517783511144
+          },
+          {
+            "id": 23,
+            "type": "field_lut",
+            "label": "Stepped LUT",
+            "inputs": {
+              "a": 22
+            },
+            "stream": 0,
+            "p": [
+              3,
+              0,
+              96,
+              1,
+              144,
+              2,
+              192,
+              3
+            ],
+            "x": 1512.9477785097129,
+            "y": 321.0918587743856,
+            "colors": [
+              "#759bc7",
+              "#63aaa2",
+              "#83ad79",
+              "#a4a766"
+            ]
           }
         ],
         "materialOutput": 6,
@@ -1083,6 +1566,7 @@
         "version": 3,
         "name": "Twin Cities",
         "seed": 12648430,
+        "artProfile": "verdant-machine",
         "output": 30,
         "nodes": [
           {
@@ -1162,10 +1646,10 @@
             "x": 270,
             "y": 235,
             "colors": [
-              "#759bc7",
-              "#63aaa2",
-              "#83ad79",
-              "#a4a766"
+              "#4f8d50",
+              "#376c43",
+              "#788078",
+              "#46535a"
             ]
           },
           {

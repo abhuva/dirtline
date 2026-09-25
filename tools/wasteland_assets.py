@@ -5,86 +5,364 @@ import struct
 import subprocess
 from pathlib import Path
 from PIL import Image, ImageDraw
+from art_profiles import THEME_PROFILES, load_catalog as load_art_catalog, profile_key, profiles_for_entries, validate_profile
 
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'maps/overworld'
 OUT=ROOT/'artifacts/wasteland'
 
 
-def generate(ui_palette,save,label):
-    from generate_materials import generate as generate_material_catalog
-    catalog=generate_material_catalog()
-    OUT.mkdir(parents=True,exist_ok=True)
-    source=Image.open(ASSETS/'wasteland-kit-muted.png').convert('RGBA')
-    composite=Image.new('RGB',source.size,(132,112,88)); composite.paste(source,mask=source.getchannel('A'))
-    adaptive=composite.quantize(colors=208,method=Image.Quantize.MEDIANCUT)
-    # Round colours to hardware RGB5 before mapping, and retain the common UI slots.
-    material_palette=[(c//8)*8 for c in adaptive.getpalette()[:624]]
-    # RGB5 rounding leaves duplicate palette entries. Compact them losslessly,
-    # retaining UI indices 0..15 and reserving separate 4bpp UI/scenery banks.
-    colors=[tuple(ui_palette[i:i+3]) for i in range(0,48,3)]
-    remap=[]
-    for i in range(0,624,3):
-        color=tuple(material_palette[i:i+3])
-        if color not in colors[1:]: colors.append(color)
-        remap.append(colors.index(color,1))  # Opaque terrain must never become index zero.
-    palette_colors=(len(colors)+15)//16*16
-    assert palette_colors<=224, 'Reserve separate UI and scenery palette banks'
-    full_palette=[c for color in colors for c in color]+[0]*(768-len(colors)*3)
-    pal=Image.new('P',(1,1)); pal.putpalette(material_palette+material_palette[:144])
-    def indexed(im):
-        result=im.convert('RGB').quantize(palette=pal,dither=Image.Dither.NONE)
-        result=result.point([remap[i%208] for i in range(256)]); result.putpalette(full_palette)
-        return result
+def transformed(image, transform):
+    """Apply an authored RGB transform while retaining the source alpha."""
+    mul=transform[:3]; add=transform[3:]
+    result=image.convert('RGBA')
+    result.putdata([tuple(max(0,min(255,round(pixel[channel]*mul[channel]+add[channel])))
+                          for channel in range(3))+(pixel[3],) for pixel in result.getdata()])
+    return result
+
+
+def generated_material(kind):
+    """Original 32px terrain cells for art sets that change geometry, not tint."""
+    image=Image.new('RGBA',(32,32))
+    draw=ImageDraw.Draw(image)
+    if kind=='lush-grass':
+        draw.rectangle((0,0,31,31),fill=(62,126,65,255))
+        for y in range(0,32,8):
+            for x in range(0,32,8):
+                shade=(72,139,70,255) if (x//8+y//8)%2 else (54,115,61,255)
+                draw.rectangle((x,y,x+7,y+7),fill=shade)
+        for i in range(22):
+            x=(i*13+3)%32;y=(i*19+5)%32
+            draw.line((x,y,x+(1 if i%2 else -1),y-2),fill=(112,166,78,255))
+            if i%4==0:draw.point((x+2,y),fill=(39,91,52,255))
+    elif kind=='forest-moss':
+        draw.rectangle((0,0,31,31),fill=(43,91,54,255))
+        for i in range(15):
+            x=(i*17+2)%32;y=(i*11+7)%32;r=2+i%3
+            draw.ellipse((x-r,y-r,x+r,y+r),fill=(52+(i%2)*12,112+(i%3)*7,62,255))
+        for x,y in ((5,4),(22,9),(11,25),(28,28)):
+            draw.point((x,y),fill=(172,190,106,255));draw.point((x+1,y),fill=(115,145,75,255))
+    elif kind=='factory-yard':
+        draw.rectangle((0,0,31,31),fill=(111,121,112,255))
+        draw.line((15,0,15,31),fill=(66,76,72,255));draw.line((0,15,31,15),fill=(66,76,72,255))
+        draw.line((16,0,16,31),fill=(144,149,130,255));draw.line((0,16,31,16),fill=(144,149,130,255))
+        for x in (2,13,18,29):
+            for y in (2,13,18,29):draw.point((x,y),fill=(49,62,60,255))
+        draw.line((20,6,25,7,28,11),fill=(76,88,80,255));draw.line((3,24,8,22,12,25),fill=(78,91,80,255))
+        draw.line((0,30,6,30),fill=(61,111,61,255));draw.point((8,29),fill=(78,137,68,255))
+    elif kind=='machine-road':
+        draw.rectangle((0,0,31,31),fill=(54,66,70,255))
+        for p in (0,8,16,24,31):
+            draw.line((p,0,p,31),fill=(42,51,56,255));draw.line((0,p,31,p),fill=(42,51,56,255))
+        draw.rectangle((9,9,22,22),outline=(91,104,104,255));draw.rectangle((12,12,19,19),outline=(35,44,49,255))
+        for x,y in ((2,2),(29,2),(2,29),(29,29),(10,10),(21,21)):
+            draw.point((x,y),fill=(151,157,137,255))
+        for offset in (0,16):
+            draw.polygon(((offset,4),(offset+3,4),(offset+8,9),(offset+5,9)),fill=(184,146,53,255))
+    else:
+        raise ValueError(f'Unknown generated material: {kind}')
+    return image
+
+
+def generated_wall(kind,column):
+    if kind!='forest-works':raise ValueError(f'Unknown generated wall set: {kind}')
+    image=Image.new('RGBA',(32,32),(24,53,34,255));draw=ImageDraw.Draw(image)
+    crowns=((2,1,8),(11,-2,9),(21,1,8),(-3,10,9),(8,8,10),(20,9,10),(3,20,8),(14,18,10),(25,20,8))
+    limit=31 if column==0 else 20
+    for index,(x,y,r) in enumerate(crowns):
+        if y>limit:continue
+        dark=(31,77+(index%2)*9,43,255);light=(55,112+(index%3)*7,55,255)
+        draw.ellipse((x,y,x+r,y+r),fill=dark)
+        draw.ellipse((x+2,y+1,x+r-2,y+r-3),fill=light)
+        draw.point((x+3,y+2),fill=(93,145,67,255))
+    if column==0:
+        # A repeating service unit buried beneath the canopy.
+        draw.rectangle((12,13,21,21),fill=(55,69,67,255),outline=(20,32,35,255))
+        draw.rectangle((14,15,19,18),fill=(88,112,104,255))
+        draw.line((16,12,16,8),fill=(132,142,117,255));draw.point((16,7),fill=(211,159,59,255))
+        draw.line((21,18,28,18,28,24),fill=(91,105,96,255),width=2)
+    else:
+        draw.rectangle((0,19,31,31),fill=(44,53,53,255))
+        draw.rectangle((0,21,31,30),fill=(75,85,80,255),outline=(25,34,35,255))
+        for x in range(0,32,8):
+            draw.line((x,21,x,30),fill=(111,119,103,255));draw.point((x+2,24),fill=(30,42,43,255))
+        draw.line((0,18,31,18),fill=(139,151,120,255),width=2)
+        draw.line((3,18,3,27,8,31),fill=(49,119,55,255))
+        draw.line((25,18,25,25,22,29),fill=(66,133,58,255))
+    return image
+
+
+def generated_town(kind,column):
+    if kind!='greenworks':raise ValueError(f'Unknown generated town set: {kind}')
+    image=Image.new('RGBA',(56,56));draw=ImageDraw.Draw(image)
+    draw.rounded_rectangle((3,10,52,47),radius=5,fill=(66,76,70,255),outline=(28,42,40,255),width=2)
+    draw.line((6,42,49,42),fill=(143,151,123,255),width=3)
+    if column==2:
+        draw.rectangle((9,20,29,40),fill=(103,119,104,255),outline=(29,48,45,255),width=2)
+        draw.polygon(((7,20),(19,12),(32,20)),fill=(43,104,61,255),outline=(24,59,43,255))
+        draw.rectangle((14,27,18,34),fill=(71,174,165,255));draw.rectangle((22,27,26,34),fill=(71,174,165,255))
+        draw.rectangle((34,17,47,39),fill=(80,94,89,255),outline=(29,43,43,255),width=2)
+        draw.ellipse((35,12,46,21),fill=(113,126,111,255),outline=(31,48,46,255))
+        draw.line((31,35,38,35,38,42),fill=(179,148,59,255),width=2)
+        draw.ellipse((8,40,17,47),fill=(48,116,55,255));draw.ellipse((42,39,50,46),fill=(59,132,61,255))
+    else:
+        draw.rectangle((8,22,34,41),fill=(85,96,91,255),outline=(24,38,39,255),width=2)
+        draw.rectangle((12,17,30,23),fill=(52,68,67,255));draw.rectangle((17,25,25,35),fill=(55,153,150,255))
+        draw.rectangle((38,12,45,38),fill=(94,105,96,255),outline=(27,40,40,255))
+        draw.rectangle((40,7,43,13),fill=(50,59,58,255));draw.point((41,6),fill=(194,151,54,255))
+        draw.ellipse((34,31,50,45),fill=(111,122,105,255),outline=(31,45,43,255),width=2)
+        draw.line((7,28,2,28,2,42,13,42),fill=(150,155,128,255),width=2)
+        draw.line((31,18,38,18),fill=(183,145,48,255),width=2)
+        draw.line((10,14,18,10,28,13),fill=(53,116,61,255),width=3)
+    return image
+
+
+def generated_decoration(kind):
+    image=Image.new('RGBA',(16,16));draw=ImageDraw.Draw(image)
+    if kind=='fern-clump':
+        for dx in (-5,-3,-1,1,3,5):
+            draw.line((8,15,8+dx,6+abs(dx)//2),fill=(39,91,46,255))
+            draw.point((8+dx-(1 if dx>0 else -1),8+abs(dx)//3),fill=(91,151,66,255))
+    elif kind=='wild-flowers':
+        for x,y,color in ((4,8,(235,206,91,255)),(8,5,(223,111,128,255)),(12,9,(118,184,224,255))):
+            draw.line((8,15,x,y+1),fill=(45,105,49,255));draw.rectangle((x-1,y-1,x+1,y+1),fill=color);draw.point((x,y),fill=(245,231,155,255))
+    elif kind=='pipe-scrap':
+        draw.line((2,12,11,12,11,5,14,5),fill=(115,126,112,255),width=3)
+        draw.line((3,9,7,9,7,4),fill=(66,78,75,255),width=2)
+        draw.point((12,12),fill=(191,141,49,255));draw.point((3,12),fill=(45,56,55,255))
+    elif kind=='machine-vent':
+        draw.rectangle((3,6,13,14),fill=(65,77,75,255),outline=(28,40,41,255))
+        draw.rectangle((5,8,11,12),fill=(105,118,106,255))
+        draw.line((6,9,10,9),fill=(38,52,53,255));draw.line((6,11,10,11),fill=(38,52,53,255))
+        draw.line((8,6,8,2),fill=(134,143,118,255));draw.point((8,1),fill=(217,159,50,255))
+    else:
+        raise ValueError(f'Unknown generated decoration: {kind}')
+    return image
+
+
+def build_bank(source, detail_source, profile, catalog, ui_palette):
+    material_assets={item['key']:item for item in catalog['materials']}
+    decoration_assets={item['key']:item for item in catalog['decorations']}
+    wall_set=next(item for item in catalog['wallSets'] if item['key']==profile['wallSet'])
+    town_set=next(item for item in catalog['townSets'] if item['key']==profile['townSet'])
     def cell(x,y):
         return source.crop((round(x*source.width/4),round(y*source.height/2),
                             round((x+1)*source.width/4),round((y+1)*source.height/2)))
-    textures=[indexed(cell(x,y).resize((32,32),Image.Resampling.NEAREST))
-              for x,y in [(0,0),(1,0),(2,0),(3,0),(0,1),(1,1)]]
-    icons=[]
+    fallback_binding=next(binding for binding in profile['materials'] if binding['enabled'])
+    textures=[]
+    for binding in profile['materials']:
+        asset=material_assets[(binding if binding['enabled'] else fallback_binding)['asset']]
+        if asset.get('generator'):
+            textures.append(generated_material(asset['generator']))
+        else:
+            textures.append(transformed(cell(asset['base'],0),asset['transform']).resize((32,32),Image.Resampling.NEAREST))
+    for column in (0,1):
+        if wall_set.get('generator'):
+            textures.append(generated_wall(wall_set['generator'],column))
+        else:
+            textures.append(transformed(cell(column,1),wall_set['transform']).resize((32,32),Image.Resampling.NEAREST))
+    town_art=[]
     for column in (2,3):
-        art=cell(column,1)
+        art=generated_town(town_set['generator'],column) if town_set.get('generator') else transformed(cell(column,1),town_set['transform'])
         alpha=art.getchannel('A').point(lambda value:255 if value>=192 else 0)
-        # Cell rims are not part of the icon. Preserve the supplied alpha inside.
         ImageDraw.Draw(alpha).rectangle((0,0,alpha.width-1,6),fill=0)
         ImageDraw.Draw(alpha).rectangle((0,alpha.height-7,alpha.width-1,alpha.height-1),fill=0)
-        art.putalpha(alpha); bounds=alpha.getbbox()
-        if not bounds: raise ValueError('Generated town icon is empty')
-        art=art.crop(bounds); art.thumbnail((56,56),Image.Resampling.NEAREST)
-        base=Image.new('P',(64,64)); base.putpalette(full_palette)
+        art.putalpha(alpha);bounds=alpha.getbbox()
+        if not bounds:raise ValueError('Generated town icon is empty')
+        art=art.crop(bounds);art.thumbnail((56,56),Image.Resampling.NEAREST);town_art.append(art)
+    # Quantize each bank independently. ROM can contain many palettes; only the
+    # selected map's palette occupies BG palette memory.
+    sample=Image.new('RGB',(256,64),(132,112,88))
+    for index,art in enumerate(textures):sample.paste(art.convert('RGB'),((index%4)*32,(index//4)*32))
+    for index,art in enumerate(town_art):sample.paste(art.convert('RGB'),(128+index*64,0),art.getchannel('A'))
+    adaptive=sample.quantize(colors=208,method=Image.Quantize.MEDIANCUT)
+    material_palette=[(value//8)*8 for value in adaptive.getpalette()[:624]]
+    colors=[tuple(ui_palette[i:i+3]) for i in range(0,48,3)];remap=[]
+    for i in range(0,624,3):
+        color=tuple(material_palette[i:i+3])
+        if color not in colors[1:]:colors.append(color)
+        remap.append(colors.index(color,1))
+    palette_colors=(len(colors)+15)//16*16
+    if palette_colors>224:raise ValueError('Terrain palette exceeds 224 colors')
+    full_palette=[component for color in colors for component in color]+[0]*(768-len(colors)*3)
+    pal=Image.new('P',(1,1));pal.putpalette(material_palette+material_palette[:144])
+    def indexed(image):
+        result=image.convert('RGB').quantize(palette=pal,dither=Image.Dither.NONE)
+        result=result.point([remap[index%208] for index in range(256)]);result.putpalette(full_palette)
+        return result
+    textures=[indexed(texture) for texture in textures]
+    icons=[]
+    for art in town_art:
+        base=Image.new('P',(64,64));base.putpalette(full_palette)
         for y in range(64):
-            for x in range(64): base.putpixel((x,y),textures[0].getpixel((x%32,(y+16)%32)))
-        base.paste(indexed(art),((64-art.width)//2,(64-art.height)//2),art.getchannel('A'))
-        icons.append(base)
-    from generate_assets import decoration_tiles
-    decoration=decoration_tiles(full_palette)
-    unique=[]; lookup={}; refs=[]
+            for x in range(64):base.putpixel((x,y),textures[0].getpixel((x%32,(y+16)%32)))
+        base.paste(indexed(art),((64-art.width)//2,(64-art.height)//2),art.getchannel('A'));icons.append(base)
+    # Four freely selected 16x16 decoration slots share one 4bpp palette bank.
+    detail_rgba=[]
+    for binding in profile['decorations']:
+        asset=decoration_assets[binding['asset']];base=asset['base'];x=base%2;y=base//2
+        if asset.get('generator'):
+            art=generated_decoration(asset['generator'])
+        else:
+            art=detail_source.crop((round(x*detail_source.width/2),round(y*detail_source.height/2),
+                                    round((x+1)*detail_source.width/2),round((y+1)*detail_source.height/2)))
+            art=transformed(art,asset['transform'])
+        art.putalpha(art.getchannel('A').point(lambda value:255 if value>=192 else 0))
+        bounds=art.getchannel('A').getbbox()
+        if not bounds:raise ValueError('Generated decoration is empty')
+        art=art.crop(bounds);art.thumbnail((14,14),Image.Resampling.NEAREST)
+        patch=Image.new('RGBA',(16,16));patch.paste(art,((16-art.width)//2,15-art.height));detail_rgba.append(patch)
+    pixels=[pixel[:3] for image in detail_rgba for pixel in image.getdata() if pixel[3]]
+    strip=Image.new('RGB',(len(pixels),1));strip.putdata(pixels)
+    detail_quantized=strip.quantize(colors=15,method=Image.Quantize.MEDIANCUT)
+    detail_colors=[tuple((value//8)*8 for value in detail_quantized.getpalette()[i:i+3]) for i in range(0,45,3)]
+    detail_palette=[0,0,0]+[component for color in detail_colors for component in color]
+    full_palette[224*3:240*3]=detail_palette
+    patches=[]
+    for art in detail_rgba:
+        image=Image.new('P',(16,16));image.putpalette(detail_palette+[0]*720)
+        image.putdata([0 if not pixel[3] else 1+min(range(15),key=lambda i:
+            sum((pixel[channel]-detail_colors[i][channel])**2 for channel in range(3))) for pixel in art.getdata()])
+        patches.append(image)
+    decoration_tiles=[bytes(64)]
+    for image in patches:
+        for y in (0,8):
+            for x in (0,8):decoration_tiles.append(image.crop((x,y,x+8,y+8)).tobytes())
+    decoration_packed=[bytes(tile[i]|(tile[i+1]<<4) for i in range(0,64,2)) for tile in decoration_tiles]
+    unique=[];lookup={};refs=[]
     for art in textures+icons:
         for y in range(0,art.height,8):
             for x in range(0,art.width,8):
                 tile=art.crop((x,y,x+8,y+8)).tobytes()
-                if tile not in lookup: lookup[tile]=len(unique); unique.append(tile)
+                if tile not in lookup:lookup[tile]=len(unique);unique.append(tile)
                 refs.append(lookup[tile])
     slots=(len(unique)+31)//32*32
-    assert slots<=256, 'Keep the entire wasteland art vocabulary within 16 KiB terrain VRAM'
-    header='#pragma once\n#include "bn_tile.h"\n#include "bn_color.h"\nnamespace wasteland_art {\n'
-    header+=f'inline constexpr int tile_slots={slots},unique_tiles={len(unique)},palette_colors={palette_colors};\n'
-    header+='inline constexpr unsigned short refs[] = {'+','.join(map(str,refs))+'};\n'
-    header+='inline constexpr bn::color palette[] = {'+','.join(
-        f'bn::color({full_palette[i]//8},{full_palette[i+1]//8},{full_palette[i+2]//8})' for i in range(0,768,3))+'};\n'
-    header+=f'inline constexpr bn::tile tiles[{len(unique)*2}] = {{\n'
-    header+='\n'.join('{{'+','.join(hex(v) for v in struct.unpack('<8I',tile[i:i+32]))+'}},'
-                       for tile in unique for i in (0,32))+'\n};\n}\n'
+    if slots>256:raise ValueError(f'Art bank needs {len(unique)} terrain tiles; maximum is 256')
+    fallback=next(index for index,binding in enumerate(profile['materials']) if binding['enabled'])
+    fallback_asset=material_assets[profile['materials'][fallback]['asset']]
+    texture_lookup=[fallback]*256
+    surface_lookup=[fallback_asset['surface']]*256
+    behavior_lookup=[fallback_asset['base']]*256
+    material_names=[material_assets[binding['asset']]['name'].split()[-1].upper()
+                    for binding in profile['materials']]
+    for slot,binding in enumerate(profile['materials']):
+        if binding['enabled']:
+            asset=material_assets[binding['asset']]
+            texture_lookup[binding['id']]=slot
+            surface_lookup[binding['id']]=asset['surface']
+            behavior_lookup[binding['id']]=asset['base']
+    enabled_mask=sum((1<<slot) for slot,binding in enumerate(profile['decorations']) if binding['enabled'])
+    return dict(refs=refs,tiles=unique,palette=full_palette,palette_colors=palette_colors,
+                tile_slots=slots,materialTextures=texture_lookup,materialSurfaces=surface_lookup,
+                materialBehaviors=behavior_lookup,materialNames=material_names,
+                decorationTiles=decoration_tiles,decorationPacked=decoration_packed,
+                decoration=[224+pixel if pixel else 0 for pixel in b''.join(decoration_tiles)],
+                decorationEnabledMask=enabled_mask,textures=textures,icons=icons,patches=patches)
+
+
+def emit_header(banks):
+    header='#pragma once\n#include <cstdint>\n#include "bn_tile.h"\n#include "bn_color.h"\nnamespace wasteland_art {\n'
+    header+='struct bank { int tile_slots; int unique_tiles; int palette_colors; const unsigned short* refs; const bn::color* palette; const bn::tile* tiles; const bn::tile* decoration_tiles; const uint8_t* material_textures; const uint8_t* material_surfaces; const uint8_t* material_behaviors; const char* const* material_names; uint8_t decoration_enabled_mask; };\n'
+    for index,bank in enumerate(banks):
+        header+=f'inline constexpr unsigned short refs_{index}[]={{'+','.join(map(str,bank['refs']))+'};\n'
+        header+=f'inline constexpr bn::color palette_{index}[]={{'+','.join(
+            f'bn::color({bank["palette"][i]//8},{bank["palette"][i+1]//8},{bank["palette"][i+2]//8})' for i in range(0,768,3))+'};\n'
+        header+=f'inline constexpr bn::tile tiles_{index}[{len(bank["tiles"])*2}]={{\n'
+        header+='\n'.join('{{'+','.join(hex(value) for value in struct.unpack('<8I',tile[offset:offset+32]))+'}},'
+                          for tile in bank['tiles'] for offset in (0,32))+'\n};\n'
+        header+=f'inline constexpr bn::tile decoration_tiles_{index}[]={{\n'
+        header+='\n'.join('{{'+','.join(hex(value) for value in struct.unpack('<8I',tile))+'}},'
+                          for tile in bank['decorationPacked'])+'\n};\n'
+        header+=f'inline constexpr uint8_t material_textures_{index}[256]={{'+','.join(map(str,bank['materialTextures']))+'};\n'
+        header+=f'inline constexpr uint8_t material_surfaces_{index}[256]={{'+','.join(map(str,bank['materialSurfaces']))+'};\n'
+        header+=f'inline constexpr uint8_t material_behaviors_{index}[256]={{'+','.join(map(str,bank['materialBehaviors']))+'};\n'
+        header+=f'inline constexpr const char* material_names_{index}[4]={{'+','.join(json.dumps(name) for name in bank['materialNames'])+'};\n'
+    header+='inline constexpr bank banks[]={\n'
+    for index,bank in enumerate(banks):
+        header+=f'    {{{bank["tile_slots"]},{len(bank["tiles"])},{bank["palette_colors"]},refs_{index},palette_{index},tiles_{index},decoration_tiles_{index},material_textures_{index},material_surfaces_{index},material_behaviors_{index},material_names_{index},{bank["decorationEnabledMask"]}}},\n'
+    header+='};\ninline constexpr int count=sizeof(banks)/sizeof(banks[0]);\n}\n'
     (ROOT/'include/generated/wasteland_art.h').write_text(header)
-    atlas=Image.new('P',(128,128)); atlas.putpalette(full_palette)
-    for i,art in enumerate(textures): atlas.paste(art,(i%4*32,i//4*32))
-    atlas.paste(icons[0],(0,64)); atlas.paste(icons[1],(64,64)); atlas.save(OUT/'tiles.png')
-    (OUT/'art-refs.bin').write_bytes(struct.pack('<'+str(len(refs))+'H',*refs)+b''.join(unique))
-    (OUT/'palette.bin').write_bytes(bytes(full_palette))
+
+
+def write_asset_previews(source,detail_source,catalog,editor):
+    folder=editor/'previews';folder.mkdir(parents=True,exist_ok=True)
+    def cell(x,y):
+        return source.crop((round(x*source.width/4),round(y*source.height/2),
+                            round((x+1)*source.width/4),round((y+1)*source.height/2)))
+    for asset in catalog['materials']:
+        art=generated_material(asset['generator']) if asset.get('generator') else transformed(cell(asset['base'],0),asset['transform'])
+        art.resize((64,64),Image.Resampling.NEAREST).save(folder/f'{asset["key"]}.png')
+    for asset in catalog['decorations']:
+        base=asset['base'];x=base%2;y=base//2
+        if asset.get('generator'):
+            art=generated_decoration(asset['generator'])
+        else:
+            art=detail_source.crop((round(x*detail_source.width/2),round(y*detail_source.height/2),
+                                    round((x+1)*detail_source.width/2),round((y+1)*detail_source.height/2)))
+            art=transformed(art,asset['transform'])
+        art.resize((64,64),Image.Resampling.NEAREST).save(folder/f'{asset["key"]}.png')
+    for asset in catalog['wallSets']:
+        art=generated_wall(asset['generator'],0) if asset.get('generator') else transformed(cell(0,1),asset['transform'])
+        art.resize((64,64),Image.Resampling.NEAREST).save(folder/f'{asset["key"]}.png')
+    for asset in catalog['townSets']:
+        art=generated_town(asset['generator'],2) if asset.get('generator') else transformed(cell(2,1),asset['transform'])
+        art.resize((64,64),Image.Resampling.NEAREST).save(folder/f'{asset["key"]}.png')
+
+
+def generate(ui_palette,save,label):
+    from generate_materials import generate as generate_material_catalog
+    generate_material_catalog()
+    from compile_recipe import load_library
+    library,enabled,_=load_library()
+    catalog=load_art_catalog()
+    profiles,enabled_indices,enabled_keys=profiles_for_entries(enabled,catalog)
+    runtime_profile_count=len(profiles)
+    profile_indices=dict(enabled_indices);all_map_keys=[]
+    for entry in library['maps']:
+        profile=validate_profile(entry['recipe'].get('artProfile'),catalog);key=profile_key(profile,catalog)
+        if key not in profile_indices:
+            profile_indices[key]=len(profiles);profiles.append(profile)
+        all_map_keys.append(key)
+    OUT.mkdir(parents=True,exist_ok=True)
+    source=Image.open(ASSETS/'wasteland-kit-muted.png').convert('RGBA')
+    detail_source=Image.open(ASSETS/'wasteland-details-muted.png').convert('RGBA')
+    banks=[build_bank(source,detail_source,profile,catalog,ui_palette) for profile in profiles]
+    emit_header(banks[:runtime_profile_count])
+    # Keep the legacy generated decoration header as a bank-zero audit target.
+    decoration_header='#pragma once\n#include "bn_tile.h"\nnamespace decoration_art {\ninline constexpr bn::tile tiles[]={\n'
+    decoration_header+='\n'.join('{{'+','.join(hex(value) for value in struct.unpack('<8I',tile))+'}},'
+                                  for tile in banks[0]['decorationPacked'])+'\n};\n}\n'
+    (ROOT/'include/generated/decoration_art.h').write_text(decoration_header)
+    for bank_index,bank in enumerate(banks):
+        atlas=Image.new('P',(128,128));atlas.putpalette(bank['palette'])
+        for i,art in enumerate(bank['textures']):atlas.paste(art,(i%4*32,i//4*32))
+        atlas.paste(bank['icons'][0],(0,64));atlas.paste(bank['icons'][1],(64,64));atlas.save(OUT/f'tiles-{bank_index}.png')
+        details=Image.new('P',(64,16));details.putpalette(bank['palette'])
+        for i,patch in enumerate(bank['patches']):
+            remapped=patch.point([224+value if value else 0 for value in range(256)]);remapped.putpalette(bank['palette']);details.paste(remapped,(i*16,0))
+        details.save(OUT/f'decoration-{bank_index}.png',transparency=0)
+    banks[0]['textures'][0].putpalette(banks[0]['palette'])
+    (OUT/'tiles-0.png').replace(OUT/'tiles.png');(OUT/'decoration-0.png').replace(OUT/'decoration.png')
+    bank0=banks[0]
+    (OUT/'art-refs.bin').write_bytes(struct.pack('<'+str(len(bank0['refs']))+'H',*bank0['refs'])+b''.join(bank0['tiles']))
+    (OUT/'palette.bin').write_bytes(bytes(bank0['palette']))
     editor=ROOT/'tools/map_editor/generated'
     editor.mkdir(parents=True,exist_ok=True)
-    (editor/'art.json').write_text(json.dumps(dict(
-        refs=refs,tiles=list(b''.join(unique)),palette=full_palette,catalog=catalog,decoration=decoration),separators=(',',':')))
+    write_asset_previews(source,detail_source,catalog,editor)
+    editor_banks=[]
+    for profile,bank in zip(profiles,banks):
+        editor_banks.append(dict(refs=bank['refs'],tiles=list(b''.join(bank['tiles'])),palette=bank['palette'],
+                                 decoration=bank['decoration'],materialTextures=bank['materialTextures'],materialSurfaces=bank['materialSurfaces'],
+                                 materialBehaviors=bank['materialBehaviors'],materialNames=bank['materialNames'],
+                                 materialIds=[binding['id'] for binding in profile['materials'] if binding['enabled']],
+                                 decorationEnabledMask=bank['decorationEnabledMask'],
+                                 uniqueTiles=len(bank['tiles']),tileSlots=bank['tile_slots']))
+    map_banks={entry['id']:profile_indices[key] for entry,key in zip(library['maps'],all_map_keys)}
+    editor_catalog=dict(catalog);editor_catalog['presets']=THEME_PROFILES
+    art_json=dict(refs=bank0['refs'],tiles=list(b''.join(bank0['tiles'])),palette=bank0['palette'],
+                  decoration=bank0['decoration'],catalog=editor_catalog,banks=editor_banks,mapBanks=map_banks)
+    (editor/'art.json').write_text(json.dumps(art_json,separators=(',',':')))
+    full_palette=bank0['palette']
     hud=Image.open(ROOT/'graphics/hud.bmp').copy(); hud.putpalette(full_palette)
     save('hud_waste',hud,'regular_bg',bpp_mode='bpp_4')
     pause=Image.open(ROOT/'graphics/pause.bmp').copy(); pause.putpalette(full_palette)
@@ -109,7 +387,7 @@ def generate(ui_palette,save,label):
     overview.save(OUT/'fixed-layout.png')
     report=dict(width=extent,height=extent,logical_grid=[columns,columns],cell_size=128,fixed_seed=info[2],
                 fixed_signature=info[3],fixed_floor_cells=info[4],towns=6,
-                unique_tiles=len(unique),tile_slots=slots,terrain_vram_bytes=slots*64,palette_colors=palette_colors,
+                art_banks=runtime_profile_count,editor_art_banks=len(banks),unique_tiles=len(bank0['tiles']),tile_slots=bank0['tile_slots'],terrain_vram_bytes=bank0['tile_slots']*64,palette_colors=bank0['palette_colors'],
                 art_source_sha256=hashlib.sha256((ASSETS/'wasteland-kit-muted.png').read_bytes()).hexdigest(),
                 reference_sha256=hashlib.sha256((ROOT/'maps/open_world/wasteland.png').read_bytes()).hexdigest())
     (OUT/'report.json').write_text(json.dumps(report,indent=2)+'\n')

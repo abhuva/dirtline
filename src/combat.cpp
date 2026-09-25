@@ -8,6 +8,14 @@ namespace {
 using bn::fixed;
 int abs(int n) { return n<0?-n:n; }
 fixed wrap(fixed a) { if(a<0) a+=360; if(a>=360) a-=360; return a; }
+fixed missile_speed(int age) {
+    // A readable launch that builds urgency without returning to the old 4px/frame dart.
+    return bn::min(fixed(3),fixed(1.25)+fixed(bn::max(0,age-1))/32);
+}
+const driving::Setup& enemy_setup(spawn_profiles::enemy type) {
+    return type==spawn_profiles::enemy::scout?driving::setups[1]:type==spawn_profiles::enemy::heavy?driving::setups[2]:driving::setups[3];
+}
+int enemy_health(spawn_profiles::enemy type) { return type==spawn_profiles::enemy::scout?2:type==spawn_profiles::enemy::heavy?3:enemy_hp; }
 int delta(fixed target,fixed heading) {
     int result=(target-heading).integer();
     if(result>180) result-=360;
@@ -48,24 +56,45 @@ void World::clear_bullets() {
     saw_active=false;
 }
 void World::refill_player() {
-    player_hp=player_max_hp;player_shield=player_max_shield;
+    player_hp=_player_max_hp;player_shield=player_max_shield;
+    player_energy=_player_max_energy;
     player_shield_delay=0;player_invulnerability=0;player_destroyed=false;
 }
 void World::revive_player() {
+    const int retained_energy=player_energy;
     refill_player();
+    player_energy=retained_energy;
     player_invulnerability=revive_invulnerability;
     clear_bullets();
 }
-void World::cycle_weapon() { if(_enabled)weapon=Weapon((int(weapon)+1)%weapon_count); }
+void World::set_max_energy(int maximum) {
+    _player_max_energy=bn::max(1,maximum);
+    player_energy=bn::min(player_energy,_player_max_energy);
+}
+bool World::fit_weapon(MountSlot slot,Weapon next) {
+    const bool compatible=next==Weapon::count ||
+        (slot==MountSlot::front && next==Weapon::gun) ||
+        (slot==MountSlot::side && next==Weapon::sides) ||
+        (slot==MountSlot::special && (next==Weapon::missile || next==Weapon::trap));
+    if(!compatible)return false;
+    _fitted[int(slot)]=next;
+    _weapon_mask=0;
+    for(Weapon fitted:_fitted)if(fitted!=Weapon::count)_weapon_mask|=1<<int(fitted);
+    weapon=_fitted[int(MountSlot::front)];
+    saw_active=false;
+    return true;
+}
 void World::reset(const driving::Car& player,bool enabled,cave_layout::progress_fn progress) {
-    _enabled=enabled; _cooldowns.fill(0); ticks=0;weapon=Weapon::gun;
+    _enabled=enabled; _cooldowns.fill(0); ticks=0;
+    _fitted={Weapon::gun,Weapon::sides,Weapon::missile};fit_weapon(MountSlot::front,Weapon::gun);
     weapon_shots.fill(0);weapon_hits.fill(0);guidance_updates=trap_explosions=0;
     refill_player(); player_hits=player_shots=enemy_shots=hits=kills=wall_hits=expired=0;
     bumps=player_bumps=0; last_pair=-1; last_bump=0; _contact_cooldowns.fill(0);
-    clear_bullets(); fired=impact=destroyed=false;
+    clear_bullets(); for(auto& p:pickups)p=Pickup(); fired=impact=destroyed=false;destroyed_count=0;collected_scrap=0;collected_energy=0;collected_blueprints=0;
     spawned=despawned=0; spawns.count=0;
     for(auto& e:enemies) e=Enemy();
     if(enabled) {
+        _profiles=wasteland::active_spawn_profiles();_profile_count=wasteland::active_spawn_profile_count();
         wasteland::populate_spawns(spawns,progress);
         for(int i=0;i<enemy_count;++i) stream(player,true);
     }
@@ -97,8 +126,11 @@ void World::stream(const driving::Car& player,bool initial) {
     }
     if(nearest<0) return;
     auto& p=spawns.points[nearest]; auto& e=enemies[slot]; e=Enemy();
-    e.spawn_id=nearest; e.hp=p.hp?p.hp:enemy_hp; p.hp=uint8_t(e.hp); p.slot=int8_t(slot);
-    e.car.x=p.x; e.car.y=p.y; e.car.mass=driving::setups[3].mass;
+    const auto& profile=spawn_profiles::find(_profiles,_profile_count,p.profile);
+    e.spawn_id=nearest;e.archetype=profile.enemy_type;
+    e.hp=p.hp?bn::min(int(p.hp),enemy_health(e.archetype)):enemy_health(e.archetype);
+    p.hp=uint8_t(e.hp);p.ready_at=0;p.slot=int8_t(slot);
+    e.car.x=p.x; e.car.y=p.y; e.car.mass=enemy_setup(e.archetype).mass;
     e.home_x=p.x; e.home_y=p.y; e.side=nearest%2?1:-1;
     e.car.heading=wrap(bn::degrees_atan2(player.y.integer()-p.y,player.x.integer()-p.x));
     e.cooldown=45+slot*11; ++spawned;
@@ -183,7 +215,7 @@ bool World::shoot(const driving::Car& car,bool hostile,int angle,bool side) {
         fixed heading=wrap(car.heading+angle);
         fixed cx=bn::degrees_lut_cos(heading),sy=bn::degrees_lut_sin(heading);
         // Muzzle clearance is swept too: no firing through a wall at point blank.
-        for(int d=2;d<=14;d+=2) if(solid((car.x+cx*d).integer(),(car.y+sy*d).integer())) {
+        for(int d=2;d<=14;d+=4) if(solid((car.x+cx*d).integer(),(car.y+sy*d).integer())) {
             ++wall_hits; return false;
         }
         b.x=car.x+cx*14; b.y=car.y+sy*14; b.vx=cx*6; b.vy=sy*6;
@@ -199,7 +231,45 @@ void World::damage(Enemy& e,int amount,Weapon source) {
     auto& p=spawns.points[e.spawn_id];p.hp=uint8_t(e.hp);
     if(!e.hp) {
         ++kills;e.explosion=24;destroyed=true;
-        p.slot=-1;p.ready_at=ticks+spawn_cooldown;
+        drop_loot(e);
+        if(destroyed_count<destroyed_spawns.size())destroyed_spawns[destroyed_count++]=e.spawn_id;
+        const auto& profile=spawn_profiles::find(_profiles,_profile_count,p.profile);
+        p.slot=-1;p.ready_at=ticks+profile.respawn_frames;
+    }
+}
+void World::drop_loot(Enemy& e) {
+    auto& anchor=spawns.points[e.spawn_id];const auto& profile=spawn_profiles::find(_profiles,_profile_count,anchor.profile);
+    uint32_t roll=mapgen::hash(wasteland::fixed_seed()^uint32_t(e.spawn_id*374761393u)^uint32_t(++anchor.reward_rolls*668265263u));
+    auto add=[&](uint8_t kind,uint8_t value,int offset) {
+        for(auto& pickup:pickups)if(!pickup.remaining){pickup.x=e.car.x+offset;pickup.y=e.car.y+(offset?6:0);pickup.kind=kind;pickup.value=value;pickup.remaining=1800;return;}
+    };
+    if(int(roll%100)<profile.scrap_chance) {
+        int range=profile.scrap_max-profile.scrap_min+1;
+        uint8_t amount=uint8_t(profile.scrap_min+(range>0?int((roll>>8)%unsigned(range)):0));if(amount)add(0,amount,-7);
+    }
+    if(profile.blueprint_drop!=spawn_profiles::blueprint::none && int((roll>>16)%100)<profile.blueprint_chance)
+        add(1,uint8_t(profile.blueprint_drop),7);
+    const uint32_t energy_roll=mapgen::hash(roll^0x9E3779B9u);
+    if(int(energy_roll%100)<profile.energy_chance) {
+        const int range=profile.energy_max-profile.energy_min+1;
+        const uint8_t amount=uint8_t(profile.energy_min+(range>0?int((energy_roll>>8)%unsigned(range)):0));
+        if(amount)add(2,amount,0);
+    }
+}
+void World::update_pickups(const driving::Car& player) {
+    const int magnet=_salvage_magnet?96:48;
+    for(auto& pickup:pickups)if(pickup.remaining) {
+        --pickup.remaining;int dx=player.x.integer()-pickup.x.integer(),dy=player.y.integer()-pickup.y.integer();
+        if(pickup.kind==2 && player_energy>=_player_max_energy)continue;
+        if(abs(dx)<=magnet && abs(dy)<=magnet && dx*dx+dy*dy<=magnet*magnet) {pickup.x+=fixed(dx)/8;pickup.y+=fixed(dy)/8;}
+        if(abs(dx)<=12 && abs(dy)<=12) {
+            if(pickup.kind==2) {
+                const int before=player_energy;player_energy=bn::min(_player_max_energy,player_energy+pickup.value);
+                collected_energy+=player_energy-before;
+            } else if(pickup.kind==1)collected_blueprints|=uint8_t(1<<pickup.value);
+            else collected_scrap+=pickup.value;
+            pickup.remaining=0;
+        }
     }
 }
 void World::damage_player(int amount) {
@@ -214,34 +284,40 @@ void World::explode(int x,int y,int radius,int amount,Weapon source) {
     for(auto& e:enemies)if(e.hp>0 && close(x,y,e.car,radius) &&
         line_clear(x,y,e.car.x.integer(),e.car.y.integer()))damage(e,amount,source);
 }
-void World::fire_weapon(const driving::Car& player,bool fire) {
-    saw_active=false;
-    if(!fire)return;
-    const int id=int(weapon);
+void World::fire_weapon(const driving::Car& player,Weapon candidate) {
+    if(!weapon_enabled(candidate))return;
+    weapon=candidate;
+    const int id=int(candidate);
     fixed cs=bn::degrees_lut_cos(player.heading),sn=bn::degrees_lut_sin(player.heading);
-    if(weapon==Weapon::chainsaw) {
+    if(candidate==Weapon::chainsaw) {
+        if(player_energy<weapon_energy_costs[id])return;
         saw_x=player.x+cs*24;saw_y=player.y+sn*24;
         saw_active=line_clear(player.x.integer(),player.y.integer(),saw_x.integer(),saw_y.integer());
         if(saw_active && !_cooldowns[id]) {
-            explode(saw_x.integer(),saw_y.integer(),saw_radius+11,saw_damage,weapon);
-            ++weapon_shots[id];++player_shots;_cooldowns[id]=8;
+            explode(saw_x.integer(),saw_y.integer(),saw_radius+11,saw_damage,candidate);
+            player_energy-=weapon_energy_costs[id];++weapon_shots[id];++player_shots;_cooldowns[id]=8;
         }
         return;
     }
     if(_cooldowns[id])return;
-    switch(weapon) {
+    if(player_energy<weapon_energy_costs[id])return;
+    switch(candidate) {
     case Weapon::gun: shoot(player,false);_cooldowns[id]=player_interval;break;
     case Weapon::sides: {
         int free=0;for(const auto& b:bullets)free+=!b.remaining;
-        if(free>=2) { shoot(player,false,-90,true);shoot(player,false,90,true); }
+        if(free>=2) {
+            const bool left=shoot(player,false,-90,true),right=shoot(player,false,90,true);
+            if(left || right)player_energy-=weapon_energy_costs[id];
+        }
         _cooldowns[id]=16;break;
     }
     case Weapon::missile:
         for(auto& m:missiles)if(!m.remaining && !m.explosion) {
             fixed x=player.x+cs*18,y=player.y+sn*18;
             if(line_clear(player.x.integer(),player.y.integer(),x.integer(),y.integer())) {
-                m=Missile();m.x=x;m.y=y;m.vx=cs*4;m.vy=sn*4;m.heading=player.heading;m.remaining=150;
-                ++weapon_shots[id];++player_shots;fired=true;
+                fixed speed=missile_speed(0);
+                m=Missile();m.x=x;m.y=y;m.vx=cs*speed;m.vy=sn*speed;m.heading=player.heading;m.remaining=150;
+                player_energy-=weapon_energy_costs[id];++weapon_shots[id];++player_shots;fired=true;
             } else ++wall_hits;
             break;
         }
@@ -251,7 +327,7 @@ void World::fire_weapon(const driving::Car& player,bool fire) {
             fixed x=player.x-cs*22,y=player.y-sn*22;
             if(clear(x.integer(),y.integer()) && line_clear(player.x.integer(),player.y.integer(),x.integer(),y.integer())) {
                 t=Trap();t.x=x;t.y=y;t.remaining=900;t.arm=18;
-                ++weapon_shots[id];++player_shots;fired=true;
+                player_energy-=weapon_energy_costs[id];++weapon_shots[id];++player_shots;fired=true;
             } else ++wall_hits;
             break;
         }
@@ -279,9 +355,11 @@ void World::update_specials(const driving::Car&) {
             m.target_spawn=target?target->spawn_id:-1;
             if(target) {
                 m.heading=wrap(bn::degrees_atan2(target->car.y.integer()-m.y.integer(),target->car.x.integer()-m.x.integer()));
-                m.vx=bn::degrees_lut_cos(m.heading)*4;m.vy=bn::degrees_lut_sin(m.heading)*4;++guidance_updates;
+                ++guidance_updates;
             }
         }
+        fixed speed=missile_speed(m.age);
+        m.vx=bn::degrees_lut_cos(m.heading)*speed;m.vy=bn::degrees_lut_sin(m.heading)*speed;
         for(int sub=0;sub<2 && m.remaining;++sub) {
             m.x+=m.vx/2;m.y+=m.vy/2;
             if(solid(m.x.integer(),m.y.integer())) { ++wall_hits;m.remaining=0;m.explosion=24; }
@@ -315,13 +393,15 @@ bool World::hit_at(Bullet& b,const driving::Car& player) {
     return false;
 }
 
-void World::step(driving::Car& player,bool fire) {
-    fired=impact=destroyed=false;
+void World::step(driving::Car& player,bool normal_fire,bool special_fire) {
+    fired=impact=destroyed=false;destroyed_count=0;collected_scrap=0;collected_energy=0;collected_blueprints=0;
     if(!_enabled) return;
     ++ticks;
     if(player_invulnerability)--player_invulnerability;
     if(player_shield_delay)--player_shield_delay;
-    else if(player_shield<player_max_shield && ticks%shield_recharge_interval==0)++player_shield;
+    else if(player_shield<player_max_shield && player_energy>0 && ticks%shield_recharge_interval==0) {
+        ++player_shield;--player_energy;
+    }
     if(ticks%8==0) stream(player);
     for(auto& cooldown:_cooldowns)if(cooldown)--cooldown;
     for(int i=0;i<enemy_count;++i) {
@@ -334,7 +414,7 @@ void World::step(driving::Car& player,bool fire) {
         if(e.reverse) --e.reverse;
         if(ticks%enemy_count==i) think(e,player);
         fixed old_x=e.car.x,old_y=e.car.y;
-        e.car.step(e.input,3);
+        e.car.step(e.input,enemy_setup(e.archetype));
         if(bn::abs(e.car.x-old_x)+bn::abs(e.car.y-old_y)<fixed(0.04)) ++e.stalled;
         else { e.stalled=0; ++e.moving_frames; }
     }
@@ -353,10 +433,15 @@ void World::step(driving::Car& player,bool fire) {
             }
         }
     }
-    fire_weapon(player,fire);
+    saw_active=false;
+    if(normal_fire) {
+        fire_weapon(player,_fitted[int(MountSlot::front)]);
+        fire_weapon(player,_fitted[int(MountSlot::side)]);
+    }
+    if(special_fire)fire_weapon(player,_fitted[int(MountSlot::special)]);
     for(auto& e:enemies) {
         if(e.hp<=0) continue;
-        if(!e.cooldown && !e.reverse && close(player.x.integer(),player.y.integer(),e.car,player_range+14)) {
+        if(e.archetype!=spawn_profiles::enemy::scout && !e.cooldown && !e.reverse && close(player.x.integer(),player.y.integer(),e.car,player_range+14)) {
             int dx=player.x.integer()-e.car.x.integer(),dy=player.y.integer()-e.car.y.integer();
             fixed cs=bn::degrees_lut_cos(e.car.heading),sn=bn::degrees_lut_sin(e.car.heading);
             int front=(cs*dx+sn*dy).integer(),side=(-sn*dx+cs*dy).integer();
@@ -374,11 +459,14 @@ void World::step(driving::Car& player,bool fire) {
     }
     update_specials(player);
     for(auto& b:bullets) if(b.remaining) {
-        for(int sub=0;sub<3 && b.remaining; ++sub) {
-            b.x+=b.vx/3; b.y+=b.vy/3; b.remaining-=2;
+        // Three-pixel sweeps remain far smaller than an enemy hit radius while
+        // avoiding a redundant third terrain/enemy pass for every live shot.
+        for(int sub=0;sub<2 && b.remaining; ++sub) {
+            b.x+=b.vx/2; b.y+=b.vy/2; b.remaining-=3;
             if(hit_at(b,player)) b.remaining=0;
             else if(b.remaining<=0) { b.remaining=0; ++expired; }
         }
     }
+    update_pickups(player);
 }
 }

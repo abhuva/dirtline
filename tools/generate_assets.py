@@ -235,14 +235,26 @@ def track():
 def sprites():
     # Render each direction from a flat model; y projection gives a mild elevated view.
     sheet=img((32,32*64),sprite=True)
+    buggy_sheet=img((32,32*64),sprite=True)
+    old_sheet=img((32,32*64),sprite=True)
+    truck_sheet=img((32,32*64),sprite=True)
+    pickup_sheet=img((32,32*64),sprite=True)
+    # Five independently fitted weapons have 32 possible combinations.  Store
+    # them mask-major so runtime can select mask*64+heading while still using a
+    # single OBJ overlay for the whole equipped loadout.
+    loadout_sheet=img((32,32*64*32),sprite=True)
+    enemy_gun_sheet=img((32,32*64),sprite=True)
     for frame in range(64):
         tile=img((32,32),sprite=True)
         d=ImageDraw.Draw(tile)
         angle=frame*math.tau/64
         c,s=math.cos(angle),math.sin(angle)
-        def poly(points,color,z=0):
+        def projected(point,z=0):
+            x,y=point
+            return round(16+x*c-y*s),round(17+(x*s+y*c)*0.82-z)
+        def poly(points,color,z=0,draw=d):
             pts=[(round(16+x*c-y*s),round(17+(x*s+y*c)*0.82-z)) for x,y in points]
-            d.polygon(pts,fill=color)
+            draw.polygon(pts,fill=color)
         poly([(-11,-7),(11,-7),(13,6),(-10,8)],1)
         for x in (-7,7):
             for y in (-6,6):
@@ -260,7 +272,132 @@ def sprites():
             poly([(10,y),(12,y),(12,y+1),(10,y+1)],7,3)
             poly([(-11,y),(-9,y),(-9,y+1),(-11,y+1)],10,3)
         sheet.paste(tile,(0,frame*32))
+
+        # All alternate bodies keep the same footprint, mount coordinates and
+        # swappable body colors (4/5/6) as the original car.
+        buggy=img((32,32),sprite=True);bd=ImageDraw.Draw(buggy)
+        poly([(-11,-7),(11,-7),(13,5),(-10,7)],1,0,bd)
+        for x in (-7,7):
+            for y in (-7,7):
+                poly([(x-3,y-2),(x+3,y-2),(x+3,y+2),(x-3,y+2)],1,1,bd)
+        poly([(-10,-4),(-6,-6),(8,-5),(12,-3),(12,3),(8,5),(-6,6),(-10,4)],3,1,bd)
+        poly([(-9,-3),(-5,-5),(9,-4),(12,-2),(12,2),(9,4),(-5,5),(-9,3)],5,3,bd)
+        poly([(3,-4),(10,-3),(12,-2),(12,2),(10,3),(3,4)],6,4,bd)
+        poly([(-5,-3),(2,-3),(4,-2),(4,2),(2,3),(-5,3)],2,4,bd)
+        for y in (-4,4):
+            bd.line((projected((-4,y),4),projected((-4,y),9)),fill=4,width=1)
+        bd.line((projected((-4,-4),9),projected((-4,4),9)),fill=6,width=1)
+        poly([(8,-1),(12,-1),(12,1),(8,1)],8,4,bd)
+        for y in (-3,3):poly([(-10,y),(-8,y),(-8,y+1),(-10,y+1)],10,3,bd)
+        buggy_sheet.paste(buggy,(0,frame*32))
+
+        old=img((32,32),sprite=True);od=ImageDraw.Draw(old)
+        poly([(-12,-7),(11,-7),(13,6),(-11,7)],1,0,od)
+        for x in (-7,7):
+            for y in (-6,6):
+                poly([(x-3,y-2),(x+3,y-2),(x+3,y+2),(x-3,y+2)],1,1,od)
+                poly([(x-4,y-2),(x+4,y-2),(x+4,y+2),(x-4,y+2)],4,2,od)
+        poly([(-12,-5),(-9,-7),(7,-6),(12,-4),(12,4),(7,6),(-9,7),(-12,5)],3,1,od)
+        poly([(-11,-4),(-8,-6),(8,-5),(12,-3),(12,3),(8,5),(-8,6),(-11,4)],5,3,od)
+        poly([(-10,-6),(8,-5),(8,-4),(-10,-4)],6,3,od)
+        poly([(-5,-4),(2,-4),(5,-2),(5,2),(2,4),(-5,4),(-7,2),(-7,-2)],2,5,od)
+        poly([(-6,-4),(2,-4),(4,-2),(4,2),(2,4),(-6,4)],4,6,od)
+        poly([(-5,-3),(1,-3),(3,-2),(3,2),(1,3),(-5,3)],2,6,od)
+        poly([(4,-3),(11,-3),(12,-2),(12,2),(11,3),(4,3)],6,4,od)
+        poly([(10,-3),(12,-2),(12,2),(10,3)],14,5,od)
+        for y in (-4,3):poly([(9,y),(11,y),(11,y+1),(9,y+1)],8,5,od)
+        for y in (-3,2):poly([(-12,y),(-10,y),(-10,y+1),(-12,y+1)],10,4,od)
+        old_sheet.paste(old,(0,frame*32))
+
+        truck=img((32,32),sprite=True);td=ImageDraw.Draw(truck)
+        poly([(-12,-8),(12,-8),(13,7),(-12,8)],1,0,td)
+        for x in (-8,0,8):
+            for y in (-7,7):
+                poly([(x-3,y-2),(x+3,y-2),(x+3,y+2),(x-3,y+2)],1,1,td)
+        poly([(-12,-6),(11,-6),(13,-4),(13,4),(11,6),(-12,6)],3,1,td)
+        poly([(-12,-5),(10,-5),(12,-3),(12,3),(10,5),(-12,5)],5,3,td)
+        poly([(-11,-5),(0,-5),(0,5),(-11,5)],4,6,td)
+        poly([(-10,-4),(-1,-4),(-1,4),(-10,4)],5,7,td)
+        poly([(-9,-4),(-1,-4),(-1,-3),(-9,-3)],6,7,td)
+        poly([(0,-5),(9,-5),(12,-3),(12,3),(9,5),(0,5)],6,5,td)
+        poly([(2,-4),(8,-4),(10,-2),(10,2),(8,4),(2,4)],2,7,td)
+        poly([(1,-4),(9,-4),(9,-3),(1,-3)],7,7,td)
+        poly([(10,-3),(12,-2),(12,2),(10,3)],14,5,td)
+        for y in (-4,3):poly([(9,y),(11,y),(11,y+1),(9,y+1)],8,6,td)
+        for y in (-3,2):poly([(-12,y),(-10,y),(-10,y+1),(-12,y+1)],10,6,td)
+        truck_sheet.paste(truck,(0,frame*32))
+
+        pickup=img((32,32),sprite=True);pd=ImageDraw.Draw(pickup)
+        poly([(-12,-7),(12,-7),(13,6),(-11,7)],1,0,pd)
+        for x in (-8,8):
+            for y in (-6,6):
+                poly([(x-3,y-2),(x+3,y-2),(x+3,y+2),(x-3,y+2)],1,1,pd)
+        poly([(-12,-6),(10,-6),(13,-4),(13,4),(10,6),(-12,6)],3,1,pd)
+        poly([(-11,-5),(10,-5),(12,-3),(12,3),(10,5),(-11,5)],5,3,pd)
+        poly([(-11,-5),(-3,-5),(-3,5),(-11,5)],6,4,pd)
+        poly([(-10,-3),(-4,-3),(-4,3),(-10,3)],2,5,pd)
+        poly([(-3,-5),(4,-5),(6,-3),(6,3),(4,5),(-3,5)],4,5,pd)
+        poly([(-2,-4),(3,-4),(5,-2),(5,2),(3,4),(-2,4)],2,6,pd)
+        poly([(5,-4),(11,-3),(12,-2),(12,2),(11,3),(5,4)],6,4,pd)
+        poly([(8,-1),(12,-1),(12,1),(8,1)],8,5,pd)
+        for y in (-3,2):poly([(-12,y),(-10,y),(-10,y+1),(-12,y+1)],10,4,pd)
+        pickup_sheet.paste(pickup,(0,frame*32))
+        # Equipment uses the exact same local coordinates, projection and 64
+        # headings as the hull.  Keeping a single combined overlay per loadout
+        # makes the first modular-art pass cost only one extra OBJ per vehicle.
+        enemy_gun=img((32,32),sprite=True);ed=ImageDraw.Draw(enemy_gun)
+        def line(a,b,color,z,width,draw):
+            draw.line((projected(a,z),projected(b,z)),fill=color,width=width)
+        def deck_gun(draw):
+            poly([(3,-2),(8,-2),(9,2),(3,2)],15,7,draw)
+            poly([(4,-1),(8,-1),(8,1),(4,1)],14,8,draw)
+            line((7,0),(15,0),12,8,1,draw)
+            line((13,0),(15,0),8,8,1,draw)
+        def chainsaw(draw):
+            # A low toothed blade occupies the nose while a deck gun can remain
+            # visible above it.
+            blade=[]
+            for point in range(16):
+                a=point*math.tau/16;r=3 if point%2==0 else 2
+                blade.append((12+math.cos(a)*r,math.sin(a)*r))
+            poly(blade,14,3,draw);poly([(11,-1),(15,-1),(15,1),(11,1)],3,3,draw)
+            hub=projected((12,0),4)
+            draw.ellipse((hub[0]-1,hub[1]-1,hub[0]+1,hub[1]+1),fill=8)
+        def side_guns(draw):
+            # Start at the sill so the far mount has little hull overlap.
+            for side in (-1,1):
+                poly([(-1,side*5),(4,side*5),(4,side*7),(-1,side*7)],15,6,draw)
+                line((2,side*6),(2,side*11),14,6,2,draw)
+                line((2,side*10),(2,side*12),8,6,1,draw)
+        def missiles(draw):
+            poly([(-8,-4),(0,-4),(0,4),(-8,4)],15,7,draw)
+            for side in (-2,2):
+                poly([(-8,side-1),(-1,side-1),(2,side),(-1,side+1),(-8,side+1)],3,9,draw)
+                line((-1,side),(2,side),12,9,1,draw)
+                line((-8,side),(-6,side),10,9,1,draw)
+        def traps(draw):
+            # Four compact trap/grenade canisters are clipped to the rear rack.
+            for x in (-11,-8):
+                for y in (-3,3):
+                    p=projected((x,y),6)
+                    draw.rectangle((p[0]-1,p[1]-1,p[0]+1,p[1]+1),fill=10,outline=1)
+        deck_gun(ed)
+        for loadout_mask in range(32):
+            loadout=img((32,32),sprite=True);ld=ImageDraw.Draw(loadout)
+            if loadout_mask&1:deck_gun(ld)
+            if loadout_mask&2:chainsaw(ld)
+            if loadout_mask&4:side_guns(ld)
+            if loadout_mask&8:missiles(ld)
+            if loadout_mask&16:traps(ld)
+            loadout_sheet.paste(loadout,(0,(loadout_mask*64+frame)*32))
+        enemy_gun_sheet.paste(enemy_gun,(0,frame*32))
     save('car',sheet,'sprite',height=32)
+    save('car_sand_buggy',buggy_sheet,'sprite',height=32,bpp_mode='bpp_4')
+    save('car_old',old_sheet,'sprite',height=32,bpp_mode='bpp_4')
+    save('car_truck',truck_sheet,'sprite',height=32,bpp_mode='bpp_4')
+    save('car_pickup',pickup_sheet,'sprite',height=32,bpp_mode='bpp_4')
+    save('car_loadout',loadout_sheet,'sprite',height=32,bpp_mode='bpp_4')
+    save('car_enemy_gun',enemy_gun_sheet,'sprite',height=32,bpp_mode='bpp_4')
     fx=img((8,8*4),sprite=True)
     d=ImageDraw.Draw(fx)
     d.rectangle((2,2,5,5),fill=2)
@@ -312,20 +449,167 @@ def sprites():
         d.ellipse((16-r//2,y+16-r//2,16+r//2,y+16+r//2),fill=7 if frame==0 else 8)
         if frame>=2:d.ellipse((12,y+12,20,y+20),fill=0)
     save('weapon_blast',blast,'sprite',height=32,bpp_mode='bpp_4')
-    icons=img((16,80),sprite=True)
-    for frame in range(5):
-        d=ImageDraw.Draw(icons);y=frame*16
-        if frame==0:
-            d.rectangle((3,y+6,13,y+9),fill=12);d.rectangle((3,y+9,6,y+13),fill=9)
-        elif frame==1:
-            icons.paste(saw.crop((8,8,24,24)),(0,y))
-        elif frame==2:
-            d.polygon([(1,y+8),(5,y+4),(5,y+12)],fill=6)
-            d.polygon([(14,y+8),(10,y+4),(10,y+12)],fill=6)
-            d.rectangle((6,y+6,9,y+12),fill=12)
-        elif frame==3:icons.paste(missile.crop((0,0,16,16)),(0,y))
-        else:icons.paste(trap.crop((0,16,16,32)),(0,y))
-    save('weapon_icons',icons.resize((8,40),Image.Resampling.NEAREST),'sprite',height=8,bpp_mode='bpp_4')
+    # Larger, square inventory portraits echo stamped garage-part catalogues.
+    # They use the warm metal/oxide half of the sprite palette instead of the
+    # bright driving colours, so the dedicated fitting screen has its own mood.
+    icons=img((32,32*6),sprite=True)
+    for frame in range(6):
+        y=frame*32;d=ImageDraw.Draw(icons)
+        d.rectangle((3,y+3,28,y+28),fill=2,outline=14)
+        d.line((5,y+5,26,y+5),fill=8);d.line((5,y+26,26,y+26),fill=1)
+        for xx,yy in ((6,7),(25,7),(6,24),(25,24)):d.point((xx,y+yy),fill=9)
+        if frame==0:       # forward gun
+            d.rectangle((7,y+13,25,y+18),fill=12,outline=1)
+            d.rectangle((10,y+18,15,y+23),fill=9,outline=1)
+            d.rectangle((23,y+14,30,y+16),fill=8)
+            d.point((13,y+14),fill=15)
+        elif frame==1:     # reserved saw
+            d.ellipse((7,y+8,24,y+25),fill=13,outline=12)
+            d.ellipse((11,y+12,20,y+21),fill=1)
+            for xx,yy in ((8,8),(16,6),(24,10),(25,19),(19,25),(10,24),(6,17)):
+                d.rectangle((xx,y+yy,xx+2,y+yy+2),fill=12)
+        elif frame==2:     # paired side guns
+            d.rectangle((13,y+9,18,y+23),fill=12,outline=1)
+            d.rectangle((4,y+12,14,y+16),fill=13,outline=1)
+            d.rectangle((17,y+17,27,y+21),fill=13,outline=1)
+            d.rectangle((2,y+13,7,y+14),fill=8);d.rectangle((25,y+19,30,y+20),fill=8)
+        elif frame==3:     # missile
+            d.polygon([(4,y+18),(10,y+11),(24,y+11),(29,y+16),(24,y+21),(10,y+21)],fill=12,outline=1)
+            d.polygon([(7,y+12),(2,y+8),(10,y+15)],fill=9)
+            d.polygon([(7,y+20),(2,y+24),(10,y+17)],fill=9)
+            d.rectangle((24,y+14,29,y+17),fill=10)
+        elif frame==4:     # trap canister
+            d.rounded_rectangle((9,y+7,23,y+25),radius=3,fill=9,outline=1)
+            d.rectangle((11,y+10,21,y+19),fill=15,outline=12)
+            d.rectangle((13,y+5,19,y+8),fill=13)
+            d.rectangle((12,y+19,20,y+23),fill=10)
+        else:              # empty mounting plate
+            d.rectangle((9,y+9,22,y+22),fill=1,outline=13)
+            d.line((11,y+11,20,y+20),fill=15,width=2)
+            d.line((20,y+11,11,y+20),fill=15,width=2)
+    save('weapon_icons',icons,'sprite',height=32,bpp_mode='bpp_4')
+
+    # Five original 128x64 hero illustrations are split over two hardware
+    # sprites. This lets the fitting bay spend pixels on a deliberately drawn
+    # car rather than enlarging the tiny overhead driving sprite.
+    garage_cars=img((64,64*10),sprite=True)
+    for body in range(5):
+        hero=img((128,64),sprite=True);d=ImageDraw.Draw(hero)
+        d.ellipse((7,49,121,61),fill=1)
+        # Far tyres sit behind the hull and make the oblique view readable.
+        for x in (27,91):
+            d.ellipse((x-7,18,x+7,31),fill=1,outline=15)
+            d.ellipse((x-3,21,x+3,28),fill=14)
+        primary=(9,14,11,13,9)[body];light=(10,13,12,14,10)[body]
+        if body==0:       # roadster: low armored wedge
+            hull=[(6,35),(21,23),(81,20),(112,29),(122,40),(111,50),(25,53),(7,46)]
+            d.polygon(hull,fill=primary,outline=1)
+            d.polygon([(28,24),(72,22),(90,29),(79,39),(28,39),(18,33)],fill=3,outline=12)
+            d.polygon([(32,25),(68,24),(81,29),(72,35),(30,35),(23,31)],fill=1)
+            d.polygon([(84,23),(110,29),(117,36),(91,36)],fill=light)
+        elif body==1:     # buggy: exposed cage and chopped armor
+            d.polygon([(7,36),(24,27),(89,25),(118,35),(114,49),(24,52),(6,45)],fill=9,outline=1)
+            d.rectangle((24,31,92,47),fill=10,outline=3)
+            d.polygon([(36,19),(73,18),(92,31),(83,40),(28,39),(23,30)],fill=1,outline=13)
+            d.line((32,21,84,39),fill=14,width=2);d.line((76,20,31,39),fill=14,width=2)
+            d.rectangle((3,38,23,44),fill=12,outline=1);d.rectangle((93,36,124,43),fill=12,outline=1)
+        elif body==2:     # old car: rounded bonnet and patched steel
+            d.rounded_rectangle((7,22,119,52),radius=11,fill=primary,outline=1,width=2)
+            d.polygon([(30,23),(76,21),(95,29),(86,40),(29,40),(20,32)],fill=3,outline=12)
+            d.polygon([(35,25),(71,24),(85,29),(78,35),(32,35),(26,31)],fill=1)
+            d.rectangle((91,27,117,44),fill=10,outline=9)
+            d.line((18,43,68,43),fill=9);d.line((47,23,47,39),fill=14)
+        elif body==3:     # truck: slab cab and reinforced rear deck
+            d.polygon([(5,29),(72,19),(108,23),(123,34),(120,51),(18,54),(5,46)],fill=13,outline=1)
+            d.rectangle((12,27,65,49),fill=14,outline=3)
+            d.polygon([(70,22),(102,25),(116,34),(109,43),(70,42)],fill=light,outline=3)
+            d.rectangle((21,28,55,39),fill=2,outline=12);d.line((38,28,38,39),fill=14)
+            for x in range(15,64,10):d.rectangle((x,44,x+6,48),fill=3)
+        else:             # pickup: open salvage tray and compact cab
+            d.polygon([(5,29),(78,20),(111,26),(123,37),(117,50),(20,53),(5,45)],fill=primary,outline=1)
+            d.rectangle((11,28,61,49),fill=14,outline=3)
+            for yy in (32,38,44):d.line((16,yy,57,yy),fill=3)
+            d.polygon([(66,23),(101,25),(115,34),(105,42),(67,41)],fill=light,outline=3)
+            d.polygon([(74,26),(96,27),(106,33),(99,37),(73,36)],fill=2,outline=12)
+        # Near tyres, battered skirt, lamps, seams, rivets and a tow bumper.
+        for x in ((24,97) if body!=3 else (20,101)):
+            d.ellipse((x-8,42,x+8,58),fill=1,outline=15)
+            d.ellipse((x-4,46,x+4,54),fill=14,outline=3)
+            d.point((x,50),fill=12)
+        d.line((19,50,107,48),fill=3,width=2)
+        d.rectangle((115,34,125,43),fill=12,outline=1)
+        d.rectangle((2,38,10,46),fill=15);d.line((3,47,18,51),fill=13,width=2)
+        d.rectangle((121,40,127,45),fill=14)
+        for x,y in ((17,36),(43,44),(68,43),(89,31),(108,42)):d.point((x,y),fill=8)
+        for x,y in ((31,46),(58,42),(82,45)):d.line((x,y,x+5,y-2),fill=11)
+        for half in range(2):
+            garage_cars.paste(hero.crop((half*64,0,half*64+64,64)),(0,(body*2+half)*64))
+    save('garage_car_preview',garage_cars,'sprite',height=64,bpp_mode='bpp_4')
+
+    garage_attachments=img((64,64*40),sprite=True)
+    for body in range(5):
+        for attachment in range(4):
+            layer=img((128,64),sprite=True);d=ImageDraw.Draw(layer)
+            if attachment==0:       # articulated forward gun
+                d.rectangle((84,27,102,37),fill=3,outline=1)
+                d.rectangle((89,25,98,40),fill=12,outline=1)
+                d.rectangle((99,29,126,33),fill=13,outline=1)
+                d.rectangle((119,30,127,31),fill=8);d.point((93,28),fill=10)
+            elif attachment==1:     # paired broadside guns
+                for x,y,direction in ((54,18,-1),(61,47,1)):
+                    d.rectangle((x-7,y-4,x+8,y+4),fill=12,outline=1)
+                    end=y+direction*14
+                    d.rectangle((x-1,min(y,end),x+2,max(y,end)),fill=13,outline=1)
+                    d.rectangle((x-4,y-2,x+5,y+2),fill=9)
+            elif attachment==2:     # roof missile rack
+                d.rectangle((48,18,83,27),fill=3,outline=1)
+                for yy in (18,23):
+                    d.polygon([(48,yy),(72,yy),(86,yy+3),(72,yy+6),(48,yy+6)],fill=12,outline=1)
+                    d.rectangle((80,yy+2,87,yy+3),fill=10)
+            else:                   # armored rear trap magazine
+                d.rectangle((7,29,22,48),fill=3,outline=1)
+                for xx in (10,18):
+                    for yy in (32,42):
+                        d.rectangle((xx-4,yy-4,xx+4,yy+4),fill=14,outline=1)
+                        d.rectangle((xx-2,yy-2,xx+2,yy+2),fill=10)
+            for half in range(2):
+                frame=body*8+attachment*2+half
+                garage_attachments.paste(layer.crop((half*64,0,half*64+64,64)),(0,frame*64))
+    save('garage_car_attachments',garage_attachments,'sprite',height=64,bpp_mode='bpp_4')
+
+    fitting_cursor=img((32,64),sprite=True)
+    for frame,color in enumerate((8,10)):
+        y=frame*32;d=ImageDraw.Draw(fitting_cursor)
+        for left,top,right,bottom in ((3,y+3,10,y+3),(3,y+3,3,y+10),(21,y+3,28,y+3),(28,y+3,28,y+10),
+                                      (3,y+28,10,y+28),(3,y+21,3,y+28),(21,y+28,28,y+28),(28,y+21,28,y+28)):
+            d.line((left,top,right,bottom),fill=color,width=2)
+    save('fitting_cursor',fitting_cursor,'sprite',height=32,bpp_mode='bpp_4')
+    loadout_ring=img((64,64*4),sprite=True)
+    for selected in range(4):
+        y=selected*64;d=ImageDraw.Draw(loadout_ring)
+        d.ellipse((7,y+7,56,y+56),fill=1,outline=12,width=2)
+        d.ellipse((17,y+17,46,y+46),outline=3,width=1)
+        # North/east/south/west correspond to hunter, brawler, sweeper and barrage.
+        points=[(32,y+8),(55,y+32),(32,y+55),(8,y+32)]
+        glyphs=['H','B','S','X']
+        for index,(px,py) in enumerate(points):
+            color=8 if index==selected else 12
+            d.ellipse((px-6,py-6,px+6,py+6),fill=3,outline=color,width=2)
+            label(loadout_ring,px-2,py-3,glyphs[index],15 if index==selected else color)
+        d.rectangle((28,y+29,35,y+34),fill=14,outline=15)
+        d.point((31,y+31),fill=8);d.point((32,y+31),fill=8)
+    save('loadout_ring',loadout_ring,'sprite',height=64,bpp_mode='bpp_4')
+    salvage=img((16,48),sprite=True);d=ImageDraw.Draw(salvage)
+    # Scrap: a compact pile of recoverable metal and circuitry.
+    d.rectangle((2,7,13,12),fill=1);d.rectangle((3,5,8,10),fill=14,outline=3)
+    d.rectangle((9,6,13,11),fill=12,outline=3);d.line((4,8,12,8),fill=7,width=1);d.point((6,6),fill=8)
+    # Blueprint: a glowing data wafer, distinct from currency and ammunition.
+    d.rectangle((3,19,12,29),fill=3,outline=1);d.rectangle((5,21,10,27),fill=11)
+    d.line((6,22,9,22),fill=15);d.line((6,24,9,24),fill=15);d.point((6,26),fill=8)
+    # Energy cell: immediately consumed by the car rather than inventoried.
+    d.rectangle((4,35,11,45),fill=1,outline=15);d.rectangle((6,33,9,35),fill=15)
+    d.rectangle((6,37,9,43),fill=4);d.point((10,39),fill=8)
+    save('salvage_pickup',salvage,'sprite',height=16,bpp_mode='bpp_4')
     hp=img((16,24),sprite=True); d=ImageDraw.Draw(hp)
     for frame in range(3):
         y=frame*8; d.rectangle((0,y+2,15,y+6),fill=1)
@@ -343,10 +627,27 @@ def sprites():
     enemy_dot=img((8,8),sprite=True)
     ImageDraw.Draw(enemy_dot).rectangle((3,3,4,4),fill=10)
     save('enemy_dot',enemy_dot,'sprite')
+    mission_dot=img((8,8),sprite=True);d=ImageDraw.Draw(mission_dot)
+    d.rectangle((1,1,6,6),fill=8);d.rectangle((2,2,5,5),fill=12);d.rectangle((3,3,4,4),fill=10)
+    save('mission_dot',mission_dot,'sprite')
+    race_gate=img((16,32),sprite=True);d=ImageDraw.Draw(race_gate)
+    for frame in range(2):
+        y=frame*16
+        outer=7 if frame==0 else 6
+        d.ellipse((8-outer,y+8-outer,8+outer,y+8+outer),outline=12,width=2)
+        d.ellipse((4,y+4,12,y+12),outline=8 if frame==0 else 10,width=2)
+        d.rectangle((7,y+1,9,y+3),fill=8)
+        d.rectangle((7,y+13,9,y+15),fill=8)
+    save('race_gate',race_gate,'sprite',height=16)
+    race_flag=img((8,16),sprite=True);d=ImageDraw.Draw(race_flag)
+    d.rectangle((3,3,4,15),fill=12)
+    d.polygon(((4,3),(7,5),(4,8)),fill=10)
+    d.point((3,2),fill=8)
+    save('race_flag',race_flag,'sprite',height=16)
     # Dedicated overview palette: transparent, dark floor, bright wall, grey
     # road, warm town dots. Runtime fills the 64x64 sprite from logical cells.
     overview=img((8,8),sprite=True)
-    colors=[(255,0,255),(24,24,24),(224,224,224),(112,112,112),(248,200,64)]+[(0,0,0)]*11
+    colors=[(255,0,255),(24,24,24),(224,224,224),(112,112,112),(248,200,64)]+[(0,0,0)]*8+[(224,56,48),(48,184,248),(248,248,224)]
     overview.putpalette([c for rgb in colors for c in rgb]+[0]*(768-48))
     save('overview_palette',overview,'sprite')
     font=img((8,8*94),sprite=True)
@@ -361,44 +662,136 @@ def screens(path, palette):
     screen=ImageOps.fit(source,(240,160),Image.Resampling.LANCZOS)
     footer=screen.crop((0,124,240,160))
     screen.paste(Image.blend(footer,Image.new('RGB',footer.size),(0.58)),(0,124))
-    screen=screen.quantize(colors=256,method=Image.Quantize.MEDIANCUT,
+    # BG palette index zero is global on the GBA. The wasteland changes it to
+    # its dark transparent colour, so visible title pixels must never use it.
+    # Quantize into the other 255 entries and shift every visible index by one.
+    screen=screen.quantize(colors=255,method=Image.Quantize.MEDIANCUT,
                            dither=Image.Dither.FLOYDSTEINBERG)
-    title=Image.new('P',(256,256),0);title.putpalette(screen.getpalette())
+    shifted=Image.new('P',screen.size)
+    shifted.putdata([index+1 for index in screen.getdata()])
+    shifted.putpalette([16,33,41]+screen.getpalette()[:255*3])
+    title=Image.new('P',(256,256),0);title.putpalette(shifted.getpalette())
     # Visible viewport in a centered 256x256 regular BG: (8,48)..(247,207).
-    title.paste(screen,(8,48))
+    title.paste(shifted,(8,48))
     save('title',title,'regular_bg',bpp_mode='bpp_8')
     hud=img((256,256),0)
     d=ImageDraw.Draw(hud)
-    d.rectangle((8,48,247,59),fill=1)
+    # Driving information lives around the minimap; leave the full viewport open.
     hud.putpalette(palette)
     save('hud',hud,'regular_bg',bpp_mode='bpp_8')
     blank=img((256,256),1); blank.putpalette(palette)
     save('menu_blank',blank,'regular_bg',bpp_mode='bpp_8')
+    fitting=img((256,256),1);fitting.putpalette(palette);d=ImageDraw.Draw(fitting)
+    # A self-contained, warm mechanical console: oxidized framing, a dusty
+    # illustration bay and inset part trays. The composition follows the
+    # supplied compact loadout mockup while all pixels and details are original.
+    d.rectangle((8,48,247,207),fill=8)
+    d.rectangle((10,50,245,205),fill=1,outline=10)
+    d.line((11,51,244,51),fill=11)
+    d.line((11,204,244,204),fill=3)
+    # Header plate and stamped identification strip.
+    d.rectangle((11,52,244,65),fill=8,outline=3)
+    d.line((12,53,243,53),fill=10)
+    d.line((12,64,243,64),fill=1)
+    label(fitting,16,55,'LOADOUT',12)
+    label(fitting,67,56,'WEAPON FITTING',3)
+    d.rectangle((190,54,240,62),fill=2,outline=9)
+    label(fitting,197,55,'BAY 01',7)
+    for x in (13,242):d.ellipse((x-1,56,x+1,58),fill=3);d.point((x,57),fill=12)
+
+    # Left hero bay: sun-bleached exterior, distant shop silhouettes and grit.
+    d.rectangle((11,67,139,145),fill=9,outline=3)
+    d.rectangle((14,70,136,142),fill=10)
+    d.rectangle((14,70,136,103),fill=9)
+    d.rectangle((14,103,136,142),fill=8)
+    d.ellipse((103,76,119,92),fill=11)
+    d.polygon([(14,102),(35,91),(57,101),(78,88),(101,100),(119,92),(136,101),(136,111),(14,111)],fill=3)
+    d.rectangle((19,84,22,104),fill=2);d.rectangle((16,82,25,86),fill=2)
+    d.line((21,82,28,73),fill=3);d.line((28,73,33,82),fill=3)
+    d.rectangle((120,87,133,105),fill=2);d.rectangle((117,84,136,88),fill=3)
+    for x,y in ((18,114),(27,123),(39,109),(52,132),(69,116),(83,137),(101,112),(114,128),(129,117)):
+        d.point((x,y),fill=10);d.point((x+1,y),fill=3)
+    d.line((14,137,136,137),fill=9)
+    label(fitting,17,72,'VEHICLE',12)
+
+    # Three chunky mount cartridges mirror the mockup's bottom loadout strip.
+    d.rectangle((11,147,139,198),fill=8,outline=3)
+    d.line((12,148,138,148),fill=10)
+    for left,title in ((15,'FRONT'),(55,'SIDE'),(95,'TOP')):
+        label(fitting,left+2,150,title,12)
+        d.rectangle((left,159,left+36,194),fill=1,outline=9)
+        d.rectangle((left+2,161,left+34,192),fill=2,outline=3)
+        d.line((left+3,162,left+33,162),fill=7)
+        d.point((left+3,190),fill=10);d.point((left+32,190),fill=10)
+
+    # Deep inventory recess. Unoccupied cells retain subtle locked silhouettes,
+    # making the page feel like a part catalogue without implying selection.
+    d.rectangle((142,67,245,198),fill=8,outline=3)
+    d.line((143,68,244,68),fill=10)
+    d.rectangle((145,71,242,82),fill=2,outline=9)
+    label(fitting,149,73,'INVENTORY',12)
+    label(fitting,218,74,'PARTS',7)
+    for row in range(3):
+        for column in range(3):
+            left=147+column*33;top=86+row*32
+            d.rectangle((left,top,left+28,top+28),fill=1,outline=9)
+            d.rectangle((left+2,top+2,left+26,top+26),fill=2,outline=3)
+            d.line((left+6,top+20,left+22,top+8),fill=3)
+            d.rectangle((left+11,top+11,left+17,top+17),outline=3)
+            d.point((left+3,top+3),fill=10);d.point((left+25,top+25),fill=8)
+    d.rectangle((146,181,241,195),fill=2,outline=9)
+    # Thin footer leaves the maximum possible area to the illustrated panels.
+    d.rectangle((10,200,245,205),fill=2)
+    label(fitting,14,199,'A FIT',12);label(fitting,83,199,'B BACK',12);label(fitting,157,199,'R DATA',12)
+    save('weapon_fitting',fitting,'regular_bg',bpp_mode='bpp_4')
+    fitting_info=fitting.copy();fitting_info.putpalette(palette);d=ImageDraw.Draw(fitting_info)
+    d.rectangle((142,67,245,198),fill=8,outline=3)
+    d.line((143,68,244,68),fill=10)
+    d.rectangle((146,72,241,194),fill=1,outline=9)
+    d.rectangle((149,75,238,191),fill=2,outline=3)
+    label(fitting_info,153,78,'WEAPON DATA',12)
+    d.line((153,89,234,89),fill=9)
+    for yy in (106,123,140,157):
+        d.line((153,yy,231,yy),fill=3)
+        d.point((153,yy),fill=9);d.point((231,yy),fill=9)
+    d.rectangle((153,174,234,187),outline=8)
+    for x in range(155,233,8):d.line((x,176,x+5,184),fill=3)
+    save('weapon_fitting_info',fitting_info,'regular_bg',bpp_mode='bpp_4')
     pause=img((256,256),1)
     d=ImageDraw.Draw(pause)
     d.rectangle((16,56,239,198),outline=13,width=2)
-    label(pause,32,70,'PIT / CONTROLS',11,2)
-    label(pause,32,97,'A       THROTTLE',12)
-    label(pause,32,109,'B       BRAKE / REVERSE',12)
-    label(pause,32,121,'LEFT/RIGHT  STEER',12)
-    label(pause,32,133,'L/R SETUP IN TOWN ONLY',14)
-    label(pause,32,145,'SELECT  MAP MENU',12)
-    label(pause,32,157,'L WEAPON / R FIRE',11)
-    label(pause,32,168,'LIFT BEFORE TIGHT TURNS',11)
-    label(pause,32,184,'START   BACK TO TRACK',12)
+    label(pause,32,68,'PIT / STATUS',11,2)
+    label(pause,32,92,'A GO  DOWN BRAKE  LEFT/RIGHT STEER',12)
+    label(pause,32,104,'R NORMALS / B SPECIAL',11)
+    label(pause,32,116,'L TAP SWAP / HOLD LOADOUT RING',12)
+    label(pause,32,128,'SELECT SETTINGS / START BACK',12)
+    # Leave a dedicated row for the live HP/shield values before the status
+    # divider. Contract/race text below it supplies its own context.
+    d.line((31,140,224,140),fill=13,width=1)
     pause.putpalette(palette)
     save('pause',pause,'regular_bg',bpp_mode='bpp_8')
 
 def audio():
     rng=random.Random(14)
     rate=16000
-    for name,duration in [('engine',0.30),('bump',0.13),('chime',0.20),('skid',0.15),('gun',0.07)]:
+    for name,duration in [('engine',0.55),('bump',0.13),('chime',0.20),('skid',0.15),('gun',0.07)]:
         samples=[]
+        engine_noise=0
         for i in range(int(rate*duration)):
             t=i/rate
             env=min(1,t*150)*min(1,(duration-t)*100)
             if name=='engine':
-                value=(math.sin(math.tau*80*t)+0.45*math.sin(math.tau*160*t)+0.2*math.sin(math.tau*320*t))*0.32
+                # Low, gently unstable combustion bed.  The old fixed 80/160/320
+                # stack became a piercing chord when gameplay pitched it above 2x.
+                attack=math.sin(math.pi*.5*min(1,t/.025))
+                release=math.sin(math.pi*.5*min(1,(duration-t)/.045))
+                env=attack*release
+                engine_noise+=(rng.uniform(-1,1)-engine_noise)*.035
+                phase=math.tau*(61*t+.018*math.sin(math.tau*2.3*t))
+                motion=.92+.06*math.sin(math.tau*.8*t)+.02*math.sin(math.tau*3.7*t+.4)
+                value=((.48*math.sin(phase)+.14*math.sin(phase*2+.35)+
+                        .055*math.sin(phase*3+1.1)) * motion+
+                       .055*math.sin(math.tau*29*t+.7)+.04*engine_noise)*.48
             elif name=='bump':
                 value=rng.uniform(-1,1)*(1-t/duration)**2*0.6
             elif name=='skid':
@@ -469,4 +862,6 @@ if __name__=='__main__':
     from wasteland_assets import generate as generate_wasteland
     generate_wasteland(palette,save,label)
     audio()
-    print('Generated track, car directions, UI, font, particles and audio.')
+    from music_generator import generate as generate_music
+    generate_music()
+    print('Generated track, car directions, UI, font, particles, sound and adaptive music.')

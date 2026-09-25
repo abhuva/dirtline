@@ -1,6 +1,11 @@
 export const MAX_NODES = 32;
 export const LUT_MAX_POINTS = 255;
 export const PARAM_WORDS = 64;
+export const DEFAULT_SPAWN_PROFILES=[{id:0,name:'Raider',color:'#ef6c5b',enemy:'raider',respawnSeconds:30,scrapChance:70,scrapMin:1,scrapMax:3,blueprint:'tuned_injector',blueprintChance:4,energyChance:25,energyMin:8,energyMax:16}];
+export function normalizeSpawnProfiles(value) {
+  const source=Array.isArray(value)&&value.length?value:DEFAULT_SPAWN_PROFILES;
+  return source.map(profile=>({...DEFAULT_SPAWN_PROFILES[0],...profile}));
+}
 const LUT_COLORS=['#759bc7','#d6a466','#83ad79','#bd7f9f','#9a8ac7','#63aaa2','#c58a67','#a4a766'];
 export const defaultLutColor=value=>LUT_COLORS[((value*37)^(value>>2))%LUT_COLORS.length];
 function normalizeLut(node) {
@@ -48,7 +53,7 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
   const integer = (value, lo, hi, name) => {
     if (!Number.isInteger(value) || value < lo || value > hi) fail(`${name}: expected ${lo}–${hi}.`);
   };
-  if (![1,2,3].includes(recipe.version) || !Array.isArray(recipe.nodes)) fail('Unsupported recipe format.');
+  if (![1,2,3,4].includes(recipe.version) || !Array.isArray(recipe.nodes)) fail('Unsupported recipe format.');
   integer(recipe.seed, 0, 0xffffffff, 'Seed');
   if (!recipe.nodes.length || recipe.nodes.length > MAX_NODES) fail('Use between 1 and 32 nodes.');
   const ops = new Map(schema.operations.map((op, index) => [op.id, { ...op, index }]));
@@ -85,6 +90,20 @@ export function compile(recipe, schema, target = recipe.output, validateAll = tr
   for(const [key,type] of [['materialOutput','materials'],['spawnOutput','spawns'],['decorationOutput','decoration']])
     if(recipe[key]!=null && nodes.get(recipe[key])?.type!==type)fail(`Invalid ${key}.`);
   if(recipe.version<3 && (recipe.spawnOutput!=null || recipe.decorationOutput!=null))fail('Placement outputs require recipe version 3.');
+  const profiles=normalizeSpawnProfiles(recipe.spawnProfiles);
+  if(profiles.length>8)fail('Use at most 8 spawn profiles.');
+  const profileIds=new Set();
+  for(const profile of profiles) {
+    integer(profile.id,0,255,'Spawn profile ID');
+    if(profileIds.has(profile.id))fail('Spawn profile IDs must be unique.');profileIds.add(profile.id);
+    if(!['scout','raider','heavy'].includes(profile.enemy))fail('Unknown enemy type.');
+    integer(profile.respawnSeconds,1,600,'Respawn seconds');integer(profile.scrapChance,0,100,'Scrap chance');
+    integer(profile.scrapMin,0,15,'Minimum scrap');integer(profile.scrapMax,profile.scrapMin,15,'Maximum scrap');
+    if(!['none','salvage_magnet','tuned_injector','reinforced_plating'].includes(profile.blueprint))fail('Unknown blueprint.');
+    integer(profile.blueprintChance,0,100,'Blueprint chance');
+    integer(profile.energyChance,0,100,'Energy chance');integer(profile.energyMin,0,100,'Minimum energy');
+    integer(profile.energyMax,profile.energyMin,100,'Maximum energy');
+  }
   const ordered = [], done = new Set(), visiting = new Set();
   function visit(id) {
     const node = nodes.get(id);
@@ -160,7 +179,7 @@ export function presets(schema, original) {
   const roads=structuredClone(result.at(-1));roads.name="Natural ground + town roads";
   const node=makeNode(schema,"roads",Math.max(...roads.nodes.map(n=>n.id))+1,760,45);
   node.inputs.a=roads.output;roads.nodes.push(node);roads.output=node.id;result.push(roads);
-  const populated=structuredClone(roads);populated.name='Populated wasteland';populated.version=3;
+  const populated=structuredClone(roads);populated.name='Populated wasteland';populated.version=4;populated.spawnProfiles=normalizeSpawnProfiles();
   const first=Math.max(...populated.nodes.map(n=>n.id))+1;
   const spawn=makeNode(schema,'spawns',first,760,280),decor=makeNode(schema,'decoration',first+1,760,480);
   const density=makeNode(schema,'noise',first+2,280,480);density.p=[10,2];decor.inputs.a=density.id;

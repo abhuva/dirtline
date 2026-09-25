@@ -1,0 +1,1371 @@
+{
+  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
+  "checks": [
+    {
+      "name": "Separate east-side race office shows its interaction prompt",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 0,
+        "x": 161,
+        "y": 106,
+        "direction": 1,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Race office initially offers a hub-to-outer town race",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 1,
+        "phase": 1,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": 4,
+        "checkpoint_count": 12,
+        "next_checkpoint": 0,
+        "time_limit": 7848,
+        "time_left": 0,
+        "elapsed": 0,
+        "score": 0,
+        "reward": 961,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 0,
+        "menu": true,
+        "selection": 0,
+        "start_x": 4416,
+        "start_y": 4176,
+        "checkpoints": [
+          [
+            4416,
+            4584
+          ],
+          [
+            4416,
+            5096
+          ],
+          [
+            4160,
+            5224
+          ],
+          [
+            3776,
+            5352
+          ],
+          [
+            3776,
+            5736
+          ],
+          [
+            3904,
+            6120
+          ],
+          [
+            4288,
+            6120
+          ],
+          [
+            4288,
+            6632
+          ],
+          [
+            4288,
+            7016
+          ],
+          [
+            4032,
+            7272
+          ],
+          [
+            3904,
+            7528
+          ],
+          [
+            3392,
+            7528
+          ]
+        ],
+        "serial": 0,
+        "credits": 0,
+        "world_linger_checkpoint": -1,
+        "world_linger_frames": 0,
+        "world_gate_visible": false,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": false,
+        "radar_gate_visible": false,
+        "world_display_checkpoint": -1
+      }
+    },
+    {
+      "name": "Race office also offers a town-free generated wilderness course",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 2,
+        "phase": 1,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": -1,
+        "checkpoint_count": 16,
+        "next_checkpoint": 0,
+        "time_limit": 18508,
+        "time_left": 0,
+        "elapsed": 0,
+        "score": 0,
+        "reward": 2016,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 0,
+        "menu": true,
+        "selection": 1,
+        "start_x": 3264,
+        "start_y": 4288,
+        "checkpoints": [
+          [
+            3776,
+            4288
+          ],
+          [
+            4032,
+            4672
+          ],
+          [
+            4544,
+            4672
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            5184,
+            4288
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            3520
+          ],
+          [
+            5184,
+            3136
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            4416,
+            4672
+          ],
+          [
+            3776,
+            4416
+          ],
+          [
+            3776,
+            5056
+          ],
+          [
+            3776,
+            5824
+          ],
+          [
+            4160,
+            6080
+          ],
+          [
+            4416,
+            6592
+          ]
+        ],
+        "serial": 0,
+        "credits": 0,
+        "world_linger_checkpoint": -1,
+        "world_linger_frames": 0,
+        "world_gate_visible": false,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": false,
+        "radar_gate_visible": false,
+        "world_display_checkpoint": -1
+      }
+    },
+    {
+      "name": "Starting a wilderness race teleports to its start and begins a countdown",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 454,
+          "mode": 1,
+          "setup": 1,
+          "x": 3264.0,
+          "y": 4288.0,
+          "vx": 0.0,
+          "vy": 0.0,
+          "heading": 0.0,
+          "slip": 0.0,
+          "surface": 1,
+          "lap_frames": 160,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.23876953125,
+          "missed": 9,
+          "camera_x": 3264,
+          "camera_y": 4282,
+          "vblank": 0.031982421875,
+          "uploaded_bytes": 0,
+          "bg_bytes": 24576,
+          "sprite_free_bytes": 26848,
+          "map": 0,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 524,
+          "tile_capacity": 192,
+          "unique_tiles": 180,
+          "renderer_working_ram_bytes": 13948,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 0,
+          "minimap_x": 89,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 1,
+          "town": 0,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17784,
+          "scratch_bytes": 45136,
+          "free_ewram": 178160,
+          "floor_cells": 1460,
+          "generation_updates": 401,
+          "town_visits": 1,
+          "radar_x": 3264,
+          "radar_y": 4288,
+          "radar_revisions": 1,
+          "zoom_level": 1,
+          "radar_scale": 64,
+          "loading_progress": 100,
+          "tune_acceleration": 0.052978515625,
+          "tune_max_speed": 3.199951171875,
+          "tune_grip": 0.119873046875,
+          "tune_steer": 2.89990234375,
+          "tune_mass": 1100,
+          "tune_selection": 0,
+          "tune_coast": 0.0009765625,
+          "tune_brake": 0.08984375,
+          "material_id": 3,
+          "material_kind": 3,
+          "shown_material": 2,
+          "terrain_rumble": 0.0
+        },
+        "race": {
+          "magic": 1380008773,
+          "kind": 2,
+          "phase": 2,
+          "outcome": 0,
+          "closed": false,
+          "origin": 0,
+          "target_town": -1,
+          "checkpoint_count": 16,
+          "next_checkpoint": 0,
+          "time_limit": 18508,
+          "time_left": 18508,
+          "elapsed": 0,
+          "score": 0,
+          "reward": 2016,
+          "earned": 0,
+          "off_course": 0,
+          "no_progress": 0,
+          "menu": false,
+          "selection": 1,
+          "start_x": 3264,
+          "start_y": 4288,
+          "checkpoints": [
+            [
+              3776,
+              4288
+            ],
+            [
+              4032,
+              4672
+            ],
+            [
+              4544,
+              4672
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              5184,
+              4288
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              3520
+            ],
+            [
+              5184,
+              3136
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              4416,
+              4672
+            ],
+            [
+              3776,
+              4416
+            ],
+            [
+              3776,
+              5056
+            ],
+            [
+              3776,
+              5824
+            ],
+            [
+              4160,
+              6080
+            ],
+            [
+              4416,
+              6592
+            ]
+          ],
+          "serial": 1,
+          "credits": 0,
+          "world_linger_checkpoint": -1,
+          "world_linger_frames": 0,
+          "world_gate_visible": false,
+          "world_left_flag_visible": false,
+          "world_right_flag_visible": false,
+          "radar_gate_visible": true,
+          "world_display_checkpoint": 0
+        }
+      }
+    },
+    {
+      "name": "The first wilderness gate remains reachable during the extended progress window",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 915,
+          "mode": 1,
+          "setup": 1,
+          "x": 3674.681884765625,
+          "y": 4287.116455078125,
+          "vx": 1.4755859375,
+          "vy": -0.001953125,
+          "heading": 0.0,
+          "slip": 0.00390625,
+          "surface": 2,
+          "lap_frames": 621,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.40185546875,
+          "missed": 9,
+          "camera_x": 3707,
+          "camera_y": 4281,
+          "vblank": 0.035888671875,
+          "uploaded_bytes": 0,
+          "bg_bytes": 24576,
+          "sprite_free_bytes": 25728,
+          "map": 0,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 526,
+          "tile_capacity": 192,
+          "unique_tiles": 180,
+          "renderer_working_ram_bytes": 13948,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 0,
+          "minimap_x": 89,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 1,
+          "town": 0,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17784,
+          "scratch_bytes": 45136,
+          "free_ewram": 178160,
+          "floor_cells": 1460,
+          "generation_updates": 401,
+          "town_visits": 1,
+          "radar_x": 3648,
+          "radar_y": 4224,
+          "radar_revisions": 41,
+          "zoom_level": 1,
+          "radar_scale": 64,
+          "loading_progress": 100,
+          "tune_acceleration": 0.052978515625,
+          "tune_max_speed": 3.199951171875,
+          "tune_grip": 0.119873046875,
+          "tune_steer": 2.89990234375,
+          "tune_mass": 1100,
+          "tune_selection": 0,
+          "tune_coast": 0.0009765625,
+          "tune_brake": 0.08984375,
+          "material_id": 1,
+          "material_kind": 1,
+          "shown_material": 1,
+          "terrain_rumble": 0.325927734375
+        },
+        "race": {
+          "magic": 1380008773,
+          "kind": 2,
+          "phase": 3,
+          "outcome": 0,
+          "closed": false,
+          "origin": 0,
+          "target_town": -1,
+          "checkpoint_count": 16,
+          "next_checkpoint": 0,
+          "time_limit": 18508,
+          "time_left": 18217,
+          "elapsed": 291,
+          "score": 0,
+          "reward": 2016,
+          "earned": 0,
+          "off_course": 0,
+          "no_progress": 291,
+          "menu": false,
+          "selection": 1,
+          "start_x": 3264,
+          "start_y": 4288,
+          "checkpoints": [
+            [
+              3776,
+              4288
+            ],
+            [
+              4032,
+              4672
+            ],
+            [
+              4544,
+              4672
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              5184,
+              4288
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              3520
+            ],
+            [
+              5184,
+              3136
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              4416,
+              4672
+            ],
+            [
+              3776,
+              4416
+            ],
+            [
+              3776,
+              5056
+            ],
+            [
+              3776,
+              5824
+            ],
+            [
+              4160,
+              6080
+            ],
+            [
+              4416,
+              6592
+            ]
+          ],
+          "serial": 1,
+          "credits": 0,
+          "world_linger_checkpoint": -1,
+          "world_linger_frames": 0,
+          "world_gate_visible": true,
+          "world_left_flag_visible": true,
+          "world_right_flag_visible": true,
+          "radar_gate_visible": true,
+          "world_display_checkpoint": 0
+        }
+      }
+    },
+    {
+      "name": "Crossing a gate advances the radar immediately but keeps the crossed world gate visible",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 2,
+        "phase": 3,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": -1,
+        "checkpoint_count": 16,
+        "next_checkpoint": 1,
+        "time_limit": 18508,
+        "time_left": 18212,
+        "elapsed": 296,
+        "score": 0,
+        "reward": 2016,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 0,
+        "menu": false,
+        "selection": 1,
+        "start_x": 3264,
+        "start_y": 4288,
+        "checkpoints": [
+          [
+            3776,
+            4288
+          ],
+          [
+            4032,
+            4672
+          ],
+          [
+            4544,
+            4672
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            5184,
+            4288
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            3520
+          ],
+          [
+            5184,
+            3136
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            4416,
+            4672
+          ],
+          [
+            3776,
+            4416
+          ],
+          [
+            3776,
+            5056
+          ],
+          [
+            3776,
+            5824
+          ],
+          [
+            4160,
+            6080
+          ],
+          [
+            4416,
+            6592
+          ]
+        ],
+        "serial": 1,
+        "credits": 0,
+        "world_linger_checkpoint": 0,
+        "world_linger_frames": 60,
+        "world_gate_visible": true,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": true,
+        "radar_gate_visible": true,
+        "world_display_checkpoint": 0
+      }
+    },
+    {
+      "name": "The crossed world gate remains selected through the last linger frame",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 2,
+        "phase": 3,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": -1,
+        "checkpoint_count": 16,
+        "next_checkpoint": 1,
+        "time_limit": 18508,
+        "time_left": 18153,
+        "elapsed": 355,
+        "score": 0,
+        "reward": 2016,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 59,
+        "menu": false,
+        "selection": 1,
+        "start_x": 3264,
+        "start_y": 4288,
+        "checkpoints": [
+          [
+            3776,
+            4288
+          ],
+          [
+            4032,
+            4672
+          ],
+          [
+            4544,
+            4672
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            5184,
+            4288
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            3520
+          ],
+          [
+            5184,
+            3136
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            4416,
+            4672
+          ],
+          [
+            3776,
+            4416
+          ],
+          [
+            3776,
+            5056
+          ],
+          [
+            3776,
+            5824
+          ],
+          [
+            4160,
+            6080
+          ],
+          [
+            4416,
+            6592
+          ]
+        ],
+        "serial": 1,
+        "credits": 0,
+        "world_linger_checkpoint": 0,
+        "world_linger_frames": 1,
+        "world_gate_visible": true,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": true,
+        "radar_gate_visible": true,
+        "world_display_checkpoint": 0
+      }
+    },
+    {
+      "name": "The world gate changes after sixty frames without delaying race progress",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 2,
+        "phase": 3,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": -1,
+        "checkpoint_count": 16,
+        "next_checkpoint": 1,
+        "time_limit": 18508,
+        "time_left": 18152,
+        "elapsed": 356,
+        "score": 0,
+        "reward": 2016,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 60,
+        "menu": false,
+        "selection": 1,
+        "start_x": 3264,
+        "start_y": 4288,
+        "checkpoints": [
+          [
+            3776,
+            4288
+          ],
+          [
+            4032,
+            4672
+          ],
+          [
+            4544,
+            4672
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            5184,
+            4288
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            3520
+          ],
+          [
+            5184,
+            3136
+          ],
+          [
+            5184,
+            3904
+          ],
+          [
+            5184,
+            4672
+          ],
+          [
+            4416,
+            4672
+          ],
+          [
+            3776,
+            4416
+          ],
+          [
+            3776,
+            5056
+          ],
+          [
+            3776,
+            5824
+          ],
+          [
+            4160,
+            6080
+          ],
+          [
+            4416,
+            6592
+          ]
+        ],
+        "serial": 1,
+        "credits": 0,
+        "world_linger_checkpoint": 0,
+        "world_linger_frames": 0,
+        "world_gate_visible": false,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": false,
+        "radar_gate_visible": true,
+        "world_display_checkpoint": 1
+      }
+    },
+    {
+      "name": "Aborting a wilderness race returns to its originating race office",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 1020,
+          "mode": 4,
+          "setup": 1,
+          "x": 4416.0,
+          "y": 4176.0,
+          "vx": 0.0,
+          "vy": 0.0,
+          "heading": 0.0,
+          "slip": 0.0,
+          "surface": 1,
+          "lap_frames": 692,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.119140625,
+          "missed": 9,
+          "camera_x": 4416,
+          "camera_y": 4170,
+          "vblank": 0.021240234375,
+          "uploaded_bytes": 0,
+          "bg_bytes": 38912,
+          "sprite_free_bytes": 30048,
+          "map": 0,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 529,
+          "tile_capacity": 0,
+          "unique_tiles": 0,
+          "renderer_working_ram_bytes": 0,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 0,
+          "minimap_x": 89,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 1,
+          "town": 0,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17784,
+          "scratch_bytes": 45136,
+          "free_ewram": 203504,
+          "floor_cells": 1460,
+          "generation_updates": 401,
+          "town_visits": 2,
+          "radar_x": 0,
+          "radar_y": 0,
+          "radar_revisions": 0,
+          "zoom_level": 1,
+          "radar_scale": 0,
+          "loading_progress": 100,
+          "tune_acceleration": 0.052978515625,
+          "tune_max_speed": 3.199951171875,
+          "tune_grip": 0.119873046875,
+          "tune_steer": 2.89990234375,
+          "tune_mass": 1100,
+          "tune_selection": 0,
+          "tune_coast": 0.0009765625,
+          "tune_brake": 0.08984375,
+          "material_id": 3,
+          "material_kind": 3,
+          "shown_material": -1,
+          "terrain_rumble": 0.0
+        },
+        "town": {
+          "magic": 1414485838,
+          "place": 0,
+          "x": 146,
+          "y": 98,
+          "direction": 2,
+          "menu": false,
+          "selection": 1,
+          "town": 0,
+          "prompt": false,
+          "player_visible": true
+        },
+        "race": {
+          "magic": 1380008773,
+          "kind": 2,
+          "phase": 4,
+          "outcome": 4,
+          "closed": false,
+          "origin": 0,
+          "target_town": -1,
+          "checkpoint_count": 16,
+          "next_checkpoint": 1,
+          "time_limit": 18508,
+          "time_left": 18146,
+          "elapsed": 362,
+          "score": 0,
+          "reward": 2016,
+          "earned": 0,
+          "off_course": 0,
+          "no_progress": 66,
+          "menu": true,
+          "selection": 1,
+          "start_x": 3264,
+          "start_y": 4288,
+          "checkpoints": [
+            [
+              3776,
+              4288
+            ],
+            [
+              4032,
+              4672
+            ],
+            [
+              4544,
+              4672
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              5184,
+              4288
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              3520
+            ],
+            [
+              5184,
+              3136
+            ],
+            [
+              5184,
+              3904
+            ],
+            [
+              5184,
+              4672
+            ],
+            [
+              4416,
+              4672
+            ],
+            [
+              3776,
+              4416
+            ],
+            [
+              3776,
+              5056
+            ],
+            [
+              3776,
+              5824
+            ],
+            [
+              4160,
+              6080
+            ],
+            [
+              4416,
+              6592
+            ]
+          ],
+          "serial": 1,
+          "credits": 0,
+          "world_linger_checkpoint": 0,
+          "world_linger_frames": 0,
+          "world_gate_visible": false,
+          "world_left_flag_visible": false,
+          "world_right_flag_visible": false,
+          "radar_gate_visible": false,
+          "world_display_checkpoint": -1
+        }
+      }
+    },
+    {
+      "name": "Acknowledging results prepares another town race",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 1,
+        "phase": 1,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": 2,
+        "checkpoint_count": 12,
+        "next_checkpoint": 0,
+        "time_limit": 8344,
+        "time_left": 0,
+        "elapsed": 0,
+        "score": 0,
+        "reward": 1004,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 0,
+        "menu": true,
+        "selection": 0,
+        "start_x": 4416,
+        "start_y": 4176,
+        "checkpoints": [
+          [
+            4800,
+            4200
+          ],
+          [
+            5312,
+            4200
+          ],
+          [
+            5440,
+            4584
+          ],
+          [
+            5568,
+            4968
+          ],
+          [
+            5824,
+            5096
+          ],
+          [
+            5824,
+            5608
+          ],
+          [
+            5824,
+            6120
+          ],
+          [
+            6080,
+            6376
+          ],
+          [
+            6208,
+            6632
+          ],
+          [
+            6592,
+            6760
+          ],
+          [
+            7104,
+            6760
+          ],
+          [
+            7616,
+            6760
+          ]
+        ],
+        "serial": 1,
+        "credits": 0,
+        "world_linger_checkpoint": 0,
+        "world_linger_frames": 0,
+        "world_gate_visible": false,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": false,
+        "radar_gate_visible": false,
+        "world_display_checkpoint": -1
+      }
+    },
+    {
+      "name": "Town race remains ready until the player leaves town",
+      "passed": true,
+      "details": {
+        "magic": 1380008773,
+        "kind": 1,
+        "phase": 1,
+        "outcome": 0,
+        "closed": false,
+        "origin": 0,
+        "target_town": 2,
+        "checkpoint_count": 12,
+        "next_checkpoint": 0,
+        "time_limit": 8344,
+        "time_left": 0,
+        "elapsed": 0,
+        "score": 0,
+        "reward": 1004,
+        "earned": 0,
+        "off_course": 0,
+        "no_progress": 0,
+        "menu": false,
+        "selection": 0,
+        "start_x": 4416,
+        "start_y": 4176,
+        "checkpoints": [
+          [
+            4800,
+            4200
+          ],
+          [
+            5312,
+            4200
+          ],
+          [
+            5440,
+            4584
+          ],
+          [
+            5568,
+            4968
+          ],
+          [
+            5824,
+            5096
+          ],
+          [
+            5824,
+            5608
+          ],
+          [
+            5824,
+            6120
+          ],
+          [
+            6080,
+            6376
+          ],
+          [
+            6208,
+            6632
+          ],
+          [
+            6592,
+            6760
+          ],
+          [
+            7104,
+            6760
+          ],
+          [
+            7616,
+            6760
+          ]
+        ],
+        "serial": 2,
+        "credits": 0,
+        "world_linger_checkpoint": -1,
+        "world_linger_frames": 0,
+        "world_gate_visible": false,
+        "world_left_flag_visible": false,
+        "world_right_flag_visible": false,
+        "radar_gate_visible": false,
+        "world_display_checkpoint": 0
+      }
+    },
+    {
+      "name": "Leaving town starts the road-race countdown toward an outer outpost",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 1218,
+          "mode": 1,
+          "setup": 1,
+          "x": 4416.0,
+          "y": 4176.0,
+          "vx": 0.0,
+          "vy": 0.0,
+          "heading": 180.0,
+          "slip": 0.0,
+          "surface": 1,
+          "lap_frames": 698,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.232666015625,
+          "missed": 16,
+          "camera_x": 4416,
+          "camera_y": 4170,
+          "vblank": 0.031982421875,
+          "uploaded_bytes": 0,
+          "bg_bytes": 24576,
+          "sprite_free_bytes": 25952,
+          "map": 0,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 529,
+          "tile_capacity": 192,
+          "unique_tiles": 180,
+          "renderer_working_ram_bytes": 13948,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 0,
+          "minimap_x": 89,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 1,
+          "town": 0,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17784,
+          "scratch_bytes": 45136,
+          "free_ewram": 178160,
+          "floor_cells": 1460,
+          "generation_updates": 401,
+          "town_visits": 2,
+          "radar_x": 4416,
+          "radar_y": 4160,
+          "radar_revisions": 1,
+          "zoom_level": 1,
+          "radar_scale": 64,
+          "loading_progress": 100,
+          "tune_acceleration": 0.052978515625,
+          "tune_max_speed": 3.199951171875,
+          "tune_grip": 0.119873046875,
+          "tune_steer": 2.89990234375,
+          "tune_mass": 1100,
+          "tune_selection": 0,
+          "tune_coast": 0.0009765625,
+          "tune_brake": 0.08984375,
+          "material_id": 3,
+          "material_kind": 3,
+          "shown_material": 3,
+          "terrain_rumble": 0.0
+        },
+        "race": {
+          "magic": 1380008773,
+          "kind": 1,
+          "phase": 2,
+          "outcome": 0,
+          "closed": false,
+          "origin": 0,
+          "target_town": 2,
+          "checkpoint_count": 12,
+          "next_checkpoint": 0,
+          "time_limit": 8344,
+          "time_left": 8344,
+          "elapsed": 0,
+          "score": 0,
+          "reward": 1004,
+          "earned": 0,
+          "off_course": 0,
+          "no_progress": 0,
+          "menu": false,
+          "selection": 0,
+          "start_x": 4416,
+          "start_y": 4176,
+          "checkpoints": [
+            [
+              4800,
+              4200
+            ],
+            [
+              5312,
+              4200
+            ],
+            [
+              5440,
+              4584
+            ],
+            [
+              5568,
+              4968
+            ],
+            [
+              5824,
+              5096
+            ],
+            [
+              5824,
+              5608
+            ],
+            [
+              5824,
+              6120
+            ],
+            [
+              6080,
+              6376
+            ],
+            [
+              6208,
+              6632
+            ],
+            [
+              6592,
+              6760
+            ],
+            [
+              7104,
+              6760
+            ],
+            [
+              7616,
+              6760
+            ]
+          ],
+          "serial": 2,
+          "credits": 0,
+          "world_linger_checkpoint": -1,
+          "world_linger_frames": 0,
+          "world_gate_visible": false,
+          "world_left_flag_visible": false,
+          "world_right_flag_visible": false,
+          "radar_gate_visible": true,
+          "world_display_checkpoint": 0
+        }
+      }
+    }
+  ]
+}

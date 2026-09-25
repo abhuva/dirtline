@@ -4,6 +4,7 @@ import copy
 import hashlib
 import re
 from pathlib import Path
+from art_profiles import load_catalog as load_art_catalog, profile_key, profiles_for_entries, validate_profile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / 'tools/map_editor/schema.json').read_text())
@@ -14,6 +15,12 @@ LUT_COLORS = ('#759bc7','#d6a466','#83ad79','#bd7f9f','#9a8ac7','#63aaa2','#c58a
 LIBRARY_PATH = ROOT / 'maps/map-library.json'
 MAP_ID = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 MAP_NAME = re.compile(r'^[A-Za-z0-9 .+\-/]+$')
+DEFAULT_SPAWN_PROFILES = [{'id': 0, 'name': 'Raider', 'color': '#ef6c5b', 'enemy': 'raider',
+                           'respawnSeconds': 30, 'scrapChance': 70, 'scrapMin': 1, 'scrapMax': 3,
+                           'blueprint': 'tuned_injector', 'blueprintChance': 4,
+                           'energyChance': 25, 'energyMin': 8, 'energyMax': 16}]
+ENEMIES = {'scout': 0, 'raider': 1, 'heavy': 2}
+BLUEPRINTS = {'none': 255, 'salvage_magnet': 0, 'tuned_injector': 1, 'reinforced_plating': 2}
 
 
 def default_lut_color(value):
@@ -24,6 +31,37 @@ def integer(value, low, high, name):
     if type(value) is not int or not low <= value <= high:
         raise ValueError(f'{name} must be an integer between {low} and {high}')
     return value
+
+
+def spawn_profiles(recipe):
+    profiles = recipe.get('spawnProfiles', DEFAULT_SPAWN_PROFILES)
+    if not isinstance(profiles, list) or not 1 <= len(profiles) <= 8:
+        raise ValueError('Use between 1 and 8 spawn profiles')
+    ids = set()
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            raise ValueError('Spawn profiles must be objects')
+        identity = integer(profile.get('id'), 0, 255, 'Spawn profile ID')
+        if identity in ids:
+            raise ValueError('Spawn profile IDs must be unique')
+        ids.add(identity)
+        name = profile.get('name')
+        if not isinstance(name, str) or not 1 <= len(name) <= 18 or not MAP_NAME.fullmatch(name):
+            raise ValueError('Spawn profile names must use 1-18 title-safe characters')
+        if profile.get('enemy') not in ENEMIES or profile.get('blueprint') not in BLUEPRINTS:
+            raise ValueError('Unknown enemy or blueprint in spawn profile')
+        integer(profile.get('respawnSeconds'), 1, 600, 'Respawn seconds')
+        integer(profile.get('scrapChance'), 0, 100, 'Scrap chance')
+        minimum = integer(profile.get('scrapMin'), 0, 15, 'Minimum scrap')
+        integer(profile.get('scrapMax'), minimum, 15, 'Maximum scrap')
+        integer(profile.get('blueprintChance'), 0, 100, 'Blueprint chance')
+        profile.setdefault('energyChance', 25)
+        profile.setdefault('energyMin', 8)
+        profile.setdefault('energyMax', 16)
+        integer(profile.get('energyChance'), 0, 100, 'Energy chance')
+        energy_minimum = integer(profile.get('energyMin'), 0, 100, 'Minimum energy')
+        integer(profile.get('energyMax'), energy_minimum, 100, 'Maximum energy')
+    return profiles
 
 
 def upgrade_node(node):
@@ -84,9 +122,10 @@ def compiled_parameters(node):
 
 
 def compile_recipe(recipe, target=None):
-    if recipe.get('version') not in (1, 2, 3):
+    if recipe.get('version') not in (1, 2, 3, 4):
         raise ValueError('Unsupported recipe version')
     integer(recipe.get('seed'), 0, 0xffffffff, 'Seed')
+    spawn_profiles(recipe)
     nodes = recipe.get('nodes', [])
     if not 1 <= len(nodes) <= 32:
         raise ValueError('Recipe must contain 1 to 32 nodes')
@@ -199,6 +238,7 @@ def validate_library(library, compile_maps=True):
     if not isinstance(entries, list) or not 1 <= len(entries) <= 64:
         raise ValueError('Map library must contain between 1 and 64 maps')
     ids, enabled = set(), []
+    art_catalog = load_art_catalog()
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
             raise ValueError(f'Map {index + 1} must be an object')
@@ -216,9 +256,17 @@ def validate_library(library, compile_maps=True):
         name = recipe.get('name')
         if not isinstance(name, str) or not 1 <= len(name) <= 24 or not MAP_NAME.fullmatch(name):
             raise ValueError(f'Map {map_id} name must use 1-24 title-safe characters')
-        if recipe.get('version') not in (1, 2, 3):
+        if recipe.get('version') not in (1, 2, 3, 4):
             raise ValueError(f'Map {map_id} has an unsupported recipe version')
         integer(recipe.get('seed'), 0, 0xffffffff, f'Map {map_id} seed')
+        try:
+            spawn_profiles(recipe)
+        except ValueError as error:
+            raise ValueError(f'Map {map_id}: {error}') from error
+        try:
+            validate_profile(recipe.get('artProfile'), art_catalog)
+        except ValueError as error:
+            raise ValueError(f'Map {map_id}: {error}') from error
         nodes = recipe.get('nodes')
         if not isinstance(nodes, list) or len(nodes) > 32:
             raise ValueError(f'Map {map_id} must contain at most 32 nodes')
@@ -258,10 +306,13 @@ def _program(text, symbol, program, fallback_op):
 
 def generate():
     library, entries, revision = load_library()
-    text = '// Generated from maps/map-library.json ('+revision[:12]+'). Do not edit.\n#pragma once\n#include "map_recipe.h"\n'
-    text += 'namespace map_catalog {\nstruct entry {\n    const char* id; const char* name; uint32_t seed;\n'
+    art_catalog = load_art_catalog()
+    _, bank_indices, bank_keys = profiles_for_entries(entries, art_catalog)
+    text = '// Generated from maps/map-library.json ('+revision[:12]+'). Do not edit.\n#pragma once\n#include "map_recipe.h"\n#include "spawn_profiles.h"\n'
+    text += 'namespace map_catalog {\nstruct entry {\n    const char* id; const char* name; uint32_t seed; int art_bank;\n'
     text += '    const mapgen::node* nodes; int count;\n    const mapgen::node* material_nodes; int material_count;\n'
-    text += '    const mapgen::node* spawn_nodes; int spawn_count;\n    const mapgen::node* decoration_nodes; int decoration_count;\n};\n'
+    text += '    const mapgen::node* spawn_nodes; int spawn_count;\n    const mapgen::node* decoration_nodes; int decoration_count;\n'
+    text += '    const spawn_profiles::profile* spawn_profiles; int spawn_profile_count;\n};\n'
     compiled = []
     for index, entry in enumerate(entries):
         recipe = copy.deepcopy(entry['recipe'])
@@ -274,13 +325,23 @@ def generate():
         for name, program in branches.items():
             fallback = 'materials' if name == 'material_nodes' else 'spawns' if name == 'spawn_nodes' else 'decoration' if name == 'decoration_nodes' else 'world'
             text = _program(text, f'map_{index}_{name}', program, fallback)
+        profiles = spawn_profiles(recipe)
+        text += f'inline constexpr spawn_profiles::profile map_{index}_spawn_profiles[]={{\n'
+        for profile in profiles:
+            frames = profile['respawnSeconds'] * 60
+            text += ('    {'+str(profile['id'])+',spawn_profiles::enemy::'+profile['enemy']+','+str(frames)+','+
+                     str(profile['scrapChance'])+','+str(profile['scrapMin'])+','+str(profile['scrapMax'])+
+                     ',spawn_profiles::blueprint::'+profile['blueprint']+','+str(profile['blueprintChance'])+','+
+                     str(profile['energyChance'])+','+str(profile['energyMin'])+','+str(profile['energyMax'])+'},\n')
+        text += '};\n'
         compiled.append((entry, recipe, branches))
     text += 'inline constexpr entry maps[]={\n'
     for index, (entry, recipe, branches) in enumerate(compiled):
         fields = []
         for name in ('nodes', 'material_nodes', 'spawn_nodes', 'decoration_nodes'):
             fields.extend((f'map_{index}_{name}', str(len(branches[name]))))
-        text += '    {'+json.dumps(entry['id'])+','+json.dumps(recipe['name'].upper())+','+str(recipe['seed'])+'u,'+','.join(fields)+'},\n'
+        fields.extend((f'map_{index}_spawn_profiles',str(len(spawn_profiles(recipe)))))
+        text += '    {'+json.dumps(entry['id'])+','+json.dumps(recipe['name'].upper())+','+str(recipe['seed'])+'u,'+str(bank_indices[bank_keys[index]])+','+','.join(fields)+'},\n'
     text += '};\ninline constexpr int count=sizeof(maps)/sizeof(maps[0]);\n}\n'
     output = ROOT / 'include/generated/wasteland_recipe.h'
     output.parent.mkdir(parents=True, exist_ok=True)

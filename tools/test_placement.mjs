@@ -32,18 +32,22 @@ for(const mode of ['active','masked','zero']) {
   run(programs[3],r.seed);assert.equal(engine._recipe_apply_decoration(),0);
   const dp=engine._recipe_decorations(),decoration=engine.HEAPU8.slice(dp,dp+1048576);
   const count=engine._recipe_spawn_count(),sp=engine._recipe_spawns()>>>1,spawns=engine.HEAPU16.slice(sp,sp+count*2);
+  const st=engine._recipe_spawn_types(),spawnTypes=engine.HEAPU8.slice(st,st+count);
   const offset=8272+1048576*2+4;
   assert.deepEqual(Buffer.from(decoration),native.subarray(offset,offset+1048576),`${mode} decoration tiles`);
   assert.equal(count,native.readUInt32LE(offset+1048576));
-  assert.deepEqual(Buffer.from(spawns.buffer),native.subarray(offset+1048576+4),`${mode} spawn coordinates`);
+  const spawnOffset=offset+1048576+4;
+  assert.deepEqual(Buffer.from(spawns.buffer),native.subarray(spawnOffset,spawnOffset+count*4),`${mode} spawn coordinates`);
+  assert.deepEqual(Buffer.from(spawnTypes.buffer),native.subarray(spawnOffset+count*4),`${mode} spawn profiles`);
   const patches=decoration.reduce((n,v)=>n+(v>0&&(v-1)%4===0),0);
   if(mode==='zero'){assert.equal(count,0);assert.equal(patches,0);}
   else {assert.ok(count>0);assert.ok(patches>100);if(mode==='masked')assert.equal(count,24);}
   if(mode==='active') {
+    assert.ok(new Set(spawnTypes).size>=3,'active map should demonstrate multiple regional enemy profiles');
     const tp=engine._recipe_tiles()>>>1,tiles=engine.HEAPU16.slice(tp,tp+1048576);
     const png=await renderFullPng(tiles,art,()=>{},decoration,null);
     await writeFile(new URL('artifacts/map_editor/populated-full-map.png',root),Buffer.from(await png.arrayBuffer()));
-    const marked=await renderFullPng(tiles,art,()=>{},decoration,spawns);
+    const marked=await renderFullPng(tiles,art,()=>{},decoration,spawns,spawnTypes,active.spawnProfiles);
     await writeFile(new URL('artifacts/map_editor/populated-spawns.png',root),Buffer.from(await marked.arrayBuffer()));
     const preview=renderOverview(tiles,art,4,decoration,null);
     await writeFile(new URL('populated-overview.rgba',dir),preview.pixels);

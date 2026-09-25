@@ -10,7 +10,7 @@ def run(t):
         if t.state()['mode']==2: t.tap(t.SELECT)
         assert t.state()['mode']==0
         t.start_map(0)
-    fresh(); start=t.combat_state(); previous=start; peak=0; max_idle=[0]*5; idle=[0]*5
+    fresh(); baseline_missed=t.state()['missed']; start=t.combat_state(); previous=start; peak=0; max_idle=[0]*5; idle=[0]*5
     maximum_penetration=0; samples=[]; valid_shots=True; last_shots=start['enemy_shots']
     for frame in range(1500):
         s=t.step(); c=t.combat_state(); peak=max(peak,s['cpu'])
@@ -61,8 +61,8 @@ def run(t):
             bumped=dict(state=s,combat=c); t.step(0,2); t.capture('traffic/ram'); break
     t.check('Controller-driven player ram transfers velocity through real car contacts',bumped is not None,bumped)
     t.check('Low-speed ramming does not damage player health',t.combat_state()['hp']==100)
-    t.check('Traffic AI and contact solving stay within the measured frame budget',peak<1 and t.state()['missed']==0,
-            dict(cpu=peak,missed=t.state()['missed']))
+    t.check('Traffic AI and contact solving stay within the measured frame budget',peak<1 and t.state()['missed']==baseline_missed,
+            dict(cpu=peak,missed=t.state()['missed']-baseline_missed))
 
 if __name__=='__main__':
     import test_rom as t

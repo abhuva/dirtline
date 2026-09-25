@@ -4,27 +4,38 @@
 #include "bn_regular_bg_items_town_exterior.h"
 #include "bn_regular_bg_items_garage_interior.h"
 #include "bn_sprite_items_town_player.h"
+#include "bn_sprite_items_town_interact.h"
 
 namespace {
 constexpr town_scene::rect exterior_solids[]={
-    {0,0,256,12},{0,0,10,256},{246,0,256,256},
-    {54,12,182,59},              // garage
-    {0,48,76,133},               // western house and yard
-    {194,45,256,121},            // water tower yard
-    {84,77,153,139},             // central rock and scrub island
-    {176,133,256,197},           // eastern house
-    {13,154,76,207},             // western scrap yard
-    {0,204,103,256},{157,204,256,256}, // southern cliffs, gate left open
+    {0,0,256,8},{0,0,8,256},{248,0,256,256},
+    {0,8,89,68},                 // northwest water and utility compound
+    {91,8,172,42},               // north mechanic garage
+    {174,8,256,69},              // northeast solar homes
+    {0,69,89,116},               // western dispatch and shops
+    {169,69,256,116},            // eastern market block
+    {31,118,86,146},             // southwest market stalls
+    {174,112,208,149},           // public fountain
+    {0,147,91,219},              // southwest residential block
+    {163,149,256,219},           // southeast workshop block
+    {0,218,104,256},{153,218,256,256}, // straight south fence and open gate
 };
 constexpr town_scene::rect garage_solids[]={
-    {0,0,256,14},{0,0,13,256},{243,0,256,256},
-    {54,20,170,75},              // mechanic counter
-    {13,14,54,108},{13,72,93,116},
-    {12,111,56,211},{12,173,100,211},
-    {155,70,225,155},            // car chassis and lift
-    {177,146,243,211},
-    {0,210,101,256},{157,210,256,256}, // south wall, doorway left open
+    {0,0,256,8},{0,0,8,256},{248,0,256,256},
+    {8,8,77,73},{78,8,179,72},{180,8,248,74}, // north storage and counter
+    {8,74,38,207},{218,74,248,207},           // side tool walls
+    {40,91,84,164},                           // parked car and left lift
+    {163,91,177,151},{207,91,220,151},         // right lift posts
+    {8,170,94,213},{177,170,248,213},          // parts and benches
+    {0,209,101,256},{157,209,256,256},         // south wall, central exit
 };
+constexpr town_scene::rect dispatch_trigger={91,78,112,118};
+constexpr town_scene::rect race_trigger={148,78,169,118};
+constexpr town_scene::rect garage_trigger={102,43,158,63};
+constexpr town_scene::rect exterior_exit_trigger={105,226,153,256};
+constexpr town_scene::rect garage_counter_trigger={78,70,179,85};
+constexpr town_scene::rect garage_fitting_trigger={87,106,116,157};
+constexpr town_scene::rect garage_exit_trigger={101,224,157,256};
 
 template<int Size>
 bool hits(const town_scene::rect (&areas)[Size],int left,int top,int right,int bottom) {
@@ -36,9 +47,13 @@ bool hits(const town_scene::rect (&areas)[Size],int left,int top,int right,int b
 
 town_scene::town_scene(int town_id,int setup) :
     _player(bn::sprite_items::town_player.create_sprite(0,0)),
+    _prompt(bn::sprite_items::town_interact.create_sprite(0,0)),
     _town_id(town_id),_menu_selection(setup) {
     _player.set_bg_priority(1);
     _player.set_z_order(-2);
+    _prompt.set_bg_priority(1);
+    _prompt.set_z_order(-3);
+    _prompt.set_visible(false);
     _load(place::exterior);
 }
 
@@ -59,7 +74,7 @@ void town_scene::_load(place next) {
     _place=next;
     if(next==place::exterior) {
         _background=bn::regular_bg_items::town_exterior.create_bg(0,0);
-        if(_y<100) { _x=128;_y=67;_direction=0; }
+        if(_y<100) { _x=128;_y=51;_direction=0; }
         else { _x=128;_y=226;_direction=3; }
     } else {
         _background=bn::regular_bg_items::garage_interior.create_bg(0,0);
@@ -77,16 +92,32 @@ void town_scene::_refresh_sprite() {
     _player.set_position(_x-camera_x,_y-camera_y-13);
     int phase=_walk_ticks ? 1+((_walk_ticks/8)&1) : 0;
     _player.set_tiles(bn::sprite_items::town_player.tiles_item(),_direction*3+phase);
+    const bool interaction=_place==place::exterior ?
+        (_inside(dispatch_trigger,_x,_y) || _inside(race_trigger,_x,_y) ||
+         _inside(garage_trigger,_x,_y) || _inside(exterior_exit_trigger,_x,_y)) :
+        (_inside(garage_counter_trigger,_x,_y) || _inside(garage_fitting_trigger,_x,_y) ||
+         _inside(garage_exit_trigger,_x,_y));
+    if(interaction) {
+        const int wiggle=(_prompt_ticks++/8)%4;
+        const int bob=wiggle==1?-1:wiggle==3?1:0;
+        _prompt.set_position(_x-camera_x+11,_y-camera_y-29+bob);
+    } else {
+        _prompt_ticks=0;
+    }
+    _prompt.set_visible(_visible && interaction && !_menu_open);
 }
 
 town_scene::event town_scene::update(int& setup) {
     if(_menu_open) {
+        if(bn::keypad::up_pressed() || bn::keypad::down_pressed()) {
+            _menu_page=1-_menu_page;return event::redraw;
+        }
         if(bn::keypad::left_pressed()) {
-            _menu_selection=(_menu_selection+2)%3;
+            if(_menu_page)_craft_selection=(_craft_selection+2)%3;else _menu_selection=(_menu_selection+2)%3;
             return event::redraw;
         }
         if(bn::keypad::right_pressed()) {
-            _menu_selection=(_menu_selection+1)%3;
+            if(_menu_page)_craft_selection=(_craft_selection+1)%3;else _menu_selection=(_menu_selection+1)%3;
             return event::redraw;
         }
         if(bn::keypad::b_pressed()) {
@@ -94,6 +125,7 @@ town_scene::event town_scene::update(int& setup) {
             return event::menu_closed;
         }
         if(bn::keypad::a_pressed()) {
+            if(_menu_page)return event::craft_requested;
             setup=_menu_selection;
             _menu_open=false;
             return event::setup_applied;
@@ -114,30 +146,67 @@ town_scene::event town_scene::update(int& setup) {
 
     if(!bn::keypad::a_pressed()) return event::none;
     if(_place==place::exterior) {
-        if(_direction==3 && _inside({108,58,148,76},_x,_y)) {
+        if(_inside(dispatch_trigger,_x,_y)) {
+            _prompt.set_visible(false);
+            return event::contract_opened;
+        }
+        if(_inside(race_trigger,_x,_y)) {
+            _prompt.set_visible(false);
+            return event::race_opened;
+        }
+        if(_inside(garage_trigger,_x,_y)) {
+            _prompt.set_visible(false);
             _load(place::garage);
             return event::redraw;
         }
-        if(_direction==0 && _inside({105,228,153,256},_x,_y)) return event::return_to_world;
+        if(_inside(exterior_exit_trigger,_x,_y)) return event::return_to_world;
     } else {
-        if(_direction==0 && _inside({101,224,157,256},_x,_y)) {
-            _x=128;_y=67;
+        if(_inside(garage_exit_trigger,_x,_y)) {
+            _prompt.set_visible(false);
+            _x=128;_y=51;
             _load(place::exterior);
             return event::redraw;
         }
-        if(_direction==3 && _inside({91,76,173,94},_x,_y)) {
+        if(_inside(garage_counter_trigger,_x,_y)) {
             _menu_open=true;
             _menu_selection=setup;
+            _menu_page=0;
             _walk_ticks=0;
             _refresh_sprite();
             return event::menu_opened;
         }
+        if(_inside(garage_fitting_trigger,_x,_y)) {
+            _prompt.set_visible(false);_walk_ticks=0;_refresh_sprite();
+            return event::weapon_fitting_opened;
+        }
     }
     return event::none;
+}
+
+void town_scene::return_to_race_building() {
+    if(_place!=place::exterior)_load(place::exterior);
+    _x=146;_y=98;_direction=2;_walk_ticks=0;_refresh_sprite();
 }
 
 void town_scene::set_visible(bool visible) {
     _visible=visible;
     if(_background)_background->set_visible(visible);
     _player.set_visible(visible);
+    if(visible) _refresh_sprite();
+    else _prompt.set_visible(false);
+}
+
+void town_scene::suspend() {
+    _visible=false;_background.reset();_player.set_visible(false);_prompt.set_visible(false);
+}
+
+void town_scene::resume() {
+    if(!_background) {
+        _background=_place==place::exterior?bn::regular_bg_items::town_exterior.create_bg(0,0):
+                                            bn::regular_bg_items::garage_interior.create_bg(0,0);
+        _background->set_priority(3);
+    }
+    _visible=true;
+    _player.set_visible(true);
+    _refresh_sprite();
 }

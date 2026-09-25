@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from compile_recipe import LIBRARY_PATH, library_revision, validate_library
+from music_generator import MUSIC_PATH, generate as generate_music, revision as music_revision, validate_music
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,17 +26,50 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
-        if urlsplit(self.path).path == '/api/library':
+        request_path = urlsplit(self.path).path
+        if request_path == '/api/library':
             try:
                 data = LIBRARY_PATH.read_bytes()
                 self._json(200, {'revision': library_revision(data), 'library': json.loads(data)})
             except Exception as error:
                 self._json(500, {'error': str(error)})
             return
+        if request_path == '/api/music':
+            try:
+                data = MUSIC_PATH.read_bytes()
+                self._json(200, {'revision': music_revision(data), 'music': json.loads(data),
+                                 'preview': '/generated/music-preview.wav'})
+            except Exception as error:
+                self._json(500, {'error': str(error)})
+            return
         super().do_GET()
 
     def do_PUT(self):
-        if urlsplit(self.path).path != '/api/library':
+        request_path = urlsplit(self.path).path
+        if request_path == '/api/music':
+            try:
+                length = int(self.headers.get('Content-Length', '0'))
+                if length <= 0 or length > 256 * 1024:
+                    raise ValueError('Music request must be between 1 byte and 256 KiB')
+                request = json.loads(self.rfile.read(length))
+                current = MUSIC_PATH.read_bytes()
+                if request.get('revision') != music_revision(current):
+                    self._json(409, {'error': 'The music source changed on disk. Reload before saving.'})
+                    return
+                music = validate_music(request.get('music'))
+                encoded = (json.dumps(music, indent=2) + '\n').encode('utf8')
+                temporary = MUSIC_PATH.with_suffix('.json.tmp')
+                temporary.write_bytes(encoded)
+                os.replace(temporary, MUSIC_PATH)
+                generate_music()
+                self._json(200, {'revision': music_revision(encoded), 'music': music,
+                                 'preview': '/generated/music-preview.wav'})
+            except (ValueError, TypeError, json.JSONDecodeError) as error:
+                self._json(400, {'error': str(error)})
+            except Exception as error:
+                self._json(500, {'error': str(error)})
+            return
+        if request_path != '/api/library':
             self._json(404, {'error': 'Unknown endpoint'})
             return
         try:
@@ -77,5 +111,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8765)
     args = parser.parse_args()
-    print(f'Dustline Map Workshop: http://127.0.0.1:{args.port}', flush=True)
+    print(f'Dustline Workshop: http://127.0.0.1:{args.port} (maps) /music.html (music)', flush=True)
     ThreadingHTTPServer(('127.0.0.1', args.port), partial(Handler)).serve_forever()

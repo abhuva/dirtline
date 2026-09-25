@@ -12,6 +12,11 @@ fixed clamp(fixed v, fixed lo, fixed hi) { return v<lo ? lo : v>hi ? hi : v; }
 // Butano's default multiply discards half the fractional bits. Retain all
 // fractional precision for small forces and repeated velocity projections.
 fixed mul(fixed a,fixed b) { return a.safe_multiplication(b); }
+fixed triangle_wave(int phase) {
+    const int p=phase&63;
+    const int value=p<16?p:p<48?32-p:p-64;
+    return fixed(value)/16;
+}
 }
 
 int surface_at(int x, int y) {
@@ -26,12 +31,14 @@ bool can_drive(int x,int y) {
     return true;
 }
 
-void Car::step(Input input, int setup_index) {
-    const Setup& setup = setups[setup_index];
+void Car::step(Input input, const Setup& setup) {
     mass=setup.mass;
     hit=false;
     if(collision_cooldown) --collision_cooldown;
-    surface=surface_at(x.integer(), y.integer());
+    const auto terrain=world_map::terrain_at(x.integer(),y.integer());
+    surface=terrain.surface;
+    material_id=terrain.material;
+    material=terrain.kind;
     fixed c=bn::degrees_lut_cos(heading), s=bn::degrees_lut_sin(heading);
     fixed forward=mul(vx,c)+mul(vy,s);
     fixed lateral=-mul(vx,s)+mul(vy,c);
@@ -55,27 +62,56 @@ void Car::step(Input input, int setup_index) {
     fixed previous_forward=forward;
     if(input.brake) {
         // B brakes first, then becomes reverse once forward motion stops.
-        if(forward>fixed(0.08)) forward-=fixed(0.09);
+        if(forward>fixed(0.08)) forward-=setup.brake_force;
         else if(forward>-fixed(1.10)) forward=bn::max(forward-fixed(0.028),-fixed(1.10));
     } else if(input.throttle && forward<=setup.max_speed) {
         forward+=setup.acceleration;
     }
-    // Coasting is useful but does not erase momentum instantly.
-    fixed drag = input.throttle ? fixed(0.006) : fixed(0.014);
+    // Powered rolling resistance stays fixed. Neutral coasting and the active
+    // brake are separate tuning controls so lifting off cannot replace B.
+    fixed drag=input.throttle || input.brake?fixed(0.006):setup.coast_drag;
     if(surface==0) drag+=fixed(0.045);
     else if(surface==2) drag+=fixed(0.008);
+    if(material==0)drag+=fixed(0.004);
     forward=mul(forward,1-drag);
     // The engine limit must not erase speed imparted by an external impact.
     if(previous_forward<=setup.max_speed && forward>setup.max_speed) forward=setup.max_speed;
     if(!input.throttle && !input.brake && absf(forward)<fixed(0.018)) forward=0;
 
-    // A limited lateral force gives slides a beginning and a recoverable end.
-    // Coasting increases the available cornering grip; dirt reduces it.
+    // Material character is deliberately separate from generic firm/loose grip:
+    // sand slowly wanders and retains slides, gravel chatters, hardpan gives a
+    // smaller rumble, and road remains stable. The triangle wave is deterministic
+    // and much cheaper than random noise on the GBA.
     fixed grip=setup.grip;
+    fixed lateral_response=fixed(0.24);
+    const fixed terrain_motion=clamp(speed/fixed(2),0,1);
+    fixed disturbance=0;
+    terrain_rumble=0;
+    if(material==0) {
+        terrain_phase+=1+speed.integer()/3;
+        grip=mul(grip,fixed(0.58));
+        lateral_response=fixed(0.10);
+        disturbance=mul(triangle_wave(terrain_phase),mul(terrain_motion,fixed(0.018)));
+    } else if(material==1) {
+        terrain_phase+=5+speed.integer();
+        grip=mul(grip,fixed(0.80));
+        lateral_response=fixed(0.18);
+        const fixed wave=triangle_wave(terrain_phase);
+        disturbance=mul(wave,mul(terrain_motion,fixed(0.006)));
+        terrain_rumble=mul(wave,terrain_motion);
+    } else if(material==2) {
+        terrain_phase+=7+speed.integer();
+        grip=mul(grip,fixed(0.95));
+        lateral_response=fixed(0.22);
+        const fixed wave=triangle_wave(terrain_phase);
+        disturbance=mul(wave,mul(terrain_motion,fixed(0.0025)));
+        terrain_rumble=mul(wave,mul(terrain_motion,fixed(0.50)));
+    }
+    lateral+=disturbance;
     if(!input.throttle) grip=mul(grip,fixed(1.40));
     if(surface==2) grip=mul(grip,fixed(0.66));
     if(surface==0) grip=mul(grip,fixed(0.72));
-    fixed correction=clamp(mul(lateral,fixed(0.24)),-grip,grip);
+    fixed correction=clamp(mul(lateral,lateral_response),-grip,grip);
     lateral-=correction;
     vx=mul(forward,c)-mul(lateral,s);
     vy=mul(forward,s)+mul(lateral,c);

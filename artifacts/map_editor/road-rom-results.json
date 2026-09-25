@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "eac2e7a6b1d4074fbac317fbf48dcfbcf622af46ae54d2fed820f377ff7fa534",
+  "rom_sha256": "afe1c6fc153bc7b69461b4c506e7478c6d1e238703778d1fc64b2e3906cfc986",
   "checks": [
     {
       "name": "Road recipe allocates ground and connection grids",
@@ -7,9 +7,19 @@
       "details": 12368
     },
     {
-      "name": "Road ROM terrain matches exported full-map render",
+      "name": "HUD material uses the same road-aware sample as driving",
       "passed": true,
-      "details": 1.0
+      "details": {
+        "material": 2,
+        "shown": 2,
+        "kind": 2,
+        "texture": 2
+      }
+    },
+    {
+      "name": "Road ROM terrain matches exported full-map render",
+      "passed": false,
+      "details": 0.0
     },
     {
       "name": "Driving surface follows rendered material at every sampled frame",
@@ -22,30 +32,106 @@
     {
       "name": "Controller route crosses generated road overlay",
       "passed": true,
-      "details": 13
+      "details": 151
+    },
+    {
+      "name": "Road overlay updates the HUD label and removes terrain rumble",
+      "passed": true,
+      "details": {
+        "label_match": true,
+        "rough_rumble": 0.46875,
+        "road_rumble": 0
+      }
     },
     {
       "name": "Road driving stays within frame budget",
-      "passed": true,
+      "passed": false,
       "details": {
-        "max_cpu": 0.88427734375,
-        "missed": 0
+        "max_cpu": 0.961669921875,
+        "missed": 1
       }
     },
     {
       "name": "Moving camera keeps roads aligned with full-map render",
-      "passed": true,
-      "details": 1.0
+      "passed": false,
+      "details": 0.0
     },
     {
-      "name": "Leaving wasteland releases road and material grids",
+      "name": "Changing catalog map replaces the active generated layout",
       "passed": true,
-      "details": 0
+      "details": {
+        "magic": 1146442580,
+        "frame": 408,
+        "mode": 1,
+        "setup": 1,
+        "x": 4160.0,
+        "y": 4176.0,
+        "vx": 0.0,
+        "vy": 0.0,
+        "heading": 0.0,
+        "slip": 0.0,
+        "surface": 2,
+        "lap_frames": 2,
+        "best": 0,
+        "laps": 0,
+        "gate": 0,
+        "collisions": 0,
+        "cpu": 0.4296875,
+        "missed": 1,
+        "camera_x": 4160,
+        "camera_y": 4170,
+        "vblank": 0.14208984375,
+        "uploaded_bytes": 0,
+        "bg_bytes": 24576,
+        "sprite_free_bytes": 26560,
+        "map": 0,
+        "width": 8192,
+        "height": 8192,
+        "chunk": 528,
+        "tile_capacity": 192,
+        "unique_tiles": 180,
+        "renderer_working_ram_bytes": 13948,
+        "chunk_loads": 0,
+        "chunk_decodes": 0,
+        "chunk_cache_bytes": 0,
+        "minimap_x": 86,
+        "minimap_y": 46,
+        "seed": 12648431,
+        "signature": 2788965649,
+        "generations": 2,
+        "town": -1,
+        "town_x": 4416,
+        "town_y": 4176,
+        "layout_bytes": 17524,
+        "scratch_bytes": 45136,
+        "free_ewram": 178776,
+        "floor_cells": 1460,
+        "generation_updates": 396,
+        "town_visits": 0,
+        "radar_x": 4096,
+        "radar_y": 4096,
+        "radar_revisions": 1,
+        "zoom_level": 0,
+        "radar_scale": 128,
+        "loading_progress": 100,
+        "tune_acceleration": 0.052978515625,
+        "tune_max_speed": 3.199951171875,
+        "tune_grip": 0.119873046875,
+        "tune_steer": 2.89990234375,
+        "tune_mass": 1100,
+        "tune_selection": 0,
+        "tune_coast": 0.0009765625,
+        "tune_brake": 0.08984375,
+        "material_id": 1,
+        "material_kind": 1,
+        "shown_material": 1,
+        "terrain_rumble": 0.0
+      }
     },
     {
       "name": "Restart regenerates road overlay consistently",
-      "passed": true,
-      "details": 1.0
+      "passed": false,
+      "details": 0.0
     }
   ]
 }

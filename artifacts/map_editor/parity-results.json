@@ -3,5 +3,5 @@
   "legacySeeds": 128,
   "nativeWasmByteParity": true,
   "graphValidation": true,
-  "wasmSha256": "fa7add1a0c2c99d4d2f484852ea5cded11e6b04890e175a202c12cc724241a55"
+  "wasmSha256": "70dc678ea98eebaa6e62cf217f92efe2adc8ba8e7b7585fd3104f7c6f9225507"
 }

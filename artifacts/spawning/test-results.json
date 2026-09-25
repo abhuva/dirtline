@@ -1,39 +1,48 @@
 {
-  "rom_sha256": "fe178830fa15911f309abdfa73b29a0f181a5ea2f95ad5317eb8592554ca16e6",
+  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
   "emulator": "libmGBA (Debian bookworm)",
   "checks": [
     {
-      "name": "World-wide encounter anchors are reachable, sparse and lightweight",
+      "name": "World-wide profiled encounter anchors are reachable, sparse and lightweight",
       "passed": true,
       "details": {
-        "points": 163,
-        "ram": 4732,
+        "points": 61,
+        "profiles": [
+          0,
+          1,
+          2
+        ],
+        "ram": 5064,
         "record_bytes": 12
       }
     },
     {
-      "name": "Kill starts one 1800-frame encounter cooldown",
+      "name": "Kill starts its authored profile cooldown",
       "passed": true,
       "details": {
         "x": 4264,
         "y": 4176,
-        "ready_at": 1852,
+        "ready_at": 1848,
         "slot": -1,
-        "hp": 0
+        "hp": 0,
+        "profile": 0,
+        "reward_rolls": 1
       }
     },
     {
-      "name": "Cooldown blocks immediate respawn; visible anchor stays empty after expiry",
+      "name": "Authored cooldown blocks immediate respawn; visible anchor stays empty after expiry",
       "passed": true,
       "details": {
         "point": {
           "x": 4264,
           "y": 4176,
-          "ready_at": 1852,
+          "ready_at": 1848,
           "slot": -1,
-          "hp": 0
+          "hp": 0,
+          "profile": 0,
+          "reward_rolls": 1
         },
-        "ticks": 1934
+        "ticks": 1930
       }
     },
     {
@@ -161,6 +170,22 @@
             53,
             39
           ]
+        ],
+        "route_end": [
+          {
+            "goal": 9,
+            "goals": 9,
+            "x": 6822.511962890625,
+            "y": 5075.11376953125,
+            "heading": 354.99560546875
+          },
+          {
+            "goal": 10,
+            "goals": 10,
+            "x": 4185.66943359375,
+            "y": 4175.977783203125,
+            "heading": 179.1826171875
+          }
         ]
       }
     },
@@ -169,31 +194,22 @@
       "passed": true,
       "details": {
         "peak_active": 5,
-        "unique_encounters": 16,
-        "spawned": 21
+        "unique_encounters": 7,
+        "spawned": 11
       }
     },
     {
       "name": "Distant cars despawn without counting as kills and retain HP",
       "passed": true,
       "details": {
-        "despawned": 15,
+        "despawned": 5,
         "kills": 1,
         "departed": [
           1,
-          87,
-          88,
-          89,
-          91,
-          101,
-          102,
-          104,
-          105,
-          114,
-          115,
-          116,
-          126,
-          127
+          34,
+          35,
+          40,
+          41
         ]
       }
     },
@@ -203,15 +219,17 @@
       "details": {
         "returned": [
           1,
-          88,
-          102
+          35,
+          41
         ],
         "victim": {
           "x": 4264,
           "y": 4176,
-          "ready_at": 1852,
-          "slot": -1,
-          "hp": 0
+          "ready_at": 0,
+          "slot": 1,
+          "hp": 3,
+          "profile": 0,
+          "reward_rolls": 1
         }
       }
     },
@@ -224,7 +242,7 @@
       "name": "Spawn streaming fits measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.77978515625,
+        "cpu": 0.900146484375,
         "missed": 0
       }
     },
@@ -241,7 +259,9 @@
         "y": 4176,
         "ready_at": 0,
         "slot": 0,
-        "hp": 2
+        "hp": 2,
+        "profile": 0,
+        "reward_rolls": 0
       }
     },
     {
@@ -255,7 +275,9 @@
           "y": 4176,
           "ready_at": 0,
           "slot": 1,
-          "hp": 2
+          "hp": 2,
+          "profile": 0,
+          "reward_rolls": 0
         }
       }
     },
@@ -263,156 +285,30 @@
       "name": "Damaged-survivor streaming route stays within frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.83154296875,
+        "cpu": 0.86376953125,
         "missed": 0
       }
     },
     {
-      "name": "L cycles five weapons once per press without changing vehicle setup",
-      "passed": true,
-      "details": [
-        1,
-        2,
-        3,
-        4,
-        0
-      ]
-    },
-    {
-      "name": "Side guns fire both perpendicular directions together",
+      "name": "R fires the fitted front gun and both side guns together",
       "passed": true,
       "details": {
-        "shots": [
-          {
-            "x": 4160.0,
-            "y": 4156.0,
-            "remaining": 114,
-            "hostile": false
-          },
-          {
-            "x": 4160.0,
-            "y": 4196.0,
-            "remaining": 114,
-            "hostile": false
-          }
-        ],
-        "weapon": {
-          "selected": 2,
-          "saw": false,
-          "saw_x": 0.0,
-          "saw_y": 0.0,
-          "guidance": 0,
-          "explosions": 0,
-          "shots": [
-            0,
-            0,
-            2,
-            0,
-            0
-          ],
-          "hits": [
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
-          "missiles": [
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            }
-          ],
-          "traps": [
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "Side salvos remain in the bounded shared projectile pool",
-      "passed": true,
-      "details": [
-        0,
-        0,
-        32,
-        0,
-        0
-      ]
-    },
-    {
-      "name": "Chainsaw is a short circle ahead and does not create bullets",
-      "passed": true,
-      "details": {
-        "selected": 1,
-        "saw": true,
-        "saw_x": 4184.0,
-        "saw_y": 4176.0,
+        "selected": 2,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
         "guidance": 0,
         "explosions": 0,
+        "mask": 13,
+        "settings_panel": 1,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 98,
+        "max_energy": 100,
         "shots": [
-          0,
           1,
           0,
+          2,
           0,
           0
         ],
@@ -423,6 +319,10 @@
           0,
           0
         ],
+        "front": 0,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
         "missiles": [
           {
             "x": 0.0,
@@ -494,177 +394,166 @@
       }
     },
     {
-      "name": "Chainsaw deals two HP per contact pulse and destroys a nearby car",
+      "name": "The side mount fires in opposite perpendicular directions",
+      "passed": true,
+      "details": [
+        {
+          "x": 4160.0,
+          "y": 4156.0,
+          "remaining": 114,
+          "hostile": false
+        },
+        {
+          "x": 4160.0,
+          "y": 4196.0,
+          "remaining": 114,
+          "hostile": false
+        }
+      ]
+    },
+    {
+      "name": "L has no map-play loadout function and does not pause simulation",
       "passed": true,
       "details": {
-        "hp": [
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
+        "selected": 2,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
+        "guidance": 0,
+        "explosions": 0,
+        "mask": 13,
+        "settings_panel": 1,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 98,
+        "max_energy": 100,
+        "shots": [
           1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
+          0,
+          2,
+          0,
           0
         ],
-        "weapon": {
-          "selected": 1,
-          "saw": true,
-          "saw_x": 4220.057861328125,
-          "saw_y": 4176.0,
-          "guidance": 0,
-          "explosions": 0,
-          "shots": [
-            0,
-            6,
-            0,
-            0,
-            0
-          ],
-          "hits": [
-            0,
-            2,
-            0,
-            0,
-            0
-          ],
-          "missiles": [
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            }
-          ],
-          "traps": [
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            }
-          ]
-        }
+        "hits": [
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "front": 0,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
       }
     },
     {
-      "name": "Releasing R stops the chainsaw immediately",
-      "passed": true,
-      "details": null
-    },
-    {
-      "name": "Missile launches ahead before acquiring a target",
+      "name": "B independently fires the fitted top special without firing normal mounts",
       "passed": true,
       "details": {
         "selected": 3,
         "saw": false,
-        "saw_x": 4220.057861328125,
-        "saw_y": 4176.0,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
         "guidance": 0,
         "explosions": 0,
+        "mask": 13,
+        "settings_panel": 1,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 92,
+        "max_energy": 100,
         "shots": [
-          10,
+          0,
           0,
           0,
           1,
           0
         ],
         "hits": [
-          3,
+          0,
           0,
           0,
           0,
           0
         ],
+        "front": 0,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
         "missiles": [
           {
-            "x": 4182.0,
+            "x": 4179.25,
             "y": 4176.0,
-            "vx": 4.0,
+            "vx": 1.25,
             "vy": 0.0,
             "remaining": 149,
             "age": 1,
@@ -731,240 +620,72 @@
       }
     },
     {
-      "name": "Missile acquires the closest living enemy after its launch delay",
+      "name": "The default garage missile launches straight, then acquires a target",
       "passed": true,
       "details": {
-        "selected": 3,
-        "saw": false,
-        "saw_x": 4220.057861328125,
-        "saw_y": 4176.0,
-        "guidance": 1,
-        "explosions": 0,
-        "shots": [
-          10,
-          0,
-          0,
-          1,
-          0
-        ],
-        "hits": [
-          3,
-          0,
-          0,
-          0,
-          0
-        ],
-        "missiles": [
-          {
-            "x": 4202.427734375,
-            "y": 4177.7978515625,
-            "vx": -3.572265625,
-            "vy": 1.7978515625,
-            "remaining": 142,
-            "age": 8,
-            "target": 1,
-            "heading": 153.43505859375,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "vx": 0.0,
-            "vy": 0.0,
-            "remaining": 0,
-            "age": 0,
-            "target": -1,
-            "heading": 0.0,
-            "explosion": 0
-          }
-        ],
-        "traps": [
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          }
-        ]
-      }
-    },
-    {
-      "name": "Homing direction is refreshed every six ticks",
-      "passed": true,
-      "details": {
-        "selected": 3,
-        "saw": false,
-        "saw_x": 4220.057861328125,
-        "saw_y": 4176.0,
-        "guidance": 2,
-        "explosions": 0,
-        "shots": [
-          10,
-          0,
-          0,
-          1,
-          0
-        ],
-        "hits": [
-          3,
-          0,
-          0,
-          0,
-          0
-        ],
-        "missiles": [
-          {
-            "x": 4181.2890625,
-            "y": 4189.080078125,
-            "vx": -3.27734375,
-            "vy": 2.29296875,
-            "remaining": 136,
-            "age": 14,
-            "target": 1,
-            "heading": 145.17333984375,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "vx": 0.0,
-            "vy": 0.0,
-            "remaining": 0,
-            "age": 0,
-            "target": -1,
-            "heading": 0.0,
-            "explosion": 0
-          }
-        ],
-        "traps": [
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          }
-        ]
-      }
-    },
-    {
-      "name": "Homing missiles deal lethal damage and never exceed two active rockets",
-      "passed": true,
-      "details": {
-        "max_live": 2,
+        "missile": {
+          "x": 4188.875,
+          "y": 4176.0,
+          "vx": 1.46875,
+          "vy": 0.0,
+          "remaining": 142,
+          "age": 8,
+          "target": 0,
+          "heading": 0.0,
+          "explosion": 0
+        },
         "weapon": {
           "selected": 3,
           "saw": false,
-          "saw_x": 4220.057861328125,
-          "saw_y": 4176.0,
-          "guidance": 37,
+          "saw_x": 0.0,
+          "saw_y": 0.0,
+          "guidance": 1,
           "explosions": 0,
+          "mask": 13,
+          "settings_panel": 1,
+          "garage_slot": 0,
+          "car_type": 0,
+          "energy": 92,
+          "max_energy": 100,
           "shots": [
-            10,
             0,
             0,
-            7,
+            0,
+            1,
             0
           ],
           "hits": [
-            3,
             0,
             0,
-            5,
+            0,
+            0,
             0
           ],
+          "front": 0,
+          "side": 2,
+          "special": 3,
+          "inventory_open": false,
           "missiles": [
             {
-              "x": 4186.0,
+              "x": 4188.875,
               "y": 4176.0,
-              "vx": 4.0,
+              "vx": 1.46875,
               "vy": 0.0,
-              "remaining": 148,
-              "age": 2,
-              "target": -1,
+              "remaining": 142,
+              "age": 8,
+              "target": 0,
               "heading": 0.0,
               "explosion": 0
             },
             {
-              "x": 3944.0673828125,
-              "y": 4232.19921875,
-              "vx": -3.9091796875,
-              "vy": 0.83984375,
-              "remaining": 76,
-              "age": 74,
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
               "target": -1,
-              "heading": 167.969970703125,
+              "heading": 0.0,
               "explosion": 0
             }
           ],
@@ -1016,115 +737,46 @@
       }
     },
     {
-      "name": "Trap is laid behind the car with a short arming delay",
+      "name": "Energy is a centered amber segmented arc along the minimap bottom",
       "passed": true,
       "details": {
-        "selected": 4,
-        "saw": false,
-        "saw_x": 4220.057861328125,
-        "saw_y": 4176.0,
-        "guidance": 0,
-        "explosions": 0,
-        "shots": [
-          0,
-          0,
-          0,
-          0,
-          1
-        ],
-        "hits": [
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "missiles": [
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "vx": 0.0,
-            "vy": 0.0,
-            "remaining": 0,
-            "age": 0,
-            "target": -1,
-            "heading": 0.0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "vx": 0.0,
-            "vy": 0.0,
-            "remaining": 0,
-            "age": 0,
-            "target": -1,
-            "heading": 0.0,
-            "explosion": 0
-          }
-        ],
-        "traps": [
-          {
-            "x": 4138.0,
-            "y": 4176.0,
-            "remaining": 899,
-            "arm": 17,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          },
-          {
-            "x": 0.0,
-            "y": 0.0,
-            "remaining": 0,
-            "arm": 0,
-            "explosion": 0
-          }
-        ]
+        "energy": 54,
+        "amber_pixels": 116,
+        "mirrored": 425
       }
     },
     {
-      "name": "Trap remains stationary and does not trigger on its owner",
+      "name": "Settings freezes fitted weapons, projectiles and all weapon timers",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Pause freezes both weapon triggers",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "A new run restores the three default garage fittings and clears attacks",
       "passed": true,
       "details": {
-        "selected": 4,
+        "selected": 0,
         "saw": false,
-        "saw_x": 4220.057861328125,
-        "saw_y": 4176.0,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
         "guidance": 0,
         "explosions": 0,
+        "mask": 13,
+        "settings_panel": 1,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 100,
+        "max_energy": 100,
         "shots": [
           0,
           0,
           0,
           0,
-          1
+          0
         ],
         "hits": [
           0,
@@ -1133,6 +785,10 @@
           0,
           0
         ],
+        "front": 0,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
         "missiles": [
           {
             "x": 0.0,
@@ -1159,9 +815,9 @@
         ],
         "traps": [
           {
-            "x": 4138.0,
-            "y": 4176.0,
-            "remaining": 879,
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
             "arm": 0,
             "explosion": 0
           },
@@ -1204,134 +860,12 @@
       }
     },
     {
-      "name": "Enemy contact detonates a stationary trap and applies blast damage",
+      "name": "Grouped weapon fire fits the measured driving frame budget",
       "passed": true,
       "details": {
-        "max_traps": 2,
-        "weapon": {
-          "selected": 4,
-          "saw": false,
-          "saw_x": 4220.057861328125,
-          "saw_y": 4176.0,
-          "guidance": 0,
-          "explosions": 1,
-          "shots": [
-            0,
-            0,
-            0,
-            0,
-            2
-          ],
-          "hits": [
-            0,
-            0,
-            0,
-            0,
-            1
-          ],
-          "missiles": [
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "vx": 0.0,
-              "vy": 0.0,
-              "remaining": 0,
-              "age": 0,
-              "target": -1,
-              "heading": 0.0,
-              "explosion": 0
-            }
-          ],
-          "traps": [
-            {
-              "x": 4138.0,
-              "y": 4176.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 24
-            },
-            {
-              "x": 4153.2373046875,
-              "y": 4176.0,
-              "remaining": 880,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            },
-            {
-              "x": 0.0,
-              "y": 0.0,
-              "remaining": 0,
-              "arm": 0,
-              "explosion": 0
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "Trap pool never exceeds six objects",
-      "passed": true,
-      "details": 2
-    },
-    {
-      "name": "Settings pauses weapon selection, traps and all weapon timers",
-      "passed": true,
-      "details": null
-    },
-    {
-      "name": "Pause freezes weapons and selection",
-      "passed": true,
-      "details": null
-    },
-    {
-      "name": "Switching weapon keeps an already deployed trap",
-      "passed": true,
-      "details": null
-    },
-    {
-      "name": "New runs reset the loadout and clear every weapon pool",
-      "passed": true,
-      "details": null
-    },
-    {
-      "name": "New weapons fit the measured driving frame budget",
-      "passed": true,
-      "details": {
-        "cpu": 0.656494140625,
-        "missed": 0,
-        "ram": 4732
+        "cpu": 0.812744140625,
+        "missed": 1,
+        "ram": 5064
       }
     }
   ]

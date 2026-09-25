@@ -7,7 +7,7 @@
 static mapgen::workspace work;
 static enemy_spawns original,a,b;
 static decoration_layout decor;
-static uint8_t field[4096];
+static uint8_t field[4096],types[4096];
 int main() {
     using namespace mapgen;
     node output{op::spawns,-1,-1,-1,8,{258,128,1}};
@@ -20,14 +20,17 @@ int main() {
     r=execute(converted,2,42,work);
     assert(r.status==error::ok && r.type==kind::field);
     for(int i=0;i<4096;++i)assert(r.data[i]==work.buffers[0][i]*255);
+    node typed[]{ {op::field_fill,-1,-1,-1,0,{255}}, {op::field_fill,-1,-1,-1,0,{2}},
+                  {op::spawns,0,1,-1,8,{8,128,0}} };
+    r=execute(typed,3,42,work);assert(r.status==error::ok && r.auxiliary);
     for(unsigned seed=0;seed<32;++seed) {
         execute(default_nodes,3,seed,work);original.generate(work.layout);
-        a.generate_recipe(work.layout,nullptr,258,128,true,9);
+        a.generate_recipe(work.layout,nullptr,nullptr,258,128,true,9);
         assert(a.count==original.count);
         for(int i=0;i<a.count;++i)assert(a.points[i].x==original.points[i].x && a.points[i].y==original.points[i].y);
-        std::memset(field,0,sizeof(field));a.generate_recipe(work.layout,field,258,128,true,9);assert(!a.count);
+        std::memset(field,0,sizeof(field));a.generate_recipe(work.layout,field,nullptr,258,128,true,9);assert(!a.count);
         for(int i=0;i<4096;++i)field[i]=i%64>=32?255:0;
-        a.generate_recipe(work.layout,field,30,512,false,9);b.generate_recipe(work.layout,field,30,512,false,9);
+        a.generate_recipe(work.layout,field,nullptr,30,512,false,9);b.generate_recipe(work.layout,field,nullptr,30,512,false,9);
         assert(a.count<=30 && a.count>0 && a.count==b.count);
         for(int i=0;i<a.count;++i){
             assert(a.points[i].x>=4096 && a.points[i].x==b.points[i].x && a.points[i].y==b.points[i].y);
@@ -35,10 +38,13 @@ int main() {
         }
     }
     execute(default_nodes,3,42,work);work.roads.generate(work.layout,work.scratch,160,3);
+    std::memset(field,255,sizeof(field));for(int i=0;i<4096;++i)types[i]=uint8_t((i/64)/22);
+    a.generate_recipe(work.layout,field,types,40,128,false,11);assert(a.count>0);
+    for(int i=0;i<a.count;++i)assert(a.points[i].profile==types[(a.points[i].y/128)*64+a.points[i].x/128]);
     for(int i=0;i<4096;++i)field[i]=i%64>=32?255:1;
     int high_weight=0;
     for(unsigned stream=1;stream<=128;++stream){
-        a.generate_recipe(work.layout,field,1,128,false,stream);assert(a.count==1);
+        a.generate_recipe(work.layout,field,nullptr,1,128,false,stream);assert(a.count==1);
         high_weight+=a.points[0].x>=4096;
     }
     assert(high_weight>120); // Probability magnitude matters, beyond nonzero masking.

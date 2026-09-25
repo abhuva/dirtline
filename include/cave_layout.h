@@ -128,8 +128,12 @@ public:
     }
     int nearby_town(int x,int y) const {
         for(int t=0;t<town_count;++t) {
-            int dx=x-_towns[t].x,dy=y-_towns[t].y;
-            if(abs(dx)<64 && abs(dy)<64 && dx*dx+dy*dy<64*64) return t;
+            // Town points sit at the road entrance along the artwork's south
+            // edge. Centre the interaction circle on the visible settlement,
+            // so it is reached symmetrically from every approach direction.
+            constexpr int radius=72;
+            int dx=x-_towns[t].x,dy=y-(_towns[t].y-32);
+            if(abs(dx)<radius && abs(dy)<radius && dx*dx+dy*dy<radius*radius) return t;
         }
         return -1;
     }

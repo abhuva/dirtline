@@ -1,5 +1,5 @@
 // Tile references come from the same C++ selector used in the ROM.
-export function renderOverview(tileMap, art, step=4, decorations=null, spawns=null) {
+export function renderOverview(tileMap, art, step=4, decorations=null, spawns=null, spawnTypes=null, spawnProfiles=null) {
   const tileSize=8/step, side=1024*tileSize, pixels=new Uint8ClampedArray(side*side*4);
   const colors=new Uint8ClampedArray(art.tiles.length/64*tileSize*tileSize*4);
   for(let tile=0;tile<art.tiles.length/64;++tile)for(let y=0;y<tileSize;++y)for(let x=0;x<tileSize;++x){
@@ -31,7 +31,9 @@ export function renderOverview(tileMap, art, step=4, decorations=null, spawns=nu
   }
   if(spawns)for(let i=0;i<spawns.length;i+=2){
     const cx=Math.floor(spawns[i]/step),cy=Math.floor(spawns[i+1]/step),r=Math.max(2,Math.floor(12/step));
-    for(let d=-r;d<=r;++d)for(const [x,y] of [[cx+d,cy],[cx,cy+d]])if(x>=0&&y>=0&&x<side&&y<side)pixels.set([240,64,64,255],(y*side+x)*4);
+    const color=spawnProfiles?.find(profile=>profile.id==spawnTypes?.[i/2])?.color??'#f04040';
+    const rgb=[1,3,5].map(offset=>parseInt(color.slice(offset,offset+2),16));
+    for(let d=-r;d<=r;++d)for(const [x,y] of [[cx+d,cy],[cx,cy+d]])if(x>=0&&y>=0&&x<side&&y<side)pixels.set([...rgb,255],(y*side+x)*4);
   }
   return {pixels,side};
 }
@@ -47,7 +49,7 @@ function chunk(type,data){
   view.setUint32(out.length-4,(crc^0xffffffff)>>>0);return out;
 }
 // Stream indexed PNG rows without allocating an 8192-square RGBA canvas.
-export async function renderFullPng(tileMap,art,onProgress=()=>{},decorations=null,spawns=null) {
+export async function renderFullPng(tileMap,art,onProgress=()=>{},decorations=null,spawns=null,spawnTypes=null,spawnProfiles=null) {
   const size=8192,compression=new CompressionStream('deflate'),writer=compression.writable.getWriter();
   const compressed=new Response(compression.readable).arrayBuffer();
   for(let ty=0;ty<1024;++ty){
@@ -60,8 +62,10 @@ export async function renderFullPng(tileMap,art,onProgress=()=>{},decorations=nu
     }
     if(spawns)for(let i=0;i<spawns.length;i+=2){
       const cx=spawns[i],cy=spawns[i+1];
+      const color=spawnProfiles?.find(profile=>profile.id==spawnTypes?.[i/2])?.color??'#f04040',rgb=[1,3,5].map(offset=>parseInt(color.slice(offset,offset+2),16));
+      let palette=15,best=Infinity;for(let p=0;p<art.palette.length/3;++p){const d=(art.palette[p*3]-rgb[0])**2+(art.palette[p*3+1]-rgb[1])**2+(art.palette[p*3+2]-rgb[2])**2;if(d<best){best=d;palette=p;}}
       for(let y=ty*8;y<ty*8+8;++y)if(Math.abs(y-cy)<=12)
-        for(let dx=-12;dx<=12;++dx)if((Math.abs(dx)<=1 || Math.abs(y-cy)<=1)&&cx+dx>=0&&cx+dx<size)stripe[(y-ty*8)*(size+1)+1+cx+dx]=15;
+        for(let dx=-12;dx<=12;++dx)if((Math.abs(dx)<=1 || Math.abs(y-cy)<=1)&&cx+dx>=0&&cx+dx<size)stripe[(y-ty*8)*(size+1)+1+cx+dx]=palette;
     }
     await writer.write(stripe);
     if(ty%32===0)onProgress(Math.round(ty/1024*100));

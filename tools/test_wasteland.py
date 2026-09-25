@@ -37,12 +37,15 @@ class Reference:
         self.towns=[struct.unpack_from('<2I',data,32+i*8) for i in range(6)]
         self.render_refs=struct.unpack_from('<1048576H',data,8272)
         self.layout_bytes=4168+(4096 if material_arg!='-' else 0)+(4104 if world[-1][0]==16 else 0)
-        self.layout_bytes+=(1036 if placements[0]!='-' else 0)+(4120 if placements[1]!='-' else 0)
+        # Spawn locations retain a byte-sized profile ID beside each XY anchor.
+        self.layout_bytes+=(1296 if placements[0]!='-' else 0)+(4120 if placements[1]!='-' else 0)
         offset=8272+1048576*2+4
         self.decoration=data[offset:offset+1048576]
         count=struct.unpack_from('<I',data,offset+1048576)[0]
         self.spawns=[struct.unpack_from('<HH',data,offset+1048576+4+i*4) for i in range(count)]
-        self.decoration_art=json.loads((api.ROOT/'tools/map_editor/generated/art.json').read_text())['decoration']
+        art_data=json.loads((api.ROOT/'tools/map_editor/generated/art.json').read_text())
+        bank=art_data['banks'][art_data['mapBanks'][maps[api.state()['map']]['id']]]
+        self.decoration_art=bank['decoration']
         self.roads=set()
         if world[-1][0]==16:
             towns=[(x//128,y//128) for x,y in self.towns];root=towns[0]
@@ -56,9 +59,7 @@ class Reference:
             for at in towns[1:]:
                 while at is not None:
                     self.roads.add(at);at=parents[at]
-        art=(api.OUT/'wasteland/art-refs.bin').read_bytes()
-        self.refs=struct.unpack_from('<224H',art); self.tiles=art[448:]
-        self.palette=(api.OUT/'wasteland/palette.bin').read_bytes()
+        self.refs=bank['refs'];self.tiles=bytes(bank['tiles']);self.palette=bytes(bank['palette'])
 
     def wall(self,x,y):
         return not(0<=x<self.columns and 0<=y<self.columns) or self.cells[y*self.columns+x]!=0
@@ -93,7 +94,8 @@ class Reference:
 def check_hud_radar(t,ref,prefix):
     t.step(0,80); s=t.state(); enemies=t.combat_state()['enemies']; t.step()
     combat_mask=t.combat_pixel_mask(s)
-    scale=s['radar_scale']
+    scale=s['radar_scale'];center_x=120+s['minimap_x'];center_y=80+s['minimap_y']
+    sprite_left=center_x-32;sprite_top=center_y-32
     image=t.Image.frombytes('RGBA',(240,160),t.C.string_at(t.lib.emulator_pixels(),240*160*4)).convert('RGB')
     def close(actual,expected): return max(abs(a-b) for a,b in zip(actual,expected))<=8
     # Former second HUD row and bottom control strip must now show the world.
@@ -112,13 +114,17 @@ def check_hud_radar(t,ref,prefix):
     for e in enemies:
         ex=int(e['x'])//scale-s['radar_x']//scale
         ey=int(e['y'])//scale-s['radar_y']//scale
-        if e['hp']>0 and ex*ex+ey*ey<=24**2:
-            red_pixels.update((206+ex+dx,126+ey+dy) for dx in (-1,0) for dy in (-1,0))
+        if e['hp']>0 and ex*ex+ey*ey<=19**2:
+            red_pixels.update((center_x+ex+dx,center_y+ey+dy) for dx in (-1,0) for dy in (-1,0))
     enemy_matches=[]
     for y in range(64):
         for x in range(64):
-            sx,sy=174+x,94+y
-            if abs(sx-(120+s['minimap_x']))<4 and abs(sy-(80+s['minimap_y']))<4:continue
+            sx,sy=sprite_left+x,sprite_top+y
+            if not (0<=sx<240 and 0<=sy<160):continue
+            if abs(sx-center_x)<4 and abs(sy-center_y)<4:continue
+            # The weapon medallion and centered energy bar intentionally replace the
+            # clipped pole segments and overlap a few overview pixels.
+            if (x-32)**2+(y-(32-25))**2<=9**2 or (abs(x-32)<=22 and abs(y-(32+25))<=4):continue
             if (sx,sy) in red_pixels:
                 enemy_matches.append(close(image.getpixel((sx,sy)),(232,88,56)))
                 continue
@@ -126,23 +132,22 @@ def check_hud_radar(t,ref,prefix):
             cy=(s['radar_y']+(y-32)*scale)//128
             color=4 if (cx,cy) in towns else 2 if ref.wall(cx,cy) else 3 if (cx,cy) in ref.roads else 1
             d=(x-32)**2+(y-32)**2
-            if d<=26**2:expected=colors[color]
-            elif d<=28**2:expected=colors[2]
-            elif d<=29**2:expected=colors[1]
-            else:
+            if d<=20**2:expected=colors[color]
+            elif d>28**2:
                 if combat_mask(sx,sy):continue
                 expected=ref.getpixel((s['camera_x']-120+sx,s['camera_y']-80+sy))
                 corners.append(close(image.getpixel((sx,sy)),expected))
+            else:continue
             matches.append(close(image.getpixel((sx,sy)),expected))
     t.check(prefix+' overview matches all logical wall/floor/road cells and town dots',all(matches),sum(matches)/len(matches))
     t.check(prefix+' circular overview corners show the underlying scene',bool(corners) and all(corners),sum(corners)/len(corners))
     t.check(prefix+' living enemies have red dots at their current map coordinates',
             all(enemy_matches),dict(pixels=len(enemy_matches),matched=sum(enemy_matches)))
-    t.check(prefix+' image follows the player at every zoom without changing logical cells',
-            scale==128>>s['zoom_level'] and s['radar_x']==int(s['x'])//scale*scale and
+    t.check(prefix+' image follows the player at the fixed 2x scale without changing logical cells',
+            scale==64 and s['zoom_level']==1 and s['radar_x']==int(s['x'])//scale*scale and
             s['radar_y']==int(s['y'])//scale*scale,s)
-    t.check(prefix+' player marker stays centered at every zoom',
-            s['minimap_x']==86 and s['minimap_y']==46,s)
+    t.check(prefix+' player marker stays centered in the compact HUD',
+            s['minimap_x']==89 and s['minimap_y']==46,s)
 
 
 
@@ -202,8 +207,8 @@ def run(t):
         original=town['setup'];t.tap(t.R);t.tap(t.L)
         t.check(prefix+' driving controls do not change setup while walking',t.state()['setup']==original,t.state())
 
-        # Walk around the central rock island to the north garage door.
-        t.step(t.UP,30);t.step(t.RIGHT,40);t.step(t.UP,180);t.step(t.LEFT,40);t.tap(t.UP);t.tap(t.A);t.step(0,8)
+        # Follow the new town's straight central street to the north garage.
+        t.step(t.UP,200);t.tap(t.UP);t.tap(t.A);t.step(0,8)
         garage=t.town_state();t.capture(f'wasteland/{prefix}-garage')
         t.check(prefix+' garage door loads a separate walkable interior',
                 t.state()['mode']==4 and garage['place']==1 and garage['x']==128 and garage['y']==228,garage)
@@ -211,7 +216,7 @@ def run(t):
         # The counter stops the player at the mechanic interaction distance.
         t.step(t.UP,180);at_counter=t.town_state();t.tap(t.A);menu=t.town_state()
         t.capture(f'wasteland/{prefix}-garage-menu')
-        t.check(prefix+' garage collision stops at the mechanic counter',76<=at_counter['y']<=94,at_counter)
+        t.check(prefix+' garage collision stops at the mechanic counter',72<=at_counter['y']<=78,at_counter)
         t.check(prefix+' mechanic opens the setup menu',menu['menu'] and menu['selection']==original,menu)
         t.tap(t.RIGHT);candidate=t.town_state();t.tap(t.A);fitted=t.state()
         expected_setup=(original+1)%3
@@ -220,13 +225,17 @@ def run(t):
                 not t.town_state()['menu'],dict(candidate=candidate,state=fitted))
 
         # Leave through both physical doors and return to the preserved car.
-        t.step(t.DOWN,150);t.tap(t.A);exterior=t.town_state()
+        t.step(t.DOWN,170);t.tap(t.A);exterior=t.town_state()
         t.check(prefix+' garage exit returns to the same town',exterior['place']==0 and
-                exterior['x']==128 and exterior['y']==67,exterior)
-        t.step(t.RIGHT,40);t.step(t.DOWN,135);t.step(t.LEFT,40);t.step(t.DOWN,35);t.tap(t.A)
+                exterior['x']==128 and exterior['y']==51,exterior)
+        t.step(t.DOWN,190);t.tap(t.A)
         held=t.state();t.step(0,20);after=t.state()
         t.check(prefix+' return restores exact stopped position and same world',after['mode']==1 and
-                all(after[k]==before[k]==held[k] for k in ('seed','signature','generations','x','y','heading')),after)
+                all(after[k]==before[k]==held[k] for k in ('seed','signature','generations','x','y')) and
+                abs(t.angle_delta(after['heading'],before['heading']))>179 and
+                abs(t.angle_delta(after['heading'],before['heading']))<181,after)
+        t.check(prefix+' return faces the car away from the town',
+                abs(t.angle_delta(after['heading'],before['heading']))>179,after)
         t.check(prefix+' chosen vehicle setup survives the town return',after['setup']==expected_setup,after['setup'])
         t.check(prefix+' return restores terrain allocation',after['tile_capacity']==before['tile_capacity'] and
                 after['bg_bytes']<before['bg_bytes'] and after['bg_bytes']>4096,after)
@@ -262,6 +271,23 @@ def run(t):
     declined=[t.step(0) for _ in range(60)]
     t.check('Declining town entry suppresses repeat popup after simulation resumes',
             all(s['mode']==1 and s['seed']==before['seed'] and s['generations']==before['generations'] for s in declined),declined[-1])
+    # Reverse across the radial boundary, then approach the same town again.
+    # The prompt must re-arm at the circle edge rather than after an arbitrary
+    # extra cooldown or a large axis-aligned escape distance.
+    left_zone=False
+    for _ in range(180):
+        s=t.step(t.DOWN)
+        dx=s['x']-s['town_x'];dy=s['y']-(s['town_y']-32)
+        if dx*dx+dy*dy>=74*74:
+            left_zone=True;break
+    t.check('Leaving the circular town approach immediately rearms it',left_zone,t.state())
+    returned_to_circle=False
+    for _ in range(240):
+        if t.step(t.A)['mode']==3:
+            returned_to_circle=True;break
+    t.check('Returning across the same town circle immediately shows the prompt',
+            returned_to_circle,t.state())
+    if returned_to_circle:t.tap(t.B)
     # Restart fixed mode through the map menu; Select now opens settings.
     t.reset(); approach(); returned=visit('fixed')
     t.reset(); approach(); again=visit('repeat')

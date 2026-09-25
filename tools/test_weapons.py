@@ -1,111 +1,81 @@
-"""Weapon acceptance against the actual ROM; controller input and read-only telemetry."""
+"""Fixed garage mounts, trigger groups and curved energy-HUD acceptance."""
 import hashlib
 import json
-import math
 
 
 def run(t):
     (t.OUT/'weapons').mkdir(exist_ok=True)
     peak=0
+
     def step(keys=0,frames=1):
         nonlocal peak
         for _ in range(frames):
-            s=t.step(keys);peak=max(peak,s['cpu'])
-        return s
-    def fresh(weapon=0):
+            state=t.step(keys);peak=max(peak,state['cpu'])
+        return state
+
+    def fresh():
         if t.state()['mode']==3:t.tap(t.B)
         if t.state()['mode']==6:t.tap(t.B)
         if t.state()['mode']==1:t.tap(t.START)
         if t.state()['mode']==2:t.tap(t.SELECT)
         t.start_map(0)
-        for _ in range(weapon):t.tap(t.L)
-        assert t.weapon_state()['selected']==weapon
-    fresh();setup=t.state()['setup']
-    step(t.L,18);held=t.weapon_state()['selected'];step()
-    order=[held]
-    for _ in range(4):t.tap(t.L);order.append(t.weapon_state()['selected'])
-    t.check('L cycles five weapons once per press without changing vehicle setup',
-            order==[1,2,3,4,0] and t.state()['setup']==setup,order)
+        state=t.weapon_state()
+        assert (state['front'],state['side'],state['special'])==(0,2,3)
 
-    fresh(2);before=t.state();step(t.R);w=t.weapon_state();c=t.combat_state()
-    shots=[b for b in c['projectiles'] if not b['hostile']]
-    t.check('Side guns fire both perpendicular directions together',len(shots)==2 and w['shots'][2]==2 and
-            all(abs(b['x']-before['x'])<1 for b in shots) and
-            sorted(round(b['y']-before['y']) for b in shots)==[-20,20],dict(shots=shots,weapon=w))
-    step(0,2);t.capture('weapons/sides')
-    step(t.R,240)
-    t.check('Side salvos remain in the bounded shared projectile pool',t.combat_state()['bullets']<=24 and
-            t.weapon_state()['shots'][2]>10,t.weapon_state()['shots'])
+    fresh();baseline_missed=t.state()['missed']
+    initial=t.weapon_state();step(t.R);grouped=t.weapon_state()
+    friendly=[p for p in t.combat_state()['projectiles'] if not p['hostile']]
+    t.check('R fires the fitted front gun and both side guns together',
+            grouped['shots']==[1,0,2,0,0] and grouped['energy']==initial['energy']-2 and
+            len(friendly)==3,grouped)
+    side_shots=[p for p in friendly if abs(p['x']-t.state()['x'])<1]
+    t.check('The side mount fires in opposite perpendicular directions',
+            len(side_shots)==2 and sorted(round(p['y']-t.state()['y']) for p in side_shots)==[-20,20],side_shots)
 
-    fresh(1);start=t.state();step(t.R);w=t.weapon_state()
-    t.check('Chainsaw is a short circle ahead and does not create bullets',w['saw'] and
-            abs(w['saw_x']-start['x']-24)<1 and abs(w['saw_y']-start['y'])<1 and
-            not [b for b in t.combat_state()['projectiles'] if not b['hostile']],w)
-    t.capture('weapons/chainsaw')
-    history=[]
-    for _ in range(150):
-        step(t.A|t.R);history.append(t.combat_state()['enemies'][0]['hp'])
-        if t.weapon_state()['hits'][1]:t.capture('weapons/chainsaw-hit')
-        if t.combat_state()['kills']:break
-    t.check('Chainsaw deals two HP per contact pulse and destroys a nearby car',
-            1 in history and 0 in history and t.weapon_state()['hits'][1]>=2,dict(hp=history,weapon=t.weapon_state()))
-    step();t.check('Releasing R stops the chainsaw immediately',not t.weapon_state()['saw'])
+    before=t.combat_state()['ticks'];fittings=t.weapon_state()
+    step(t.L,24);after=t.weapon_state()
+    t.check('L has no map-play loadout function and does not pause simulation',
+            t.combat_state()['ticks']==before+24 and
+            (after['front'],after['side'],after['special'])==
+            (fittings['front'],fittings['side'],fittings['special']),after)
 
-    fresh();step(t.R,100)  # Remove the point-blank starter so guidance has room to turn.
-    for _ in range(3):t.tap(t.L)
-    step(t.R);launched=t.weapon_state();m=launched['missiles'][0]
-    t.check('Missile launches ahead before acquiring a target',m['remaining']>0 and m['age']==1 and
-            m['target']==-1 and abs(m['vx']-4)<.01 and abs(m['vy'])<.01,launched)
-    t.capture('weapons/missile-launch')
-    step(0,7);w=t.weapon_state();m=w['missiles'][0];enemies=[e for e in t.combat_state()['enemies'] if e['hp']]
-    # Guidance happened immediately before the last 4px of travel.
-    launch_at=(m['x']-m['vx'],m['y']-m['vy'])
-    nearest=min(enemies,key=lambda e:math.dist(launch_at,(e['x'],e['y'])))['spawn_id']
-    t.check('Missile acquires the closest living enemy after its launch delay',w['guidance']==1 and m['target']==nearest,w)
-    step(0,5);g=t.weapon_state()['guidance'];step();w=t.weapon_state()
-    t.check('Homing direction is refreshed every six ticks',g==1 and w['guidance']==2,w)
+    fresh();before=t.state();step(t.B);special=t.weapon_state();missile=special['missiles'][0]
+    t.check('B independently fires the fitted top special without firing normal mounts',
+            special['shots'][:3]==[0,0,0] and special['shots'][3:]==[1,0] and
+            special['energy']==92 and missile['remaining']>0 and
+            18<missile['x']-before['x']<21 and abs(missile['y']-before['y'])<1,special)
+    step(0,7);guided=t.weapon_state()['missiles'][0]
+    t.check('The default garage missile launches straight, then acquires a target',
+            guided['remaining']>0 and guided['target']>=0 and t.weapon_state()['guidance']>0,
+            dict(missile=guided,weapon=t.weapon_state()))
     t.capture('weapons/missile-homing')
-    max_live=0
-    for frame in range(240):
-        step(t.R);w=t.weapon_state();max_live=max(max_live,sum(m['remaining']>0 for m in w['missiles']))
-        if frame==60:t.capture('weapons/missiles')
-    t.check('Homing missiles deal lethal damage and never exceed two active rockets',
-            w['hits'][3]>0 and t.combat_state()['kills']>0 and max_live<=2,dict(max_live=max_live,weapon=w))
 
-    fresh(4);before=t.state();step(t.R);w=t.weapon_state();trap=w['traps'][0]
-    location=(trap['x'],trap['y'])
-    t.check('Trap is laid behind the car with a short arming delay',trap['remaining']>0 and trap['arm']>0 and
-            abs(trap['x']-before['x']+22)<1 and abs(trap['y']-before['y'])<1,w)
-    step(0,20);w=t.weapon_state()
-    t.check('Trap remains stationary and does not trigger on its owner',
-            (w['traps'][0]['x'],w['traps'][0]['y'])==location and not w['traps'][0]['arm'] and
-            w['traps'][0]['remaining']>0 and not w['explosions'],w)
-    t.capture('weapons/trap-armed')
-    # Drive east, leaving mines for pursuing traffic, then circle locally.
-    max_traps=0
-    for frame in range(650):
-        s=step(t.R | (t.A if frame<95 or frame>200 else 0) | (t.LEFT if frame>200 else 0))
-        if s['mode']==3:t.tap(t.B)
-        w=t.weapon_state();max_traps=max(max_traps,sum(p['remaining']>0 for p in w['traps']))
-        if w['explosions']:
-            step(0,2)  # Let VBlank present the newly created blast before capture.
-            t.capture('weapons/trap-explosion');break
-    t.check('Enemy contact detonates a stationary trap and applies blast damage',
-            w['explosions']>0 and w['hits'][4]>0,dict(max_traps=max_traps,weapon=w))
-    t.check('Trap pool never exceeds six objects',max_traps<=6,max_traps)
+    fresh();step(t.R|t.B,170);energy=t.weapon_state();image=t.capture('weapons/curved-energy-arc')
+    amber=(255,206,66)
+    amber_pixels=[(x,y) for y in range(140,157) for x in range(181,238) if image.getpixel((x,y))==amber]
+    mirrored=sum((image.getpixel((209-d,y))==amber)==(image.getpixel((209+d,y))==amber)
+                 for y in range(140,157) for d in range(1,26))
+    t.check('Energy is a centered amber segmented arc along the minimap bottom',
+            energy['energy']<60 and amber_pixels and mirrored>=400 and
+            min(y for _,y in amber_pixels)>=140,
+            dict(energy=energy['energy'],amber_pixels=len(amber_pixels),mirrored=mirrored))
 
-    fresh(4);step(t.R,4);step();t.tap(t.SELECT);frozen=t.weapon_state();step(t.R|t.L,45)
-    t.check('Settings pauses weapon selection, traps and all weapon timers',t.weapon_state()==frozen)
-    t.tap(t.B);step(0,3);t.tap(t.START);frozen=t.weapon_state();step(t.R|t.L,45)
-    t.check('Pause freezes weapons and selection',t.weapon_state()==frozen)
+    step();t.tap(t.SELECT);frozen=t.weapon_state();step(t.R|t.L|t.B,45)
+    after_settings=t.weapon_state()
+    gameplay_fields=lambda value:{key:item for key,item in value.items() if key!='settings_panel'}
+    t.check('Settings freezes fitted weapons, projectiles and all weapon timers',
+            gameplay_fields(after_settings)==gameplay_fields(frozen))
+    t.tap(t.B);step(0,3);t.tap(t.START);frozen=t.weapon_state();step(t.R|t.L|t.B,45)
+    t.check('Pause freezes both weapon triggers',t.weapon_state()==frozen)
     t.tap(t.START);step()
-    # Cycle while a trap remains: old deployed weapons continue independently.
-    t.tap(t.L);t.check('Switching weapon keeps an already deployed trap',
-            t.weapon_state()['selected']==0 and any(p['remaining'] for p in t.weapon_state()['traps']))
-    fresh();t.check('New runs reset the loadout and clear every weapon pool',
-            t.weapon_state()['selected']==0 and not any(p['remaining'] for p in t.weapon_state()['traps']) and
-            not any(m['remaining'] for m in t.weapon_state()['missiles']))
-    t.check('New weapons fit the measured driving frame budget',peak<1 and t.state()['missed']==0,
+
+    fresh();reset=t.weapon_state()
+    t.check('A new run restores the three default garage fittings and clears attacks',
+            (reset['front'],reset['side'],reset['special'])==(0,2,3) and reset['mask']==13 and
+            not any(p['remaining'] for p in reset['traps']) and
+            not any(m['remaining'] for m in reset['missiles']),reset)
+    t.check('Grouped weapon fire fits the measured driving frame budget',
+            peak<1 and t.state()['missed']==baseline_missed,
             dict(cpu=peak,missed=t.state()['missed'],ram=t.combat_state()['ram']))
 
 

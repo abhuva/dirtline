@@ -2,7 +2,7 @@
 #include "decoration_layout.h"
 #include "wasteland.h"
 #include "world_map.h"
-#include "generated/decoration_art.h"
+#include "generated/wasteland_art.h"
 #include "bn_regular_bg_tiles_item.h"
 #include "bn_regular_bg_tiles_ptr.h"
 #include "bn_regular_bg_map_item.h"
@@ -15,7 +15,9 @@ decoration_view* decoration_view::_active=nullptr;
 
 decoration_view::decoration_view() :
     _map(bn::regular_bg_map_ptr::allocate(bn::size(64,32),
-        bn::regular_bg_tiles_ptr::create(bn::regular_bg_tiles_item(bn::span<const bn::tile>(decoration_art::tiles),bn::bpp_mode::BPP_4,bn::compression_type::NONE)),
+        bn::regular_bg_tiles_ptr::create(bn::regular_bg_tiles_item(
+            bn::span<const bn::tile>(wasteland_art::banks[wasteland::art_bank()].decoration_tiles,17),
+            bn::bpp_mode::BPP_4,bn::compression_type::NONE)),
         bn::bg_palette_ptr::create(bn::bg_palette_item(bn::span<const bn::color>(world_map::palette()+224,16),bn::bpp_mode::BPP_4)))),
     _bg(bn::regular_bg_ptr::create(_map)) {
     for(auto& p:_positions)p=0xffffffff;

@@ -1,5 +1,6 @@
 #include "combat_view.h"
 #include "bn_sprite_items_car.h"
+#include "bn_sprite_items_car_enemy_gun.h"
 #include "bn_sprite_items_combat_bullet.h"
 #include "bn_sprite_items_combat_hp.h"
 #include "bn_sprite_items_combat_burst.h"
@@ -7,7 +8,9 @@
 #include "bn_sprite_items_weapon_missile.h"
 #include "bn_sprite_items_weapon_trap.h"
 #include "bn_sprite_items_weapon_blast.h"
-#include "bn_sprite_items_weapon_icons.h"
+#include "bn_sprite_items_salvage_pickup.h"
+#include "bn_sprite_items_car_sand_buggy.h"
+#include "bn_sprite_items_car_truck.h"
 #include "bn_sprite_palette_ptr.h"
 #include "bn_color.h"
 #include "bn_core.h"
@@ -20,11 +23,14 @@ combat_view::combat_view() {
     for(int i=0;i<combat::enemy_count;++i) {
         _cars[i]=bn::sprite_items::car.create_sprite(0,0);
         _cars[i]->set_palette(palette); _cars[i]->set_bg_priority(1); _cars[i]->set_z_order(0);
+        _mounts[i]=bn::sprite_items::car_enemy_gun.create_sprite(0,0);
+        _mounts[i]->set_palette(palette); _mounts[i]->set_bg_priority(1); _mounts[i]->set_z_order(-1);
         _hp[i]=bn::sprite_items::combat_hp.create_sprite(0,0);
-        _hp[i]->set_bg_priority(1); _hp[i]->set_z_order(-1);
+        _hp[i]->set_bg_priority(1); _hp[i]->set_z_order(-2);
         _bursts[i]=bn::sprite_items::combat_burst.create_sprite(0,0);
-        _bursts[i]->set_bg_priority(1); _bursts[i]->set_z_order(-2);
-        _cars[i]->set_visible(false); _hp[i]->set_visible(false); _bursts[i]->set_visible(false);
+        _bursts[i]->set_bg_priority(1); _bursts[i]->set_z_order(-3);
+        _cars[i]->set_visible(false); _mounts[i]->set_visible(false);
+        _hp[i]->set_visible(false); _bursts[i]->set_visible(false);
         bn::core::update(); // Scene loading, never charge allocation to driving.
     }
     for(auto& b:_bullets) {
@@ -40,21 +46,26 @@ combat_view::combat_view() {
     for(int i=0;i<combat::trap_count;++i) {
         prepare(_traps[i],bn::sprite_items::weapon_trap);prepare(_trap_bursts[i],bn::sprite_items::weapon_blast);
     }
-    prepare(_saw,bn::sprite_items::weapon_saw);prepare(_weapon_icon,bn::sprite_items::weapon_icons);
-    _weapon_icon->set_bg_priority(0);_weapon_icon->set_position(108,-74);
+    for(auto& pickup:_pickups)prepare(pickup,bn::sprite_items::salvage_pickup);
+    prepare(_saw,bn::sprite_items::weapon_saw);
     bn::core::update();
 }
 void combat_view::update(const combat::World& world,int cx,int cy,bool visible) {
     for(int i=0;i<combat::enemy_count;++i) {
         const auto& e=world.enemies[i]; int x=e.car.x.integer()-cx,y=e.car.y.integer()-cy;
         bool on=visible && x>-140 && x<140 && y>-90 && y<96;
-        _cars[i]->set_visible(on && e.hp>0 && (!e.flash || e.flash%4<2));
+        bool car_visible=on && e.hp>0 && (!e.flash || e.flash%4<2);
+        _cars[i]->set_visible(car_visible);_mounts[i]->set_visible(car_visible && e.archetype!=spawn_profiles::enemy::scout);
         _hp[i]->set_visible(on && e.hp>0 && y>-54);
         _bursts[i]->set_visible(on && e.explosion>0);
         if(on) {
             if(e.hp>0) {
-                _cars[i]->set_position(x,y);
-                _cars[i]->set_tiles(bn::sprite_items::car.tiles_item(),((e.car.heading*64/360).integer()+64)%64);
+                int direction=((e.car.heading*64/360).integer()+64)%64;
+                _cars[i]->set_position(x,y);_mounts[i]->set_position(x,y);
+                if(e.archetype==spawn_profiles::enemy::scout)_cars[i]->set_tiles(bn::sprite_items::car_sand_buggy.tiles_item(),direction);
+                else if(e.archetype==spawn_profiles::enemy::heavy)_cars[i]->set_tiles(bn::sprite_items::car_truck.tiles_item(),direction);
+                else _cars[i]->set_tiles(bn::sprite_items::car.tiles_item(),direction);
+                _mounts[i]->set_tiles(bn::sprite_items::car_enemy_gun.tiles_item(),direction);
                 _hp[i]->set_position(x,y-19);
                 _hp[i]->set_tiles(bn::sprite_items::combat_hp.tiles_item(),e.hp-1);
             }
@@ -90,6 +101,10 @@ void combat_view::update(const combat::World& world,int cx,int cy,bool visible) 
         effect(*_traps[i],x,y,t.remaining>0,bn::sprite_items::weapon_trap.tiles_item(),!t.arm && (world.ticks/12)%2);
         effect(*_trap_bursts[i],x,y,t.explosion>0,bn::sprite_items::weapon_blast.tiles_item(),(24-t.explosion)/6);
     }
-    _weapon_icon->set_visible(visible);
-    if(visible)_weapon_icon->set_tiles(bn::sprite_items::weapon_icons.tiles_item(),int(world.weapon));
+    int pickup_sprite=0;
+    for(const auto& pickup:world.pickups)if(pickup.remaining && pickup_sprite<pickup_sprite_count) {
+        int x=pickup.x.integer()-cx,y=pickup.y.integer()-cy;
+        effect(*_pickups[pickup_sprite++],x,y,true,bn::sprite_items::salvage_pickup.tiles_item(),pickup.kind);
+    }
+    while(pickup_sprite<pickup_sprite_count)_pickups[pickup_sprite++]->set_visible(false);
 }

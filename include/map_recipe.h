@@ -35,6 +35,9 @@ struct result {
     error status=error::ok;
     int failed_node=-1,peak_buffers=0;
     const uint8_t* data=nullptr;
+    // Placement branches can carry a second, categorical field. For spawns
+    // this is the profile ID sampled at each selected anchor.
+    const uint8_t* auxiliary=nullptr;
     kind type=kind::mask;
     bool fallback=false;
 };
@@ -61,14 +64,15 @@ inline error validate(const node* nodes,int count) {
             n.operation==op::field_paint || n.operation==op::materials || n.operation==op::roads || n.operation==op::mask_field;
         bool binary=n.operation==op::combine || n.operation==op::blend;
         if(n.a<-1 || n.b<-1 || n.mask<-1 || n.a>=i || n.b>=i || n.mask>=i) return error::input;
-        if((!placement && (unary || binary)!=(n.a>=0)) || binary!=(n.b>=0)) return error::input;
+        if((!placement && (unary || binary)!=(n.a>=0)) ||
+           (n.operation!=op::spawns && binary!=(n.b>=0))) return error::input;
         if(n.mask>=0 && n.operation!=op::cellular && n.operation!=op::blend && n.operation!=op::field_paint) return error::input;
         if(n.operation==op::field_paint && n.mask<0) return error::input;
         kind expected=n.operation==op::roads?kind::world:
             placement || n.operation==op::threshold || n.operation==op::blend || n.operation==op::field_lut ||
             n.operation==op::field_paint || n.operation==op::materials?kind::field:kind::mask;
         if(n.a>=0 && output_kind(nodes[n.a].operation)!=expected) return error::type;
-        if(n.b>=0 && output_kind(nodes[n.b].operation)!=expected) return error::type;
+        if(n.b>=0 && output_kind(nodes[n.b].operation)!=(n.operation==op::spawns?kind::field:expected)) return error::type;
         if(n.mask>=0 && output_kind(nodes[n.mask].operation)!=kind::mask) return error::type;
         if((n.operation==op::world || n.operation==op::roads) && i!=count-1 &&
            (nodes[i+1].operation!=op::roads || nodes[i+1].a!=i)) return error::type;
@@ -193,6 +197,7 @@ inline result execute(const node* nodes,int count,uint32_t seed,workspace& work,
         switch(n.operation) {
         case op::spawns: case op::decoration:
             for(int at=0;at<cells;++at)out[at]=a?a[at]:255;
+            if(n.operation==op::spawns) r.auxiliary=b;
             break;
         case op::field_fill: for(int at=0;at<cells;++at)out[at]=uint8_t(p[0]);break;
         case op::mask_field: for(int at=0;at<cells;++at)out[at]=a[at]?255:0;break;

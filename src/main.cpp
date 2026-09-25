@@ -9,13 +9,23 @@
 #include "bn_vector.h"
 #include "bn_sound_items.h"
 #include "bn_sound_handle.h"
+#include "bn_sound.h"
+#include "bn_music.h"
 #include "bn_optional.h"
 #include "bn_array.h"
 #include "bn_regular_bg_items_title.h"
 #include "bn_sprite_items_car.h"
+#include "bn_sprite_items_car_sand_buggy.h"
+#include "bn_sprite_items_car_old.h"
+#include "bn_sprite_items_car_truck.h"
+#include "bn_sprite_items_car_pickup.h"
+#include "bn_sprite_items_car_loadout.h"
 #include "bn_sprite_items_font.h"
 #include "bn_sprite_items_particles.h"
 #include "bn_sprite_items_dot.h"
+#include "bn_sprite_items_mission_dot.h"
+#include "bn_sprite_items_race_gate.h"
+#include "bn_sprite_items_race_flag.h"
 #include "driving.h"
 #include "terrain_streamer.h"
 #include "bn_unique_ptr.h"
@@ -35,20 +45,81 @@
 #include "combat_view.h"
 #include "decoration_view.h"
 #include "town_scene.h"
+#include "weapon_fitting_scene.h"
+#include "mission.h"
+#include "blueprints.h"
+#include "race.h"
+#include "adaptive_music.h"
 
 // Read-only telemetry for emulator regression tests; not a gameplay backdoor.
 extern "C" {
 // Diagnostic buffers belong in EWRAM; keep the small IWRAM stack available
 // for rendering/physics calls rather than reserving it for debug snapshots.
-BN_DATA_EWRAM_BSS volatile int dustline_telemetry[54];
+BN_DATA_EWRAM_BSS volatile int dustline_telemetry[66];
 BN_DATA_EWRAM_BSS volatile int dustline_combat_telemetry[240];
-BN_DATA_EWRAM_BSS volatile int dustline_weapon_telemetry[72];
-BN_DATA_EWRAM_BSS volatile int dustline_town_telemetry[8];
+BN_DATA_EWRAM_BSS volatile int dustline_weapon_telemetry[78];
+BN_DATA_EWRAM_BSS volatile int dustline_town_telemetry[10];
+BN_DATA_EWRAM_BSS volatile int dustline_mission_telemetry[16];
+BN_DATA_EWRAM_BSS volatile int dustline_race_telemetry[80];
+BN_DATA_EWRAM_BSS volatile int dustline_music_telemetry[16];
+BN_DATA_EWRAM_BSS volatile int dustline_progression_telemetry[16];
 }
 
 namespace {
 using bn::fixed;
 fixed clamp(fixed v,fixed lo,fixed hi) { return v<lo?lo:v>hi?hi:v; }
+void adjust_tuning(driving::Setup& tuning,int property,int direction) {
+    switch(property) {
+    case 0:
+        tuning.acceleration=clamp(tuning.acceleration+fixed(0.005)*direction,0,fixed(0.5));
+        break;
+    case 1:
+        tuning.max_speed=clamp(tuning.max_speed+fixed(0.1)*direction,fixed(0.25),fixed(12));
+        break;
+    case 2:
+        tuning.grip=clamp(tuning.grip+fixed(0.005)*direction,0,fixed(1));
+        break;
+    case 3:
+        tuning.steer=clamp(tuning.steer+fixed(0.1)*direction,0,fixed(12));
+        break;
+    case 4:
+        tuning.coast_drag=clamp(tuning.coast_drag+fixed(0.001)*direction,0,fixed(0.05));
+        break;
+    case 5:
+        tuning.brake_force=clamp(tuning.brake_force+fixed(0.01)*direction,0,fixed(0.3));
+        break;
+    default:
+        tuning.mass=bn::max(100,bn::min(10000,tuning.mass+100*direction));
+        break;
+    }
+}
+constexpr int vehicle_type_count=5;
+constexpr int settings_panel_count=2;
+constexpr int audio_row_count=3;
+constexpr int handling_row_count=9;
+constexpr int handling_battery_row=7;
+constexpr int handling_car_row=handling_row_count-1;
+constexpr int race_radar_marker_count=1;
+constexpr int race_world_marker_linger_frames=60;
+constexpr const char* vehicle_names[vehicle_type_count]={
+    "ROAD","BUGGY","OLD","TRUCK","PICKUP"
+};
+constexpr int battery_count=3;
+constexpr int battery_capacities[battery_count]={70,100,150};
+constexpr int battery_mass[battery_count]={-100,0,200};
+constexpr const char* battery_names[battery_count]={"CMP","STD","LRG"};
+template<int MaxSize>
+void append_fixed(bn::string<MaxSize>& output,fixed value,int decimals) {
+    int scale=1;
+    for(int index=0;index<decimals;++index)scale*=10;
+    const int scaled=(value*scale+fixed(0.5)).integer();
+    output+=bn::to_string<8>(scaled/scale);
+    if(decimals) {
+        output+='.';
+        const int fraction=scaled%scale;
+        for(int divisor=scale/10;divisor;divisor/=10)output+=char('0'+(fraction/divisor)%10);
+    }
+}
 constexpr int camera_lead_x_limit=80,camera_lead_y_limit=48;
 constexpr fixed camera_lead_x_scale=22,camera_lead_y_scale=16,camera_lead_response=fixed(0.12);
 constexpr auto font_widths=[] {
@@ -103,70 +174,130 @@ int main() {
     car_sprite.set_z_order(-1);
     car_sprite.set_bg_priority(1);
     car_sprite.set_visible(false);
+    auto car_loadout_sprite=bn::sprite_items::car_loadout.create_sprite(0,0);
+    car_loadout_sprite.set_z_order(-2);
+    car_loadout_sprite.set_bg_priority(1);
+    car_loadout_sprite.set_visible(false);
     auto minimap_dot=bn::sprite_items::dot.create_sprite(0,0);
     minimap_dot.set_bg_priority(0);
     minimap_dot.set_z_order(-3);
     minimap_dot.set_visible(false);
+    auto mission_marker=bn::sprite_items::mission_dot.create_sprite(0,0);
+    mission_marker.set_bg_priority(0);
+    mission_marker.set_z_order(-4);
+    mission_marker.set_visible(false);
+    auto race_world_marker=bn::sprite_items::race_gate.create_sprite(0,0);
+    race_world_marker.set_bg_priority(1);
+    race_world_marker.set_z_order(-3);
+    race_world_marker.set_visible(false);
+    auto race_left_flag=bn::sprite_items::race_flag.create_sprite(0,0);
+    race_left_flag.set_bg_priority(1);race_left_flag.set_z_order(-2);race_left_flag.set_visible(false);
+    auto race_right_flag=bn::sprite_items::race_flag.create_sprite(0,0);
+    race_right_flag.set_bg_priority(1);race_right_flag.set_z_order(-2);race_right_flag.set_visible(false);
+    race_right_flag.set_horizontal_flip(true);
+    bn::vector<bn::sprite_ptr,race_radar_marker_count> race_radar_markers;
     bn::sprite_text_generator text(font);
     text.set_bg_priority(0);
     text.set_z_order(-3);
     bn::vector<bn::sprite_ptr,48> hud_text;
     bn::vector<bn::sprite_ptr,48> loading_text;
-    bn::vector<bn::sprite_ptr,12> speed_text;
-    bn::vector<bn::sprite_ptr,12> surface_text;
-    bn::vector<bn::sprite_ptr,16> vitality_text;
-    bn::string<12> shown_speed_line;
-    int shown_surface=-1,shown_hp=-1,shown_shield=-1;
-    bn::vector<bn::sprite_ptr,8> weapon_text;
-    int shown_weapon=-1;
+    int shown_surface=-1;
+    bn::vector<bn::sprite_ptr,12> race_text;
     bn::array<Mark,24> marks;
     int next_mark=0;
     driving::Car car;
     fixed camera_lead_x=0,camera_lead_y=0,camera_x=car.x,camera_y=car.y-6;
-    int state=0; // title=0, driving=1, pause=2, confirm=3, town=4, loading=5, settings=6, wrecked=7
-    int zoom_level=0,settings_return=1;
-    int setup=1;
+    int state=0; // title=0, driving=1, pause=2, confirm=3, town=4, loading=5, settings=6, wrecked=7, fitting=8
+    int settings_return=1;
+    int setup=1,car_type=0,battery_selection=1;
+    driving::Setup tuning=driving::setups[setup];
+    int settings_panel=0,tuning_selection=0,tuning_repeat=0,tuning_direction=0;
+    int audio_selection=0,music_volume=0,sound_volume=10;
+    bool master_muted=false;
     int selected_map=0;
     int lap_frames=0,best[3]={0,0,0},laps=0,checkpoint=0;
-    int frame=0,notice_frames=180,engine_tick=0;
+    int frame=0,notice_frames=180,engine_tick=0,engine_sustain=0;
+    int wild_return_frames=0,race_result_frames=0;
+    int race_world_linger_checkpoint=-1,race_world_linger_frames=0;
+    bool engine_throttle=false;
+    fixed engine_volume=0,engine_pitch=0;
     int missed=0;
     bn::optional<bn::sound_handle> engine;
     bn::unique_ptr<local_minimap> radar;
     int ignored_town=-1,current_town=-1,town_visits=0;
-    bool town_yes=false,button_guard=false;
+    bool town_yes=false,button_guard=false,contract_open=false,race_open=false;
+    int contract_selection=0,race_selection=0;
+    missions::manager mission_manager;
+    races::manager race_manager;
+    int scrap=0,duplicate_blueprints=0;
+    uint8_t blueprint_mask=0,crafted_mask=0;
+    adaptive_music music;
+    auto apply_audio=[&]() {
+        music.set_user_volume(fixed(music_volume)/10);
+        music.set_muted(master_muted);
+        bn::sound::set_master_volume(master_muted?fixed(0):fixed(sound_volume)/10);
+        if(master_muted || sound_volume==0) {
+            bn::sound::stop_all();
+            engine.reset();engine_tick=0;engine_sustain=0;engine_volume=0;
+        }
+    };
+    apply_audio();
     // Keep entity pools off the small IWRAM stack; allocation is once at boot.
     bn::unique_ptr<combat::World> combat_storage(new combat::World());
     auto& combat_world=*combat_storage;
     bn::unique_ptr<combat_view> combat_graphics;
     bn::unique_ptr<decoration_view> decorations;
     bn::unique_ptr<town_scene> town;
+    bn::unique_ptr<weapon_fitting_scene> fitting;
+    auto equipped_tuning=[&]() {
+        driving::Setup result=tuning;
+        result.mass=bn::max(100,tuning.mass+battery_mass[battery_selection]);
+        return result;
+    };
+    auto apply_battery=[&]() {
+        combat_world.set_max_energy(battery_capacities[battery_selection]);
+        car.mass=equipped_tuning().mass;
+    };
 
     auto reset=[&]() {
+        if(crafted_mask&(1<<1))tuning.acceleration-=fixed(0.006);
+        scrap=0;duplicate_blueprints=0;blueprint_mask=0;crafted_mask=0;
+        combat_world.set_salvage_magnet(false);combat_world.set_reinforced_plating(false);
         car=driving::Car();
         car.x=world_map::start_x(); car.y=world_map::start_y();
+        apply_battery();
         camera_lead_x=0;camera_lead_y=0;camera_x=car.x;camera_y=car.y-6;
         lap_frames=0; checkpoint=0; laps=0;
-        notice_frames=180;
+        notice_frames=180;wild_return_frames=0;race_result_frames=0;
+        race_world_linger_checkpoint=-1;race_world_linger_frames=0;
         for(auto& mark:marks) { mark.life=0; mark.sprite.set_visible(false); }
         if(engine && engine->active()) engine->stop();
-        engine.reset(); engine_tick=0;
+        engine.reset(); engine_tick=0;engine_sustain=0;engine_volume=0;
         ignored_town=-1; current_town=-1;
         combat_world.reset(car,true,spawn_loading_update);
+        mission_manager.reset(wasteland::layout().seed());
+        race_manager.reset(wasteland::layout().seed());
+        contract_open=false;contract_selection=0;race_open=false;race_selection=0;
+        fitting.reset();
     };
 
     auto unload_scene=[&]() {
         town.reset();
+        fitting.reset();
         decorations.reset();
         radar.reset(); overlay.reset(); hud.reset(); track.reset();
         combat_graphics.reset(); combat_world.clear_bullets();
-        car_sprite.set_visible(false); minimap_dot.set_visible(false);
+        car_sprite.set_visible(false);car_loadout_sprite.set_visible(false);
+        minimap_dot.set_visible(false);mission_marker.set_visible(false);race_world_marker.set_visible(false);
+        race_left_flag.set_visible(false);race_right_flag.set_visible(false);
+        for(auto& marker:race_radar_markers)marker.set_visible(false);
+        race_radar_markers.clear();
         for(auto& mark:marks) { mark.life=0; mark.sprite.set_visible(false); }
         hud_text.clear();
-        speed_text.clear();surface_text.clear();vitality_text.clear();
-        shown_speed_line.clear();shown_surface=-1;shown_hp=-1;shown_shield=-1;
-        weapon_text.clear();shown_weapon=-1;
+        shown_surface=-1;
+        race_text.clear();
         if(engine && engine->active()) engine->stop();
-        engine.reset(); engine_tick=0;
+        engine.reset(); engine_tick=0;engine_sustain=0;engine_volume=0;
         // Flush display-manager references before allocating another scene.
         bn::core::update();
     };
@@ -174,11 +305,16 @@ int main() {
         track.reset(new terrain_streamer());
         hud=bn::regular_bg_items::hud_waste.create_bg(0,0);
         hud->set_priority(0);
-        radar.reset(new local_minimap(car.x.integer(),car.y.integer(),zoom_level));
+        radar.reset(new local_minimap(car.x.integer(),car.y.integer()));
         track->set_camera(camera_x.integer(),camera_y.integer());
         track->set_visible(true);
         car_sprite.set_position(car.x-camera_x.integer(),car.y-camera_y.integer());
-        car_sprite.set_visible(true); minimap_dot.set_visible(true);
+        car_loadout_sprite.set_position(car_sprite.position());
+        car_sprite.set_bg_priority(1);car_sprite.set_z_order(-1);
+        car_loadout_sprite.set_bg_priority(1);car_loadout_sprite.set_z_order(-2);
+        car_sprite.set_visible(true);
+        car_loadout_sprite.set_visible(combat_world.has_weapons());
+        minimap_dot.set_visible(true);
         combat_graphics.reset(new combat_view());
         if(wasteland::has_decoration()) {
             decorations.reset(new decoration_view());
@@ -186,6 +322,33 @@ int main() {
             bn::core::update(); // Populate the initial patch window during scene loading.
             bn::core::update();
         }
+    };
+    auto create_race_markers=[&]() {
+        race_radar_markers.clear();
+        for(int index=0;index<race_radar_marker_count;++index) {
+            race_radar_markers.push_back(bn::sprite_items::mission_dot.create_sprite(0,0));
+            race_radar_markers.back().set_bg_priority(0);
+            race_radar_markers.back().set_z_order(-4);
+            race_radar_markers.back().set_visible(false);
+        }
+    };
+    auto prepare_race_offer=[&](races::kind kind) {
+        bn::unique_ptr<races::scratch> work(new races::scratch());
+        return race_manager.prepare_offer(kind,current_town,wasteland::layout(),wasteland::road(),*work).mode!=
+               races::kind::none;
+    };
+    auto return_wild_race=[&]() {
+        const int origin=race_manager.current().origin_town;
+        unload_scene();state=4;current_town=origin;++town_visits;
+        const auto return_point=wasteland::layout().town(origin);
+        car=driving::Car();car.x=return_point.x;car.y=return_point.y;apply_battery();
+        camera_lead_x=0;camera_lead_y=0;camera_x=car.x;camera_y=car.y-6;
+        combat_world.refill_player();combat_world.clear_bullets();
+        town.reset(new town_scene(current_town,setup));
+        town->return_to_race_building();
+        contract_open=false;race_open=true;button_guard=true;
+        overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+        overlay->set_priority(0);
     };
 
     while(true) {
@@ -201,6 +364,7 @@ int main() {
             redraw=true;
         }
         if(state==0 && bn::keypad::a_pressed()) {
+            music.stop();
             unload_scene();
             state=5; dustline_telemetry[2]=5;
             bn::bg_palettes::set_transparent_color(bn::color(2,4,5));
@@ -213,59 +377,162 @@ int main() {
             loading_update(96);create_scene();loading_update(100);
             loading_text.clear();loading_generator=nullptr;loading_sprites=nullptr;
             state=1;
+            music.start();
             bn::sound_items::chime.play(fixed(0.45));
         } else if((state==1 || state==2) && bn::keypad::start_pressed()) {
             state=state==1?2:1;
             if(state==2) {
+                // Free the live driving glyphs before building the pause page.
+                // Race HUD text otherwise overlaps the pause allocation in the
+                // GBA's 128-entry sprite pool.
+                hud_text.clear();race_text.clear();shown_surface=-1;
+                bn::core::update();
                 overlay=bn::regular_bg_items::pause_waste.create_bg(0,0);
                 overlay->set_priority(0);
             } else overlay.reset();
             hud->set_visible(state==1);
             car_sprite.set_visible(state==1);
+            car_loadout_sprite.set_visible(state==1 && combat_world.has_weapons());
             minimap_dot.set_visible(state==1);
+            mission_marker.set_visible(false);
+            race_world_marker.set_visible(false);race_left_flag.set_visible(false);race_right_flag.set_visible(false);
+            for(auto& marker:race_radar_markers)marker.set_visible(false);
             if(radar) radar->set_visible(state==1);
             if(engine && engine->active()) engine->stop();
-            engine.reset(); engine_tick=0;
+            engine.reset(); engine_tick=0;engine_sustain=0;engine_volume=0;
             hud_text.clear(); redraw=true;
         }
 
         if(state==2 && bn::keypad::select_pressed()) {
+            music.stop();
             state=0;
             unload_scene();
+            mission_manager.reset(0);
+            race_manager.reset(0);
             overlay=bn::regular_bg_items::title.create_bg(0,0);
             overlay->set_priority(0);
             hud_text.clear(); redraw=true;
         }
+        if(state==2 && bn::keypad::b_pressed() && race_manager.active()) {
+            const bool wild=race_manager.current().mode==races::kind::overworld;
+            race_manager.abort(races::outcome::aborted);
+            race_result_frames=180;
+            if(wild)return_wild_race();
+            else {
+                state=1;overlay.reset();hud->set_visible(true);car_sprite.set_visible(true);
+                car_loadout_sprite.set_visible(combat_world.has_weapons());radar->set_visible(true);
+                minimap_dot.set_visible(true);button_guard=true;
+            }
+            hud_text.clear();redraw=true;
+        }
         if((state==1 || state==4) && bn::keypad::select_pressed()) {
             settings_return=state; state=6;
+            settings_panel=0;tuning_repeat=0;tuning_direction=0;
             if(engine && engine->active()) engine->stop();
-            engine.reset(); engine_tick=0;
+            engine.reset(); engine_tick=0;engine_sustain=0;engine_volume=0;
             if(hud) hud->set_visible(false);
-            car_sprite.set_visible(false); minimap_dot.set_visible(false);
+            car_sprite.set_visible(false);car_loadout_sprite.set_visible(false);
+            minimap_dot.set_visible(false);mission_marker.set_visible(false);race_world_marker.set_visible(false);
+            race_left_flag.set_visible(false);race_right_flag.set_visible(false);
+            for(auto& marker:race_radar_markers)marker.set_visible(false);
+            race_radar_markers.clear();
             if(radar) radar->set_visible(false);
             if(town) town->set_visible(false);
-            overlay.reset(); hud_text.clear(); bn::core::update();
+            overlay.reset();hud_text.clear();
+            shown_surface=-1;
             overlay=bn::regular_bg_items::town_blank.create_bg(0,0);
             overlay->set_priority(0); redraw=true;
         } else if(state==6) {
-            if(bn::keypad::left_pressed() && zoom_level>0) { --zoom_level; redraw=true; }
-            if(bn::keypad::right_pressed() && zoom_level<3) { ++zoom_level; redraw=true; }
-            if(bn::keypad::a_pressed() || bn::keypad::b_pressed() || bn::keypad::select_pressed() || bn::keypad::start_pressed()) {
+            if(bn::keypad::l_pressed() || bn::keypad::r_pressed()) {
+                settings_panel=(settings_panel+(bn::keypad::l_pressed()?settings_panel_count-1:1))%
+                               settings_panel_count;
+                tuning_repeat=0;tuning_direction=0;redraw=true;
+            }
+            if(settings_panel==0) {
+                if(bn::keypad::up_pressed()) {
+                    tuning_selection=(tuning_selection+handling_row_count-1)%handling_row_count;redraw=true;
+                } else if(bn::keypad::down_pressed()) {
+                    tuning_selection=(tuning_selection+1)%handling_row_count;redraw=true;
+                }
+                const int direction=(bn::keypad::right_held()?1:0)-(bn::keypad::left_held()?1:0);
+                if(tuning_selection==handling_car_row) {
+                    if(bn::keypad::left_pressed() || bn::keypad::right_pressed()) {
+                        car_type=(car_type+vehicle_type_count+direction)%vehicle_type_count;redraw=true;
+                    }
+                    tuning_direction=0;tuning_repeat=0;
+                } else if(tuning_selection==handling_battery_row) {
+                    if(bn::keypad::left_pressed() || bn::keypad::right_pressed()) {
+                        battery_selection=(battery_selection+battery_count+direction)%battery_count;
+                        apply_battery();redraw=true;
+                    }
+                    tuning_direction=0;tuning_repeat=0;
+                } else if(direction) {
+                    if(direction!=tuning_direction) { tuning_direction=direction;tuning_repeat=0; }
+                    const bool repeat=tuning_repeat>=18 && (tuning_repeat-18)%2==0;
+                    if(bn::keypad::left_pressed() || bn::keypad::right_pressed() || repeat) {
+                        adjust_tuning(tuning,tuning_selection,direction);redraw=true;
+                    }
+                    ++tuning_repeat;
+                } else { tuning_direction=0;tuning_repeat=0; }
+                if(bn::keypad::a_pressed()) {
+                    if(tuning_selection==handling_car_row)car_type=0;
+                    else if(tuning_selection==handling_battery_row) {
+                        battery_selection=1;apply_battery();
+                    }
+                    else {
+                        tuning=driving::setups[setup];
+                        if(crafted_mask&(1<<1))tuning.acceleration+=fixed(0.006);
+                    }
+                    redraw=true;
+                }
+            } else {
+                if(bn::keypad::up_pressed()) {
+                    audio_selection=(audio_selection+audio_row_count-1)%audio_row_count;redraw=true;
+                } else if(bn::keypad::down_pressed()) {
+                    audio_selection=(audio_selection+1)%audio_row_count;redraw=true;
+                }
+                bool changed=false;
+                const int direction=(bn::keypad::right_pressed()?1:0)-(bn::keypad::left_pressed()?1:0);
+                if(audio_selection==0 && direction) {
+                    music_volume=bn::max(0,bn::min(10,music_volume+direction));changed=true;
+                } else if(audio_selection==1 && direction) {
+                    sound_volume=bn::max(0,bn::min(10,sound_volume+direction));changed=true;
+                } else if(audio_selection==2 && (direction || bn::keypad::a_pressed())) {
+                    master_muted=!master_muted;changed=true;
+                } else if(bn::keypad::a_pressed()) {
+                    if(audio_selection==0)music_volume=10;
+                    else sound_volume=10;
+                    changed=true;
+                }
+                if(changed) { apply_audio();redraw=true; }
+            }
+            if(bn::keypad::b_pressed() || bn::keypad::select_pressed() || bn::keypad::start_pressed()) {
                 hud_text.clear();
-                if(radar) radar->set_zoom(zoom_level,car.x.integer(),car.y.integer());
+                apply_battery();
                 state=settings_return; button_guard=true; redraw=true;
                 if(state==1) {
                     overlay.reset(); hud->set_visible(true); car_sprite.set_visible(true);
+                    car_loadout_sprite.set_visible(combat_world.has_weapons());
                     radar->set_visible(true); minimap_dot.set_visible(true);
+                    if(race_manager.active())create_race_markers();
                 } else if(state==4 && town) {
                     overlay.reset();
-                    if(town->menu_open()) {
+                    if(town->menu_open() || contract_open || race_open) {
                         overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
                         overlay->set_priority(0);
                     }
                     town->set_visible(true);
                 }
             }
+        }
+        if(state==8 && fitting && !button_guard) {
+            const auto fitting_event=fitting->update(combat_world);
+            if(fitting_event==weapon_fitting_scene::event::close) {
+                hud_text.clear();fitting.reset();bn::core::update();
+                town->resume();state=4;button_guard=true;redraw=true;
+            } else if(fitting_event==weapon_fitting_scene::event::fitted) {
+                bn::sound_items::chime.play(fixed(0.32));redraw=true;
+            } else if(fitting_event==weapon_fitting_scene::event::redraw)redraw=true;
         }
         if(state==7) {
             if(bn::keypad::a_pressed()) {
@@ -282,39 +549,162 @@ int main() {
                 hud_text.clear(); button_guard=true; redraw=true;
             } else if(bn::keypad::a_pressed() && town_yes) {
                 combat_world.refill_player();
+                bool completed=!race_manager.session() && mission_manager.on_town_enter(current_town);
                 unload_scene(); state=4; ++town_visits;
                 town.reset(new town_scene(current_town,setup));
+                if(completed)bn::sound_items::chime.play(fixed(0.55));
                 redraw=true;
             }
         } else if(state==4 && town && !button_guard) {
-            auto town_event=town->update(setup);
-            if(town_event==town_scene::event::return_to_world) {
-                overlay.reset();hud_text.clear();town.reset();bn::core::update();
-                create_scene();ignored_town=current_town;state=1;button_guard=true;redraw=true;
-            } else if(town_event==town_scene::event::menu_opened) {
-                overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
-                overlay->set_priority(0);redraw=true;
-            } else if(town_event==town_scene::event::menu_closed ||
-                      town_event==town_scene::event::setup_applied) {
-                overlay.reset();redraw=true;
-                if(town_event==town_scene::event::setup_applied)
-                    bn::sound_items::chime.play(fixed(0.4));
-            } else if(town_event==town_scene::event::redraw) redraw=true;
+            if(race_open) {
+                const auto race_state=race_manager.current().state;
+                if(bn::keypad::b_pressed()) {
+                    race_open=false;overlay.reset();hud_text.clear();redraw=true;
+                } else if(race_state==races::phase::none &&
+                          (bn::keypad::left_pressed() || bn::keypad::right_pressed())) {
+                    race_selection=1-race_selection;
+                    prepare_race_offer(race_selection?races::kind::overworld:races::kind::town);
+                    redraw=true;
+                } else if(bn::keypad::a_pressed()) {
+                    if(race_state==races::phase::none) {
+                        if(race_manager.offered().mode==races::kind::none)
+                            prepare_race_offer(race_selection?races::kind::overworld:races::kind::town);
+                        if(race_manager.accept()) {
+                            const auto& accepted=race_manager.current();
+                            race_world_linger_checkpoint=-1;race_world_linger_frames=0;
+                            bn::sound_items::chime.play(fixed(0.45));
+                            if(accepted.mode==races::kind::overworld) {
+                                const auto start=accepted.start;
+                                overlay.reset();hud_text.clear();town.reset();bn::core::update();
+                                car=driving::Car();car.x=start.x;car.y=start.y;apply_battery();
+                                camera_lead_x=0;camera_lead_y=0;camera_x=car.x;camera_y=car.y-6;
+                                combat_world.clear_bullets();create_scene();create_race_markers();
+                                ignored_town=-1;race_open=false;state=1;button_guard=true;
+                                race_manager.start();
+                            } else {
+                                race_open=false;overlay.reset();button_guard=true;
+                            }
+                        }
+                        redraw=true;
+                    } else if(race_state==races::phase::result) {
+                        race_manager.acknowledge();race_result_frames=0;
+                        prepare_race_offer(race_selection?races::kind::overworld:races::kind::town);
+                        redraw=true;
+                    }
+                }
+            } else if(contract_open) {
+                const auto mission_status=mission_manager.current().state;
+                if(bn::keypad::b_pressed()) {
+                    contract_open=false;overlay.reset();hud_text.clear();redraw=true;
+                } else if(mission_status==missions::status::none &&
+                          (bn::keypad::left_pressed() || bn::keypad::right_pressed())) {
+                    contract_selection=1-contract_selection;redraw=true;
+                } else if(bn::keypad::a_pressed()) {
+                    if(mission_status==missions::status::none) {
+                        auto kind=contract_selection?missions::type::extermination:missions::type::courier;
+                        if(mission_manager.accept(kind,current_town,wasteland::layout(),combat_world.spawns))
+                            bn::sound_items::chime.play(fixed(0.45));
+                        redraw=true;
+                    } else if(mission_status==missions::status::complete) {
+                        mission_manager.acknowledge();redraw=true;
+                    }
+                }
+            } else {
+                auto town_event=town->update(setup);
+                if(town_event==town_scene::event::return_to_world) {
+                    overlay.reset();hud_text.clear();town.reset();bn::core::update();
+                    car.heading+=180;
+                    if(car.heading>=360)car.heading-=360;
+                    camera_lead_x=0;camera_lead_y=0;camera_x=car.x;camera_y=car.y-6;
+                    create_scene();ignored_town=current_town;state=1;button_guard=true;redraw=true;
+                    if(race_manager.current().state==races::phase::ready &&
+                       race_manager.current().mode==races::kind::town) {
+                        create_race_markers();race_manager.start();
+                    }
+                } else if(town_event==town_scene::event::menu_opened ||
+                          town_event==town_scene::event::contract_opened ||
+                          town_event==town_scene::event::race_opened) {
+                    contract_open=town_event==town_scene::event::contract_opened;
+                    race_open=town_event==town_scene::event::race_opened;
+                    if(town_event==town_scene::event::menu_opened)blueprint_mask|=1; // The mechanic supplies the basic magnet plan.
+                    if(race_open)
+                        prepare_race_offer(race_selection?races::kind::overworld:races::kind::town);
+                    overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
+                    overlay->set_priority(0);redraw=true;
+                } else if(town_event==town_scene::event::weapon_fitting_opened) {
+                    overlay.reset();hud_text.clear();town->suspend();bn::core::update();
+                    fitting.reset(new weapon_fitting_scene(combat_world,car_type));
+                    state=8;button_guard=true;redraw=true;
+                } else if(town_event==town_scene::event::craft_requested) {
+                    const int id=town->craft_selection(),bit=1<<id;const auto& plan=blueprints::catalog[id];
+                    if((blueprint_mask&bit) && !(crafted_mask&bit) && scrap>=plan.scrap && mission_manager.spend_credits(plan.credits)) {
+                        scrap-=plan.scrap;crafted_mask|=uint8_t(bit);
+                        if(id==0)combat_world.set_salvage_magnet(true);
+                        else if(id==1)tuning.acceleration+=fixed(0.006);
+                        else combat_world.set_reinforced_plating(true);
+                        bn::sound_items::chime.play(fixed(0.5));
+                    } else bn::sound_items::bump.play(fixed(0.2));
+                    redraw=true;
+                } else if(town_event==town_scene::event::menu_closed ||
+                           town_event==town_scene::event::setup_applied) {
+                    overlay.reset();town->set_visible(true);redraw=true;
+                    if(town_event==town_scene::event::setup_applied) {
+                        tuning=driving::setups[setup];if(crafted_mask&(1<<1))tuning.acceleration+=fixed(0.006);apply_battery();
+                        bn::sound_items::chime.play(fixed(0.4));
+                    }
+                } else if(town_event==town_scene::event::redraw) {
+                    redraw=true;
+                }
+            }
         }
         if(state==1) {
-            driving::Input input {bn::keypad::a_held(),bn::keypad::b_held(),
+            const bool race_locked=race_manager.current().state==races::phase::countdown ||
+                                   wild_return_frames>0;
+            driving::Input input {bn::keypad::a_held(),bn::keypad::down_held(),
                 (bn::keypad::right_held()?1:0)-(bn::keypad::left_held()?1:0)};
             if(!button_guard) {
-                car.step(input,setup); ++lap_frames;
-                if(bn::keypad::l_pressed()) { combat_world.cycle_weapon();redraw=true; }
+                if(race_locked) {
+                    input={false,false,0};car.vx=0;car.vy=0;car.yaw=0;car.speed=0;car.slip=0;
+                } else car.step(input,equipped_tuning());
+                ++lap_frames;
                 int combat_start=bn::core::current_cpu_ticks();
-                combat_world.step(car,bn::keypad::r_held());
+                if(!race_locked)
+                    combat_world.step(car,bn::keypad::r_held(),bn::keypad::b_held());
+                if(combat_world.collected_scrap){scrap+=combat_world.collected_scrap;redraw=true;}
+                if(combat_world.collected_energy)bn::sound_items::chime.play(fixed(0.22));
+                if(combat_world.collected_blueprints){
+                    uint8_t found=combat_world.collected_blueprints;
+                    for(int id=0;id<blueprints::count;++id)if(found&(1<<id)) {
+                        if(blueprint_mask&(1<<id)){scrap+=3;++duplicate_blueprints;}else blueprint_mask|=uint8_t(1<<id);
+                    }
+                    bn::sound_items::chime.play(fixed(0.35));redraw=true;
+                }
+                bool contract_completed=false;
+                if(!race_manager.session())
+                    for(int i=0;i<combat_world.destroyed_count;++i)
+                        contract_completed|=mission_manager.on_enemy_destroyed(combat_world.destroyed_spawns[i]);
+                if(contract_completed && mission_manager.current().kind==missions::type::extermination)blueprint_mask|=uint8_t(1<<2);
                 dustline_combat_telemetry[18]=bn::core::current_cpu_ticks()-combat_start;
                 if(combat_world.fired) bn::sound_items::gun.play(fixed(0.28));
-                if(combat_world.destroyed) bn::sound_items::bump.play(fixed(0.6));
+                if(contract_completed)bn::sound_items::chime.play(fixed(0.55));
+                else if(combat_world.destroyed) bn::sound_items::bump.play(fixed(0.6));
                 else if(combat_world.impact) bn::sound_items::bump.play(fixed(0.18));
+                const int previous_race_checkpoint=race_manager.current().next_checkpoint;
+                if(race_manager.update(car.x.integer(),car.y.integer())) {
+                    const int award=race_manager.take_award();
+                    mission_manager.award_credits(award);
+                    bn::sound_items::chime.play(award?fixed(0.6):fixed(0.3));
+                    race_result_frames=180;
+                    if(race_manager.current().mode==races::kind::overworld)wild_return_frames=90;
+                    redraw=true;
+                }
+                if(race_manager.current().next_checkpoint>previous_race_checkpoint) {
+                    race_world_linger_checkpoint=previous_race_checkpoint;
+                    race_world_linger_frames=race_world_marker_linger_frames;
+                }
             }
-            if(notice_frames>0) --notice_frames;
+            if(notice_frames>0)--notice_frames;
+            if(race_result_frames>0)--race_result_frames;
             // Anchor to the car and smooth only the velocity-driven look-ahead.
             // This keeps the car stable while opening more screen in the actual
             // direction of travel, including reverse and controlled slides.
@@ -322,12 +712,27 @@ int main() {
             fixed desired_lead_y=clamp(car.vy*camera_lead_y_scale,-camera_lead_y_limit,camera_lead_y_limit);
             camera_lead_x+=(desired_lead_x-camera_lead_x)*camera_lead_response;
             camera_lead_y+=(desired_lead_y-camera_lead_y)*camera_lead_response;
-            camera_x=clamp(car.x+camera_lead_x,120,world_map::width()-120);
-            camera_y=clamp(car.y+camera_lead_y-6,80,world_map::height()-80);
+            // Rough surfaces move the camera by about a pixel at speed. The car
+            // simulation supplies the deterministic signal so this remains in
+            // step with the small lateral material impulses.
+            camera_x=clamp(car.x+camera_lead_x+car.terrain_rumble*fixed(0.35),120,world_map::width()-120);
+            camera_y=clamp(car.y+camera_lead_y-6+car.terrain_rumble*fixed(1.10),80,world_map::height()-80);
             track->set_camera(camera_x.integer(),camera_y.integer());
             car_sprite.set_position(car.x-camera_x.integer(),car.y-camera_y.integer());
+            car_loadout_sprite.set_position(car_sprite.position());
             int direction=((car.heading*64/360).integer()+64)%64;
-            car_sprite.set_tiles(bn::sprite_items::car.tiles_item(),direction);
+            switch(car_type) {
+            case 1:car_sprite.set_tiles(bn::sprite_items::car_sand_buggy.tiles_item(),direction);break;
+            case 2:car_sprite.set_tiles(bn::sprite_items::car_old.tiles_item(),direction);break;
+            case 3:car_sprite.set_tiles(bn::sprite_items::car_truck.tiles_item(),direction);break;
+            case 4:car_sprite.set_tiles(bn::sprite_items::car_pickup.tiles_item(),direction);break;
+            default:car_sprite.set_tiles(bn::sprite_items::car.tiles_item(),direction);break;
+            }
+            car_loadout_sprite.set_tiles(bn::sprite_items::car_loadout.tiles_item(),
+                                         combat_world.weapon_mask()*64+direction);
+            radar->set_vitals(combat_world.player_hp,combat_world.max_player_hp(),
+                              combat_world.player_shield,combat::player_max_shield,
+                              combat_world.player_energy,combat_world.max_player_energy());
             radar->update(car.x.integer(),car.y.integer());
             int marker_x=radar->project_x(car.x.integer());
             int marker_y=radar->project_y(car.y.integer());
@@ -343,11 +748,22 @@ int main() {
             }
             if(car.hit) bn::sound_items::bump.play(fixed(0.5));
             if(sliding && frame%14==0) bn::sound_items::skid.play(fixed(0.13));
-            if(--engine_tick<=0) {
-                fixed pitch=fixed(0.65)+car.speed*fixed(0.55)+(input.throttle?fixed(0.12):fixed(0));
-                if(engine && engine->active()) engine->stop();
-                engine=bn::sound_items::engine.play(input.throttle?fixed(0.28):fixed(0.15),pitch,0);
-                engine_tick=bn::max(5,(fixed(17)/pitch).integer());
+            if(input.throttle==engine_throttle)engine_sustain=bn::min(480,engine_sustain+1);
+            else { engine_throttle=input.throttle;engine_sustain=0;engine_tick=0; }
+            if(master_muted || sound_volume==0) {
+                if(engine && engine->active())engine->stop();
+                engine.reset();engine_tick=15;engine_volume=0;
+            } else if(--engine_tick<=0) {
+                const fixed speed_ratio=clamp(car.speed/tuning.max_speed,0,1);
+                const fixed pitch=fixed(0.72)+speed_ratio*fixed(0.52)+
+                                  (input.throttle?fixed(0.06):fixed(0));
+                const int settled_frames=bn::max(0,engine_sustain-90);
+                const fixed settled_gain=bn::max(fixed(0.25),fixed(1)-fixed(settled_frames)/520);
+                const fixed base_volume=input.throttle?fixed(0.13):fixed(0.045);
+                if(engine && engine->active())engine->stop();
+                engine_volume=base_volume*settled_gain;engine_pitch=pitch;
+                engine=bn::sound_items::engine.play(engine_volume,pitch,0);
+                engine_tick=bn::max(18,(fixed(31)/pitch).integer());
             }
             for(auto& mark:marks) {
                 if(mark.life>0) --mark.life;
@@ -356,42 +772,21 @@ int main() {
                 mark.sprite.set_visible(visible);
                 if(visible) mark.sprite.set_position(sx,sy);
             }
-            // Build only the dialog text on entry, never both text screens in
-            // one frame (the renderer retains old sprite references until VBlank).
-            int approaching=wasteland::layout().nearby_town(car.x.integer(),car.y.integer());
-            if(redraw && !(approaching>=0 && approaching!=ignored_town)) {
-                bn::string<12> speed_line=bn::to_string<4>((car.speed*42).integer());
-                speed_line+=" KPH";
-                if(speed_line!=shown_speed_line || speed_text.empty()) {
-                    speed_text.clear();text.generate(-114,-74,speed_line,speed_text);
-                    shown_speed_line=speed_line;
-                }
-                int surface=wasteland::layout().material(car.x.integer(),car.y.integer());
-                const char* names[]={"SAND","GRAVEL","HARDPAN","ASPHALT"};
-                if(surface!=shown_surface || surface_text.empty()) {
-                    surface_text.clear();text.generate(-70,-74,names[surface],surface_text);
-                    shown_surface=surface;
-                }
-                if(combat_world.player_hp!=shown_hp || combat_world.player_shield!=shown_shield || vitality_text.empty()) {
-                    bn::string<16> line="H";line+=bn::to_string<4>(combat_world.player_hp);
-                    line+=" S";line+=bn::to_string<3>(combat_world.player_shield);
-                    vitality_text.clear();text.generate(-20,-74,line,vitality_text);
-                    shown_hp=combat_world.player_hp;shown_shield=combat_world.player_shield;
-                }
-            }
+            shown_surface=world_map::material_at(car.x.integer(),car.y.integer());
             const auto& layout=wasteland::layout();
-            if(ignored_town>=0) {
-                auto p=layout.town(ignored_town);
-                if(bn::abs(car.x.integer()-p.x)>160 || bn::abs(car.y.integer()-p.y)>160) ignored_town=-1;
-            }
             int near=layout.nearby_town(car.x.integer(),car.y.integer());
-            if(!combat_world.player_destroyed && near>=0 && near!=ignored_town) {
+            // Declining or returning suppresses the prompt only while the car
+            // remains inside that exact radial zone. Crossing its edge rearms
+            // the settlement immediately for the next approach.
+            if(ignored_town>=0 && near!=ignored_town)ignored_town=-1;
+            if(!combat_world.player_destroyed && !race_manager.active() && near>=0 && near!=ignored_town) {
                 state=3; current_town=near; town_yes=false;
                 car.vx=0; car.vy=0; car.yaw=0; car.speed=0; car.slip=0;
                 if(engine && engine->active()) engine->stop();
-                engine.reset(); engine_tick=0;
+                engine.reset(); engine_tick=0;engine_sustain=0;engine_volume=0;
                 hud_text.clear();
                 radar->set_visible(false); minimap_dot.set_visible(false);
+                mission_marker.set_visible(false);
                 if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),false);
                 // Finish the driving frame before allocating dialog art/text.
                 // Combat is already paused; this is a scene/UI transition.
@@ -404,13 +799,26 @@ int main() {
             }
             if(state==1) { radar->set_visible(true); minimap_dot.set_visible(true); }
             if(state==1 && combat_world.player_destroyed) {
+                const bool wild_race=race_manager.active() &&
+                                     race_manager.current().mode==races::kind::overworld;
+                if(race_manager.active())race_manager.abort(races::outcome::wrecked);
+                race_result_frames=180;
+                if(wild_race) {
+                    wild_return_frames=1;
+                    combat_world.revive_player();
+                } else {
                 state=7;car.vx=0;car.vy=0;car.yaw=0;car.speed=0;car.slip=0;
                 if(engine && engine->active())engine->stop();
-                engine.reset();engine_tick=0;hud_text.clear();
+                engine.reset();engine_tick=0;engine_sustain=0;engine_volume=0;hud_text.clear();
                 radar->set_visible(false);minimap_dot.set_visible(false);
+                mission_marker.set_visible(false);
                 bn::core::update();missed+=bn::core::last_missed_frames();
                 overlay=bn::regular_bg_items::town_dialog.create_bg(0,0);
                 overlay->set_priority(0);redraw=true;
+                }
+            }
+            if(state==1 && wild_return_frames>0 && --wild_return_frames==0) {
+                return_wild_race();redraw=true;
             }
         } else {
             for(auto& mark:marks) mark.sprite.set_visible(false);
@@ -433,14 +841,124 @@ int main() {
         }
         if(state==4 && redraw) {
             hud_text.clear();
-            if(town && town->menu_open()) {
-                bn::string<32> line="MECHANIC / SETUP";
-                text.generate(-104,38,line,hud_text);
-                line="<  ";line+=driving::setups[town->menu_selection()].name;line+="  >";
-                text.generate(-104,52,line,hud_text);
-                line=bn::to_string<5>(driving::setups[town->menu_selection()].mass);line+=" KG";
-                text.generate(18,52,line,hud_text);
-                text.generate(-104,68,"A FIT     B CANCEL",hud_text);
+            if(town && race_open) {
+                const auto& active=race_manager.current();
+                if(active.state==races::phase::none) {
+                    const auto& offered=race_manager.offered();
+                    text.generate(-104,32,"RACE OFFICE",hud_text);
+                    bn::string<32> line="<  ";
+                    line+=races::kind_name(race_selection?races::kind::overworld:races::kind::town);line+="  >";
+                    text.generate(-104,44,line,hud_text);
+                    if(offered.mode==races::kind::town) {
+                        line="TO OUTPOST ";line+=bn::to_string<3>(offered.target_town+1);
+                    } else if(offered.mode==races::kind::overworld) {
+                        line=offered.closed?"CLOSED WILDERNESS LOOP":"OPEN WILDERNESS COURSE";
+                    } else line="NO COURSE AVAILABLE";
+                    text.generate(-104,56,line,hud_text);
+                    if(offered.mode!=races::kind::none) {
+                        line=bn::to_string<3>(offered.checkpoint_count);line+=" GATES  ";
+                        line+=bn::to_string<4>((offered.time_limit+59)/60);line+=" SEC";
+                        text.generate(-104,67,line,hud_text);
+                        line="PRIZE ";line+=bn::to_string<6>(offered.reward);line+="+  A START";
+                        text.generate(-104,74,line,hud_text);
+                    }
+                } else if(active.state==races::phase::result) {
+                    bn::string<32> line=races::outcome_name(active.result);
+                    text.generate(-104,38,line,hud_text);
+                    if(active.result==races::outcome::complete) {
+                        line="SCORE ";line+=bn::to_string<5>(active.score);
+                        text.generate(-104,51,line,hud_text);
+                        line="EARNED ";line+=bn::to_string<7>(active.earned);line+=" CR";
+                        text.generate(-104,63,line,hud_text);
+                    } else text.generate(-104,54,"NO PAYMENT",hud_text);
+                    text.generate(-104,72,"A NEW RACES   B CLOSE",hud_text);
+                } else {
+                    bn::string<32> line="ACTIVE ";line+=races::kind_name(active.mode);
+                    text.generate(-104,42,line,hud_text);
+                    line=bn::to_string<3>(active.next_checkpoint);line+='/';
+                    line+=bn::to_string<3>(active.checkpoint_count);line+=" GATES";
+                    text.generate(-104,56,line,hud_text);
+                    text.generate(-104,72,"B CLOSE",hud_text);
+                }
+            } else if(town && contract_open) {
+                const auto& active=mission_manager.current();
+                if(active.state==missions::status::none) {
+                    auto kind=contract_selection?missions::type::extermination:missions::type::courier;
+                    auto offered=mission_manager.offer(kind,current_town,wasteland::layout(),combat_world.spawns);
+                    text.generate(-104,38,"CONTRACT BOARD",hud_text);
+                    bn::string<32> line="<  ";line+=missions::type_name(kind);line+="  >";
+                    text.generate(-104,51,line,hud_text);
+                    if(kind==missions::type::courier) {
+                        line="DELIVER TO OUTPOST ";line+=bn::to_string<3>(offered.target_town+1);
+                    } else {
+                        line="MARKED RAIDER ";line+=bn::to_string<4>(offered.target_spawn+1);
+                    }
+                    text.generate(-104,63,line,hud_text);
+                    line="PAY ";line+=bn::to_string<6>(offered.reward);line+=" CR  A ACCEPT";
+                    text.generate(-104,75,line,hud_text);
+                } else if(active.state==missions::status::active) {
+                    bn::string<32> line="ACTIVE ";line+=missions::type_name(active.kind);
+                    text.generate(-104,40,line,hud_text);
+                    if(active.kind==missions::type::courier) {
+                        line="DESTINATION OUTPOST ";line+=bn::to_string<3>(active.target_town+1);
+                    } else {
+                        line="MARKED RAIDER ";line+=bn::to_string<4>(active.target_spawn+1);
+                    }
+                    text.generate(-104,55,line,hud_text);
+                    line="PAY ";line+=bn::to_string<6>(active.reward);line+=" CR";
+                    text.generate(-104,68,line,hud_text);
+                    text.generate(32,68,"B CLOSE",hud_text);
+                } else {
+                    text.generate(-104,40,"CONTRACT COMPLETE",hud_text);
+                    bn::string<32> line="EARNED ";line+=bn::to_string<6>(active.reward);line+=" CR";
+                    text.generate(-104,55,line,hud_text);
+                    line="TOTAL ";line+=bn::to_string<7>(mission_manager.credits());line+=" CR";
+                    text.generate(-104,68,line,hud_text);
+                    text.generate(20,68,"A NEW JOBS",hud_text);
+                }
+            } else if(town && town->menu_open()) {
+                if(town->menu_page()==0) {
+                    bn::string<32> line="MECHANIC / SETUP   DOWN PRINT";text.generate(-104,38,line,hud_text);
+                    line="<  ";line+=driving::setups[town->menu_selection()].name;line+="  >";text.generate(-104,52,line,hud_text);
+                    line=bn::to_string<5>(driving::setups[town->menu_selection()].mass);line+=" KG";text.generate(18,52,line,hud_text);
+                    text.generate(-104,68,"A FIT     B CANCEL",hud_text);
+                } else {
+                    const int id=town->craft_selection(),bit=1<<id;const auto& plan=blueprints::catalog[id];
+                    text.generate(-104,34,"FABRICATOR   UP SETUP",hud_text);
+                    bn::string<32> line="< ";line+=plan.name;line+=" >";text.generate(-104,48,line,hud_text);
+                    if(crafted_mask&bit)line="INSTALLED";
+                    else if(!(blueprint_mask&bit))line="BLUEPRINT NOT FOUND";
+                    else {line=bn::to_string<5>(plan.credits);line+=" CR + ";line+=bn::to_string<3>(plan.scrap);line+=" SCRAP";}
+                    text.generate(-104,61,line,hud_text);
+                    line="HAVE ";line+=bn::to_string<6>(mission_manager.credits());line+=" CR / ";line+=bn::to_string<4>(scrap);line+=" SCRAP";text.generate(-104,74,line,hud_text);
+                }
+            }
+        }
+        if(state==8 && fitting && redraw) {
+            hud_text.clear();
+            const auto weapon=fitting->highlighted_weapon(combat_world);
+            if(fitting->info_open()) {
+                if(weapon==combat::Weapon::count) {
+                    text.generate(22,-22,"EMPTY MOUNT",hud_text);
+                    text.generate(22,-5,"NO ENERGY DRAW",hud_text);
+                    text.generate(22,12,"REMOVES FITTING",hud_text);
+                } else {
+                    bn::string<24> line=combat::weapon_name(weapon);text.generate(22,-30,line,hud_text);
+                    line="DAMAGE ";line+=bn::to_string<2>(weapon==combat::Weapon::missile?combat::missile_damage:
+                                                           weapon==combat::Weapon::trap?combat::trap_damage:1);
+                    text.generate(22,-12,line,hud_text);
+                    line="ENERGY ";line+=bn::to_string<2>(combat::weapon_energy_costs[int(weapon)]);
+                    text.generate(22,4,line,hud_text);
+                    if(weapon==combat::Weapon::gun)line="FORWARD FIRE";
+                    else if(weapon==combat::Weapon::sides)line="TWIN SIDE FIRE";
+                    else if(weapon==combat::Weapon::missile)line="HOMING MISSILE";
+                    else line="ARMED REAR TRAP";
+                    text.generate(22,22,line,hud_text);
+                }
+            } else {
+                bn::string<24> line=fitting->inventory_open()?"CHOICE ":"FITTED ";
+                line+=weapon==combat::Weapon::count?"EMPTY":combat::weapon_name(weapon);
+                text.generate(22,58,line,hud_text);
             }
         }
         if(state==7 && redraw) {
@@ -449,37 +967,199 @@ int main() {
             text.generate(-104,68,"PRESS A TO REVIVE",hud_text);
         }
 
+        if(state==2 && redraw) {
+            hud_text.clear();
+            const auto& active=mission_manager.current();
+            const auto& race=race_manager.current();
+            bn::string<40> vitality="HP ";vitality+=bn::to_string<4>(combat_world.player_hp);
+            vitality+='/';vitality+=bn::to_string<4>(combat_world.max_player_hp());vitality+="  SH ";
+            vitality+=bn::to_string<3>(combat_world.player_shield);vitality+='/';
+            vitality+=bn::to_string<3>(combat::player_max_shield);vitality+="  EN ";
+            vitality+=bn::to_string<4>(combat_world.player_energy);vitality+='/';
+            vitality+=bn::to_string<4>(combat_world.max_player_energy());text.generate(-108,8,vitality,hud_text);
+            if(race_manager.active()) {
+                bn::string<32> line=races::kind_name(race.mode);line+="  GATE ";
+                line+=bn::to_string<3>(race.next_checkpoint+1);line+='/';
+                line+=bn::to_string<3>(race.checkpoint_count);
+                text.generate(-96,18,line,hud_text);
+                line="TIME ";line+=bn::to_string<4>((race.time_left+59)/60);line+=" SEC";
+                text.generate(-96,32,line,hud_text);
+                text.generate(-96,46,"B ABORT   START RESUME",hud_text);
+            } else if(race.state==races::phase::result) {
+                bn::string<32> line=races::outcome_name(race.result);line+="  SCORE ";
+                line+=bn::to_string<5>(race.score);text.generate(-96,24,line,hud_text);
+            } else if(active.state==missions::status::none) {
+                text.generate(-96,24,"NO ACTIVE CONTRACT",hud_text);
+                text.generate(-96,38,"VISIT AN OUTPOST BOARD",hud_text);
+            } else if(active.state==missions::status::complete) {
+                text.generate(-96,24,"CONTRACT COMPLETE",hud_text);
+                bn::string<32> line="CREDITS ";line+=bn::to_string<8>(mission_manager.credits());
+                text.generate(-96,38,line,hud_text);
+            } else {
+                bn::string<32> line=missions::type_name(active.kind);line+=" / ";
+                if(active.kind==missions::type::courier) {
+                    line+="OUTPOST ";line+=bn::to_string<3>(active.target_town+1);
+                } else {
+                    line+="RAIDER ";line+=bn::to_string<4>(active.target_spawn+1);
+                }
+                text.generate(-96,24,line,hud_text);
+                line="REWARD ";line+=bn::to_string<7>(active.reward);line+=" CR";
+                text.generate(-96,38,line,hud_text);
+            }
+            bn::string<32> totals="JOBS ";totals+=bn::to_string<5>(mission_manager.completed());
+            totals+="  CR ";totals+=bn::to_string<8>(mission_manager.credits());totals+="  SCRAP ";totals+=bn::to_string<5>(scrap);
+            text.generate(-96,60,totals,hud_text);
+        }
+
         if(state==6 && redraw) {
             hud_text.clear();
-            text.generate(-96,-52,"SETTINGS",hud_text);
-            text.generate(-96,-28,"MINIMAP ZOOM",hud_text);
-            for(int i=0;i<4;++i) {
-                bn::string<8> option=zoom_level==i?">":" ";
-                option+=bn::to_string<2>(1<<i); option+="X";
-                text.generate(-96+i*48,-7,option,hud_text);
+            if(settings_panel==0) {
+                bn::string<32> line=tuning_selection==0?">ACC ":" ACC ";
+                append_fixed(line,tuning.acceleration,3);text.generate(-96,-60,line,hud_text);
+                line=tuning_selection==1?">SPD ":" SPD ";
+                append_fixed(line,tuning.max_speed,2);text.generate(-96,-47,line,hud_text);
+                line=tuning_selection==2?">GRP ":" GRP ";
+                append_fixed(line,tuning.grip,3);text.generate(-96,-34,line,hud_text);
+                line=tuning_selection==3?">STR ":" STR ";
+                append_fixed(line,tuning.steer,2);text.generate(-96,-21,line,hud_text);
+                line=tuning_selection==4?">CST ":" CST ";
+                append_fixed(line,tuning.coast_drag,3);text.generate(-96,-8,line,hud_text);
+                line=tuning_selection==5?">BRK ":" BRK ";
+                append_fixed(line,tuning.brake_force,2);text.generate(-96,5,line,hud_text);
+                line=tuning_selection==6?">MAS ":" MAS ";
+                line+=bn::to_string<6>(tuning.mass);text.generate(-96,18,line,hud_text);
+                line=tuning_selection==handling_battery_row?">BAT ":" BAT ";
+                line+=battery_names[battery_selection];line+=' ';line+=bn::to_string<4>(battery_capacities[battery_selection]);line+='E';
+                line+=' ';if(battery_mass[battery_selection]>=0)line+='+';
+                line+=bn::to_string<5>(battery_mass[battery_selection]);
+                text.generate(-96,31,line,hud_text);
+                line=tuning_selection==handling_car_row?">CAR ":" CAR ";
+                line+=vehicle_names[car_type];text.generate(-96,44,line,hud_text);
+            } else {
+                bn::string<24> line=audio_selection==0?"> MUSIC    ":"  MUSIC    ";
+                line+=bn::to_string<4>(music_volume*10);line+="%";
+                text.generate(-96,-34,line,hud_text);
+                line=audio_selection==1?"> SOUND FX ":"  SOUND FX ";
+                line+=bn::to_string<4>(sound_volume*10);line+="%";
+                text.generate(-96,-10,line,hud_text);
+                line=audio_selection==2?"> MUTE ALL ":"  MUTE ALL ";
+                line+=master_muted?"ON":"OFF";
+                text.generate(-96,14,line,hud_text);
+                text.generate(-96,58,"L/R EDIT  A RESET  B BACK",hud_text);
             }
-            bn::string<32> line="VIEW RADIUS: ";
-            line+=bn::to_string<5>(26*(128>>zoom_level)); line+=" PX";
-            text.generate(-96,14,line,hud_text);
-            text.generate(-96,32,"1X WIDEST / 8X CLOSEST",hud_text);
-            text.generate(-96,42,"RED ENEMIES / GOLD TOWNS",hud_text);
-            text.generate(-96,52,"LEFT/RIGHT CHANGE",hud_text);
-            text.generate(-96,66,"A/B/SELECT BACK",hud_text);
         }
         if(state!=1) {
-            speed_text.clear();surface_text.clear();vitality_text.clear();
-            shown_speed_line.clear();shown_surface=-1;shown_hp=-1;shown_shield=-1;
+            shown_surface=-1;
+            race_text.clear();race_world_marker.set_visible(false);
+            race_left_flag.set_visible(false);race_right_flag.set_visible(false);
+            for(auto& marker:race_radar_markers)marker.set_visible(false);
         }
-        if(state==1) {
-            if(shown_weapon!=int(combat_world.weapon)) {
-                weapon_text.clear();bn::string<16> label="L:";label+=combat::weapon_name(combat_world.weapon);
-                text.generate(58,-74,label,weapon_text);shown_weapon=int(combat_world.weapon);
-            }
-        } else if(shown_weapon>=0) { weapon_text.clear();shown_weapon=-1; }
         int view_start=bn::core::current_cpu_ticks();
         if(decorations)decorations->update(camera_x.integer(),camera_y.integer(),state==1 || state==3 || state==7);
         if(radar)radar->update_enemies(combat_world,state==1);
+        mission_marker.set_visible(false);
+        race_world_marker.set_visible(false);
+        race_left_flag.set_visible(false);race_right_flag.set_visible(false);
+        for(auto& marker:race_radar_markers)marker.set_visible(false);
+        const auto& active_race=race_manager.current();
+        if(radar && state==1 && race_manager.active()) {
+            const int marker_end=bn::min(active_race.checkpoint_count,active_race.next_checkpoint+1);
+            int marker_slot=0;
+            for(int index=active_race.next_checkpoint;index<marker_end;++index) {
+                int target_x=radar->project_x(active_race.checkpoints[index].x);
+                int target_y=radar->project_y(active_race.checkpoints[index].y);
+                while(target_x*target_x+target_y*target_y>
+                      local_minimap::marker_radius*local_minimap::marker_radius) {
+                    target_x=target_x*7/8;target_y=target_y*7/8;
+                }
+                if(marker_slot<race_radar_markers.size()) {
+                    auto& marker=race_radar_markers[marker_slot++];
+                    marker.set_position(local_minimap::screen_x+target_x,local_minimap::screen_y+target_y);
+                    marker.set_visible(true);
+                }
+            }
+        }
+        const int race_world_checkpoint=race_world_linger_frames>0?
+                                        race_world_linger_checkpoint:
+                                        race_manager.active()?active_race.next_checkpoint:-1;
+        if(state==1 && race_world_checkpoint>=0 &&
+           race_world_checkpoint<active_race.checkpoint_count) {
+                const auto target=active_race.checkpoints[race_world_checkpoint];
+                const int x=int(target.x)-camera_x.integer(),y=int(target.y)-camera_y.integer();
+                if(x>-112 && x<112 && y>-72 && y<72) {
+                    race_world_marker.set_position(x,y);
+                    race_world_marker.set_tiles(bn::sprite_items::race_gate.tiles_item(),(frame/8)&1);
+                    race_world_marker.set_visible(true);
+                }
+                const uint16_t flag_bit=uint16_t(1u<<race_world_checkpoint);
+                if(active_race.left_flag_mask&flag_bit) {
+                    const auto flag=active_race.left_flags[race_world_checkpoint];
+                    const int flag_x=int(flag.x)-camera_x.integer(),flag_y=int(flag.y)-camera_y.integer();
+                    if(flag_x>-116 && flag_x<116 && flag_y>-72 && flag_y<72) {
+                        race_left_flag.set_position(flag_x,flag_y);race_left_flag.set_visible(true);
+                    }
+                }
+                if(active_race.right_flag_mask&flag_bit) {
+                    const auto flag=active_race.right_flags[race_world_checkpoint];
+                    const int flag_x=int(flag.x)-camera_x.integer(),flag_y=int(flag.y)-camera_y.integer();
+                    if(flag_x>-116 && flag_x<116 && flag_y>-72 && flag_y<72) {
+                        race_right_flag.set_position(flag_x,flag_y);race_right_flag.set_visible(true);
+                    }
+                }
+        }
+        if(state==1 && redraw) {
+            race_text.clear();
+            if(active_race.state==races::phase::countdown) {
+                bn::string<24> line="RACE START ";
+                line+=bn::to_string<2>((active_race.countdown_frames+59)/60);
+                text.generate(-114,56,line,race_text);
+            } else if(active_race.state==races::phase::running) {
+                bn::string<28> line="RACE ";line+=bn::to_string<3>(active_race.next_checkpoint+1);
+                line+='/';line+=bn::to_string<3>(active_race.checkpoint_count);
+                line+="  ";line+=bn::to_string<4>((active_race.time_left+59)/60);line+='S';
+                text.generate(-114,56,line,race_text);
+                if(active_race.off_course_frames>0)
+                    text.generate(-114,70,"RETURN TO COURSE",race_text);
+            } else if(active_race.state==races::phase::result && race_result_frames>0) {
+                bn::string<24> line=races::outcome_name(active_race.result);
+                if(active_race.result==races::outcome::complete) {
+                    line+="  SCORE ";line+=bn::to_string<5>(active_race.score);
+                }
+                text.generate(-114,62,line,race_text);
+            }
+        }
+        const auto& active_mission=mission_manager.current();
+        if(radar && state==1 && !race_manager.session() && active_mission.state==missions::status::active) {
+            int target_x=radar->project_x(active_mission.target_x);
+            int target_y=radar->project_y(active_mission.target_y);
+            while(target_x*target_x+target_y*target_y>
+                  local_minimap::marker_radius*local_minimap::marker_radius) {
+                target_x=target_x*7/8;target_y=target_y*7/8;
+            }
+            mission_marker.set_position(local_minimap::screen_x+target_x,local_minimap::screen_y+target_y);
+            mission_marker.set_visible(true);
+        }
         if(combat_graphics) combat_graphics->update(combat_world,camera_x.integer(),camera_y.integer(),state==1 || state==7);
+        adaptive_music::section music_section=adaptive_music::section::cruise;
+        if(state==1) {
+            bool enemy_near=false,enemy_engaged=false;
+            for(const auto& enemy:combat_world.enemies) {
+                if(enemy.hp>0) {
+                    enemy_near=true;
+                    const int dx=bn::abs(enemy.car.x.integer()-car.x.integer());
+                    const int dy=bn::abs(enemy.car.y.integer()-car.y.integer());
+                    if(dx<=360 && dy<=360 && dx*dx+dy*dy<=360*360)enemy_engaged=true;
+                }
+            }
+            if(enemy_engaged || combat_world.fired || combat_world.impact)
+                music_section=adaptive_music::section::combat;
+            else if(enemy_near)
+                music_section=adaptive_music::section::danger;
+            else if(car.speed>tuning.max_speed*fixed(0.58))
+                music_section=adaptive_music::section::drive;
+        }
+        music.set_ducked(state!=1);
+        music.update(music_section);
         dustline_combat_telemetry[19]=bn::core::current_cpu_ticks()-view_start;
         dustline_combat_telemetry[0]=0x434F4D42;
         dustline_combat_telemetry[1]=combat_world.ticks;
@@ -547,6 +1227,7 @@ int main() {
         dustline_weapon_telemetry[1]=combat_world.saw_active;
         dustline_weapon_telemetry[2]=combat_world.saw_x.data();dustline_weapon_telemetry[3]=combat_world.saw_y.data();
         dustline_weapon_telemetry[4]=combat_world.guidance_updates;dustline_weapon_telemetry[5]=combat_world.trap_explosions;
+        dustline_weapon_telemetry[6]=combat_world.weapon_mask();dustline_weapon_telemetry[7]=settings_panel;
         for(int i=0;i<combat::weapon_count;++i) {
             dustline_weapon_telemetry[8+i]=combat_world.weapon_shots[i];dustline_weapon_telemetry[13+i]=combat_world.weapon_hits[i];
         }
@@ -563,6 +1244,14 @@ int main() {
             dustline_weapon_telemetry[at]=t.x.data();dustline_weapon_telemetry[at+1]=t.y.data();
             dustline_weapon_telemetry[at+2]=t.remaining;dustline_weapon_telemetry[at+3]=t.arm;dustline_weapon_telemetry[at+4]=t.explosion;
         }
+        dustline_weapon_telemetry[70]=fitting?fitting->slot():0;
+        dustline_weapon_telemetry[71]=car_type;
+        dustline_weapon_telemetry[72]=combat_world.player_energy;
+        dustline_weapon_telemetry[73]=combat_world.max_player_energy();
+        dustline_weapon_telemetry[74]=int(combat_world.fitted_weapon(combat::MountSlot::front));
+        dustline_weapon_telemetry[75]=int(combat_world.fitted_weapon(combat::MountSlot::side));
+        dustline_weapon_telemetry[76]=int(combat_world.fitted_weapon(combat::MountSlot::special));
+        dustline_weapon_telemetry[77]=fitting&&fitting->inventory_open();
         dustline_telemetry[0]=0x44555354;
         dustline_telemetry[1]=frame;
         dustline_telemetry[2]=state;
@@ -608,8 +1297,20 @@ int main() {
         dustline_telemetry[48]=radar?radar->center_x():0;
         dustline_telemetry[49]=radar?radar->center_y():0;
         dustline_telemetry[50]=radar?radar->revisions():0;
-        dustline_telemetry[51]=zoom_level;
+        dustline_telemetry[51]=1;
         dustline_telemetry[52]=radar?radar->scale():0;
+        dustline_telemetry[54]=tuning.acceleration.data();
+        dustline_telemetry[55]=tuning.max_speed.data();
+        dustline_telemetry[56]=tuning.grip.data();
+        dustline_telemetry[57]=tuning.steer.data();
+        dustline_telemetry[58]=tuning.mass;
+        dustline_telemetry[59]=tuning_selection;
+        dustline_telemetry[60]=tuning.coast_drag.data();
+        dustline_telemetry[61]=tuning.brake_force.data();
+        dustline_telemetry[62]=car.material_id;
+        dustline_telemetry[63]=car.material;
+        dustline_telemetry[64]=shown_surface;
+        dustline_telemetry[65]=car.terrain_rumble.data();
         dustline_town_telemetry[0]=0x544F574E;
         dustline_town_telemetry[1]=town?int(town->current_place()):-1;
         dustline_town_telemetry[2]=town?town->x():0;
@@ -618,6 +1319,94 @@ int main() {
         dustline_town_telemetry[5]=town&&town->menu_open();
         dustline_town_telemetry[6]=town?town->menu_selection():0;
         dustline_town_telemetry[7]=town?town->town_id():-1;
+        dustline_town_telemetry[8]=town&&town->prompt_visible();
+        dustline_town_telemetry[9]=town&&town->player_visible();
+        dustline_progression_telemetry[0]=0x50524752;
+        dustline_progression_telemetry[1]=scrap;
+        dustline_progression_telemetry[2]=blueprint_mask;
+        dustline_progression_telemetry[3]=crafted_mask;
+        dustline_progression_telemetry[4]=duplicate_blueprints;
+        dustline_progression_telemetry[5]=combat_world.collected_scrap;
+        dustline_progression_telemetry[6]=combat_world.collected_blueprints;
+        dustline_progression_telemetry[7]=fitting?2:town?town->menu_page():-1;
+        dustline_progression_telemetry[8]=town?town->craft_selection():-1;
+        int active_pickups=0;for(const auto& pickup:combat_world.pickups)active_pickups+=pickup.remaining>0;
+        dustline_progression_telemetry[9]=active_pickups;
+        dustline_progression_telemetry[10]=combat_world.collected_energy;
+        dustline_progression_telemetry[11]=fitting?fitting->slot():-1;
+        dustline_progression_telemetry[12]=fitting&&fitting->inventory_open();
+        dustline_progression_telemetry[13]=fitting?fitting->inventory_selection():-1;
+        dustline_progression_telemetry[14]=fitting&&fitting->info_open();
+        const auto& telemetry_mission=mission_manager.current();
+        dustline_mission_telemetry[0]=0x4A4F4253;
+        dustline_mission_telemetry[1]=int(telemetry_mission.kind);
+        dustline_mission_telemetry[2]=int(telemetry_mission.state);
+        dustline_mission_telemetry[3]=telemetry_mission.origin_town;
+        dustline_mission_telemetry[4]=telemetry_mission.target_town;
+        dustline_mission_telemetry[5]=telemetry_mission.target_spawn;
+        dustline_mission_telemetry[6]=telemetry_mission.target_x;
+        dustline_mission_telemetry[7]=telemetry_mission.target_y;
+        dustline_mission_telemetry[8]=telemetry_mission.progress;
+        dustline_mission_telemetry[9]=telemetry_mission.goal;
+        dustline_mission_telemetry[10]=telemetry_mission.reward;
+        dustline_mission_telemetry[11]=mission_manager.credits();
+        dustline_mission_telemetry[12]=mission_manager.completed();
+        dustline_mission_telemetry[13]=mission_manager.serial();
+        dustline_mission_telemetry[14]=contract_open;
+        dustline_mission_telemetry[15]=contract_selection;
+        const auto& telemetry_race=race_manager.current().state==races::phase::none?
+                                   race_manager.offered():race_manager.current();
+        dustline_race_telemetry[0]=0x52414345;
+        dustline_race_telemetry[1]=int(telemetry_race.mode);
+        dustline_race_telemetry[2]=int(telemetry_race.state);
+        dustline_race_telemetry[3]=int(telemetry_race.result);
+        dustline_race_telemetry[4]=telemetry_race.closed;
+        dustline_race_telemetry[5]=telemetry_race.origin_town;
+        dustline_race_telemetry[6]=telemetry_race.target_town;
+        dustline_race_telemetry[7]=telemetry_race.checkpoint_count;
+        dustline_race_telemetry[8]=telemetry_race.next_checkpoint;
+        dustline_race_telemetry[9]=telemetry_race.time_limit;
+        dustline_race_telemetry[10]=telemetry_race.time_left;
+        dustline_race_telemetry[11]=telemetry_race.elapsed;
+        dustline_race_telemetry[12]=telemetry_race.score;
+        dustline_race_telemetry[13]=telemetry_race.reward;
+        dustline_race_telemetry[14]=telemetry_race.earned;
+        dustline_race_telemetry[15]=telemetry_race.off_course_frames;
+        dustline_race_telemetry[16]=telemetry_race.no_progress_frames;
+        dustline_race_telemetry[17]=race_open;
+        dustline_race_telemetry[18]=race_selection;
+        dustline_race_telemetry[19]=telemetry_race.start.x;
+        dustline_race_telemetry[20]=telemetry_race.start.y;
+        for(int index=0;index<races::max_checkpoints;++index) {
+            dustline_race_telemetry[21+index*2]=telemetry_race.checkpoints[index].x;
+            dustline_race_telemetry[22+index*2]=telemetry_race.checkpoints[index].y;
+        }
+        dustline_race_telemetry[53]=race_manager.serial();
+        dustline_race_telemetry[54]=mission_manager.credits();
+        dustline_race_telemetry[55]=race_world_linger_checkpoint;
+        dustline_race_telemetry[56]=race_world_linger_frames;
+        dustline_race_telemetry[57]=race_world_marker.visible();
+        dustline_race_telemetry[58]=race_left_flag.visible();
+        dustline_race_telemetry[59]=race_right_flag.visible();
+        dustline_race_telemetry[60]=!race_radar_markers.empty() && race_radar_markers[0].visible();
+        dustline_race_telemetry[61]=race_world_checkpoint;
+        if(state==1 && race_world_linger_frames>0)--race_world_linger_frames;
+        dustline_music_telemetry[0]=0x4D555343;
+        dustline_music_telemetry[1]=music.playing();
+        dustline_music_telemetry[2]=int(music.active_section());
+        dustline_music_telemetry[3]=int(music.target_section());
+        dustline_music_telemetry[4]=music.position();
+        dustline_music_telemetry[5]=music.downgrade_frames();
+        dustline_music_telemetry[6]=adaptive_music_data::bpm;
+        dustline_music_telemetry[7]=adaptive_music_data::section_count;
+        dustline_music_telemetry[8]=music_volume;
+        dustline_music_telemetry[9]=sound_volume;
+        dustline_music_telemetry[10]=master_muted;
+        dustline_music_telemetry[11]=audio_selection;
+        dustline_music_telemetry[12]=bn::sound::master_volume().data();
+        dustline_music_telemetry[13]=music.playing()?bn::music::volume().data():0;
+        dustline_music_telemetry[14]=engine_volume.data();
+        dustline_music_telemetry[15]=engine_pitch.data();
         bn::core::update();
         missed+=bn::core::last_missed_frames();
     }

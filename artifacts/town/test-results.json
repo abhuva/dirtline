@@ -1,34 +1,34 @@
 {
-  "rom_sha256": "fe178830fa15911f309abdfa73b29a0f181a5ea2f95ad5317eb8592554ca16e6",
+  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
   "checks": [
     {
       "name": "Town slice reaches the entry prompt through normal driving",
       "passed": true,
       "details": {
         "magic": 1146442580,
-        "frame": 240,
+        "frame": 231,
         "mode": 3,
         "setup": 1,
-        "x": 4353.38134765625,
-        "y": 4175.310546875,
+        "x": 4352.541015625,
+        "y": 4174.98974609375,
         "vx": 0.0,
         "vy": 0.0,
         "heading": 0.0,
         "slip": 0.0,
         "surface": 1,
-        "lap_frames": 158,
+        "lap_frames": 150,
         "best": 0,
         "laps": 0,
         "gate": 0,
         "collisions": 0,
-        "cpu": 0.6455078125,
-        "missed": 0,
-        "camera_x": 4407,
-        "camera_y": 4169,
-        "vblank": 0.096923828125,
+        "cpu": 0.4697265625,
+        "missed": 1,
+        "camera_x": 4405,
+        "camera_y": 4168,
+        "vblank": 0.04345703125,
         "uploaded_bytes": 0,
         "bg_bytes": 28672,
-        "sprite_free_bytes": 25536,
+        "sprite_free_bytes": 23936,
         "map": 0,
         "width": 8192,
         "height": 8192,
@@ -39,7 +39,7 @@
         "chunk_loads": 0,
         "chunk_decodes": 0,
         "chunk_cache_bytes": 0,
-        "minimap_x": 86,
+        "minimap_x": 90,
         "minimap_y": 46,
         "seed": 12648431,
         "signature": 2788965649,
@@ -47,18 +47,30 @@
         "town": 0,
         "town_x": 4416,
         "town_y": 4176,
-        "layout_bytes": 17524,
+        "layout_bytes": 17784,
         "scratch_bytes": 45136,
-        "free_ewram": 179424,
+        "free_ewram": 178160,
         "floor_cells": 1460,
-        "generation_updates": 177,
+        "generation_updates": 401,
         "town_visits": 0,
-        "radar_x": 4352,
-        "radar_y": 4096,
+        "radar_x": 4288,
+        "radar_y": 4160,
         "radar_revisions": 3,
-        "zoom_level": 0,
-        "radar_scale": 128,
-        "loading_progress": 100
+        "zoom_level": 1,
+        "radar_scale": 64,
+        "loading_progress": 100,
+        "tune_acceleration": 0.052978515625,
+        "tune_max_speed": 3.199951171875,
+        "tune_grip": 0.119873046875,
+        "tune_steer": 2.89990234375,
+        "tune_mass": 1100,
+        "tune_selection": 0,
+        "tune_coast": 0.0009765625,
+        "tune_brake": 0.08984375,
+        "material_id": 3,
+        "material_kind": 3,
+        "shown_material": -1,
+        "terrain_rumble": 0.0
       }
     },
     {
@@ -72,25 +84,93 @@
         "direction": 3,
         "menu": false,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
-      "name": "Town collision blocks the central rock island",
+      "name": "Town south gate shows its animated A prompt",
       "passed": true,
       "details": {
         "magic": 1414485838,
         "place": 0,
         "x": 128,
-        "y": 142,
+        "y": 226,
         "direction": 3,
         "menu": false,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
-      "name": "Town garage door changes walkable location",
+      "name": "Town central street is open from the south gate",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 0,
+        "x": 128,
+        "y": 126,
+        "direction": 3,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": false,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Interaction prompt stays hidden away from an approach zone",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 0,
+        "x": 128,
+        "y": 126,
+        "direction": 3,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": false,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Town western facade has a rectangular collision edge",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 0,
+        "x": 91,
+        "y": 126,
+        "direction": 1,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": false,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Garage approach shows its animated A prompt",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 0,
+        "x": 131,
+        "y": 47,
+        "direction": 0,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Garage opens from its approach box without facing the door",
       "passed": true,
       "details": {
         "magic": 1414485838,
@@ -100,35 +180,815 @@
         "direction": 3,
         "menu": false,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
-      "name": "Garage counter has solid collision",
+      "name": "Garage counter approach shows its animated A prompt",
       "passed": true,
       "details": {
         "magic": 1414485838,
         "place": 1,
-        "x": 128,
-        "y": 78,
-        "direction": 3,
+        "x": 130,
+        "y": 75,
+        "direction": 2,
         "menu": false,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
-      "name": "Mechanic opens the setup menu",
+      "name": "Garage counter has solid rectangular collision",
       "passed": true,
       "details": {
         "magic": 1414485838,
         "place": 1,
-        "x": 128,
-        "y": 78,
-        "direction": 3,
+        "x": 130,
+        "y": 75,
+        "direction": 2,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Mechanic opens without facing the counter",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 1,
+        "x": 130,
+        "y": 75,
+        "direction": 2,
         "menu": true,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": false,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Mechanic supplies the basic plan and opens the fabricator page",
+      "passed": true,
+      "details": {
+        "magic": 1347569490,
+        "scrap": 0,
+        "blueprints": 1,
+        "crafted": 0,
+        "duplicates": 0,
+        "collected_scrap": 0,
+        "collected_blueprints": 0,
+        "menu_page": 1,
+        "craft_selection": 0,
+        "active_pickups": 0,
+        "collected_energy": 0,
+        "loadout_slot": -1,
+        "inventory_open": false,
+        "inventory_selection": -1,
+        "info_open": false
+      }
+    },
+    {
+      "name": "Fabricator refuses a print without credits and scrap",
+      "passed": true,
+      "details": {
+        "magic": 1347569490,
+        "scrap": 0,
+        "blueprints": 1,
+        "crafted": 0,
+        "duplicates": 0,
+        "collected_scrap": 0,
+        "collected_blueprints": 0,
+        "menu_page": 1,
+        "craft_selection": 0,
+        "active_pickups": 0,
+        "collected_energy": 0,
+        "loadout_slot": -1,
+        "inventory_open": false,
+        "inventory_selection": -1,
+        "info_open": false
+      }
+    },
+    {
+      "name": "Mechanic menu now contains only setup and fabricator pages",
+      "passed": true,
+      "details": {
+        "magic": 1347569490,
+        "scrap": 0,
+        "blueprints": 1,
+        "crafted": 0,
+        "duplicates": 0,
+        "collected_scrap": 0,
+        "collected_blueprints": 0,
+        "menu_page": 0,
+        "craft_selection": 0,
+        "active_pickups": 0,
+        "collected_energy": 0,
+        "loadout_slot": -1,
+        "inventory_open": false,
+        "inventory_selection": -1,
+        "info_open": false
+      }
+    },
+    {
+      "name": "Parked garage car has its own weapon-fitting A prompt",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 1,
+        "x": 100,
+        "y": 135,
+        "direction": 1,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Car trigger loads a separate weapon-fitting scene",
+      "passed": true,
+      "details": {
+        "state": {
+          "magic": 1146442580,
+          "frame": 925,
+          "mode": 8,
+          "setup": 1,
+          "x": 4352.541015625,
+          "y": 4174.98974609375,
+          "vx": 0.0,
+          "vy": 0.0,
+          "heading": 0.0,
+          "slip": 0.0,
+          "surface": 1,
+          "lap_frames": 150,
+          "best": 0,
+          "laps": 0,
+          "gate": 0,
+          "collisions": 0,
+          "cpu": 0.11181640625,
+          "missed": 1,
+          "camera_x": 4405,
+          "camera_y": 4168,
+          "vblank": 0.0205078125,
+          "uploaded_bytes": 0,
+          "bg_bytes": 10240,
+          "sprite_free_bytes": 11872,
+          "map": 0,
+          "width": 8192,
+          "height": 8192,
+          "chunk": 529,
+          "tile_capacity": 0,
+          "unique_tiles": 0,
+          "renderer_working_ram_bytes": 0,
+          "chunk_loads": 0,
+          "chunk_decodes": 0,
+          "chunk_cache_bytes": 0,
+          "minimap_x": 90,
+          "minimap_y": 46,
+          "seed": 12648431,
+          "signature": 2788965649,
+          "generations": 1,
+          "town": 0,
+          "town_x": 4416,
+          "town_y": 4176,
+          "layout_bytes": 17784,
+          "scratch_bytes": 45136,
+          "free_ewram": 203360,
+          "floor_cells": 1460,
+          "generation_updates": 401,
+          "town_visits": 1,
+          "radar_x": 0,
+          "radar_y": 0,
+          "radar_revisions": 0,
+          "zoom_level": 1,
+          "radar_scale": 0,
+          "loading_progress": 100,
+          "tune_acceleration": 0.052978515625,
+          "tune_max_speed": 3.199951171875,
+          "tune_grip": 0.119873046875,
+          "tune_steer": 2.89990234375,
+          "tune_mass": 1100,
+          "tune_selection": 0,
+          "tune_coast": 0.0009765625,
+          "tune_brake": 0.08984375,
+          "material_id": 3,
+          "material_kind": 3,
+          "shown_material": -1,
+          "terrain_rumble": 0.0
+        },
+        "menu": {
+          "magic": 1347569490,
+          "scrap": 0,
+          "blueprints": 1,
+          "crafted": 0,
+          "duplicates": 0,
+          "collected_scrap": 0,
+          "collected_blueprints": 0,
+          "menu_page": 2,
+          "craft_selection": 0,
+          "active_pickups": 0,
+          "collected_energy": 0,
+          "loadout_slot": 0,
+          "inventory_open": false,
+          "inventory_selection": 0,
+          "info_open": false
+        },
+        "weapons": {
+          "selected": 0,
+          "saw": false,
+          "saw_x": 0.0,
+          "saw_y": 0.0,
+          "guidance": 0,
+          "explosions": 0,
+          "mask": 13,
+          "settings_panel": 0,
+          "garage_slot": 0,
+          "car_type": 0,
+          "energy": 100,
+          "max_energy": 100,
+          "shots": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "front": 0,
+          "side": 2,
+          "special": 3,
+          "inventory_open": false,
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "A opens only the compatible inventory for the selected front slot",
+      "passed": true,
+      "details": {
+        "magic": 1347569490,
+        "scrap": 0,
+        "blueprints": 1,
+        "crafted": 0,
+        "duplicates": 0,
+        "collected_scrap": 0,
+        "collected_blueprints": 0,
+        "menu_page": 2,
+        "craft_selection": 0,
+        "active_pickups": 0,
+        "collected_energy": 0,
+        "loadout_slot": 0,
+        "inventory_open": true,
+        "inventory_selection": 1,
+        "info_open": false
+      }
+    },
+    {
+      "name": "R opens weapon information without changing the fitting",
+      "passed": true,
+      "details": {
+        "menu": {
+          "magic": 1347569490,
+          "scrap": 0,
+          "blueprints": 1,
+          "crafted": 0,
+          "duplicates": 0,
+          "collected_scrap": 0,
+          "collected_blueprints": 0,
+          "menu_page": 2,
+          "craft_selection": 0,
+          "active_pickups": 0,
+          "collected_energy": 0,
+          "loadout_slot": 0,
+          "inventory_open": true,
+          "inventory_selection": 1,
+          "info_open": true
+        },
+        "weapons": {
+          "selected": 0,
+          "saw": false,
+          "saw_x": 0.0,
+          "saw_y": 0.0,
+          "guidance": 0,
+          "explosions": 0,
+          "mask": 13,
+          "settings_panel": 0,
+          "garage_slot": 0,
+          "car_type": 0,
+          "energy": 100,
+          "max_energy": 100,
+          "shots": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "hits": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "front": 0,
+          "side": 2,
+          "special": 3,
+          "inventory_open": true,
+          "missiles": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "vx": 0.0,
+              "vy": 0.0,
+              "remaining": 0,
+              "age": 0,
+              "target": -1,
+              "heading": 0.0,
+              "explosion": 0
+            }
+          ],
+          "traps": [
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            },
+            {
+              "x": 0.0,
+              "y": 0.0,
+              "remaining": 0,
+              "arm": 0,
+              "explosion": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "A equips EMPTY from the front inventory and returns to the slot view",
+      "passed": true,
+      "details": {
+        "selected": 5,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
+        "guidance": 0,
+        "explosions": 0,
+        "mask": 12,
+        "settings_panel": 0,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 100,
+        "max_energy": 100,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "front": 5,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "B cancels a compatible inventory without changing the side mount",
+      "passed": true,
+      "details": {
+        "selected": 5,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
+        "guidance": 0,
+        "explosions": 0,
+        "mask": 12,
+        "settings_panel": 0,
+        "garage_slot": 1,
+        "car_type": 0,
+        "energy": 100,
+        "max_energy": 100,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "front": 5,
+        "side": 2,
+        "special": 3,
+        "inventory_open": false,
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "The top slot accepts the alternate trap special",
+      "passed": true,
+      "details": {
+        "selected": 5,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
+        "guidance": 0,
+        "explosions": 0,
+        "mask": 20,
+        "settings_panel": 0,
+        "garage_slot": 2,
+        "car_type": 0,
+        "energy": 100,
+        "max_energy": 100,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "front": 5,
+        "side": 2,
+        "special": 4,
+        "inventory_open": false,
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "Leaving weapon fitting reloads the garage at the same car trigger",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 1,
+        "x": 100,
+        "y": 135,
+        "direction": 1,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Leaving weapon fitting restores the visible walking player",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 1,
+        "x": 100,
+        "y": 135,
+        "direction": 1,
+        "menu": false,
+        "selection": 1,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
@@ -136,29 +996,29 @@
       "passed": true,
       "details": {
         "magic": 1146442580,
-        "frame": 880,
+        "frame": 1108,
         "mode": 6,
         "setup": 1,
-        "x": 4353.38134765625,
-        "y": 4175.310546875,
+        "x": 4352.541015625,
+        "y": 4174.98974609375,
         "vx": 0.0,
         "vy": 0.0,
         "heading": 0.0,
         "slip": 0.0,
         "surface": 1,
-        "lap_frames": 158,
+        "lap_frames": 150,
         "best": 0,
         "laps": 0,
         "gate": 0,
         "collisions": 0,
-        "cpu": 0.0830078125,
-        "missed": 0,
-        "camera_x": 4407,
-        "camera_y": 4169,
-        "vblank": 0.01904296875,
+        "cpu": 0.116455078125,
+        "missed": 1,
+        "camera_x": 4405,
+        "camera_y": 4168,
+        "vblank": 0.021240234375,
         "uploaded_bytes": 0,
         "bg_bytes": 38912,
-        "sprite_free_bytes": 28096,
+        "sprite_free_bytes": 28640,
         "map": 0,
         "width": 8192,
         "height": 8192,
@@ -169,7 +1029,7 @@
         "chunk_loads": 0,
         "chunk_decodes": 0,
         "chunk_cache_bytes": 0,
-        "minimap_x": 86,
+        "minimap_x": 90,
         "minimap_y": 46,
         "seed": 12648431,
         "signature": 2788965649,
@@ -177,18 +1037,30 @@
         "town": 0,
         "town_x": 4416,
         "town_y": 4176,
-        "layout_bytes": 17524,
+        "layout_bytes": 17784,
         "scratch_bytes": 45136,
-        "free_ewram": 204696,
+        "free_ewram": 203504,
         "floor_cells": 1460,
-        "generation_updates": 177,
+        "generation_updates": 401,
         "town_visits": 1,
         "radar_x": 0,
         "radar_y": 0,
         "radar_revisions": 0,
-        "zoom_level": 0,
+        "zoom_level": 1,
         "radar_scale": 0,
-        "loading_progress": 100
+        "loading_progress": 100,
+        "tune_acceleration": 0.052978515625,
+        "tune_max_speed": 3.199951171875,
+        "tune_grip": 0.119873046875,
+        "tune_steer": 2.89990234375,
+        "tune_mass": 1100,
+        "tune_selection": 0,
+        "tune_coast": 0.0009765625,
+        "tune_brake": 0.08984375,
+        "material_id": 3,
+        "material_kind": 3,
+        "shown_material": -1,
+        "terrain_rumble": 0.0
       }
     },
     {
@@ -197,12 +1069,14 @@
       "details": {
         "magic": 1414485838,
         "place": 1,
-        "x": 128,
-        "y": 78,
+        "x": 130,
+        "y": 75,
         "direction": 3,
         "menu": true,
         "selection": 1,
-        "town": 0
+        "town": 0,
+        "prompt": false,
+        "player_visible": true
       }
     },
     {
@@ -210,29 +1084,29 @@
       "passed": true,
       "details": {
         "magic": 1146442580,
-        "frame": 898,
+        "frame": 1126,
         "mode": 4,
         "setup": 2,
-        "x": 4353.38134765625,
-        "y": 4175.310546875,
+        "x": 4352.541015625,
+        "y": 4174.98974609375,
         "vx": 0.0,
         "vy": 0.0,
         "heading": 0.0,
         "slip": 0.0,
         "surface": 1,
-        "lap_frames": 158,
+        "lap_frames": 150,
         "best": 0,
         "laps": 0,
         "gate": 0,
         "collisions": 0,
-        "cpu": 0.091064453125,
-        "missed": 0,
-        "camera_x": 4407,
-        "camera_y": 4169,
-        "vblank": 0.021240234375,
+        "cpu": 0.1103515625,
+        "missed": 1,
+        "camera_x": 4405,
+        "camera_y": 4168,
+        "vblank": 0.023681640625,
         "uploaded_bytes": 0,
         "bg_bytes": 34816,
-        "sprite_free_bytes": 31936,
+        "sprite_free_bytes": 31072,
         "map": 0,
         "width": 8192,
         "height": 8192,
@@ -243,7 +1117,7 @@
         "chunk_loads": 0,
         "chunk_decodes": 0,
         "chunk_cache_bytes": 0,
-        "minimap_x": 86,
+        "minimap_x": 90,
         "minimap_y": 46,
         "seed": 12648431,
         "signature": 2788965649,
@@ -251,32 +1125,62 @@
         "town": 0,
         "town_x": 4416,
         "town_y": 4176,
-        "layout_bytes": 17524,
+        "layout_bytes": 17784,
         "scratch_bytes": 45136,
-        "free_ewram": 204696,
+        "free_ewram": 203504,
         "floor_cells": 1460,
-        "generation_updates": 177,
+        "generation_updates": 401,
         "town_visits": 1,
         "radar_x": 0,
         "radar_y": 0,
         "radar_revisions": 0,
-        "zoom_level": 0,
+        "zoom_level": 1,
         "radar_scale": 0,
-        "loading_progress": 100
+        "loading_progress": 100,
+        "tune_acceleration": 0.032958984375,
+        "tune_max_speed": 2.64990234375,
+        "tune_grip": 0.10498046875,
+        "tune_steer": 2.25,
+        "tune_mass": 2200,
+        "tune_selection": 0,
+        "tune_coast": 0.0009765625,
+        "tune_brake": 0.08984375,
+        "material_id": 3,
+        "material_kind": 3,
+        "shown_material": -1,
+        "terrain_rumble": 0.0
       }
     },
     {
-      "name": "Garage exit returns beside its exterior door",
+      "name": "Garage exit area shows its animated A prompt",
+      "passed": true,
+      "details": {
+        "magic": 1414485838,
+        "place": 1,
+        "x": 130,
+        "y": 243,
+        "direction": 3,
+        "menu": false,
+        "selection": 2,
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
+      }
+    },
+    {
+      "name": "Garage exit works without facing the doorway",
       "passed": true,
       "details": {
         "magic": 1414485838,
         "place": 0,
         "x": 128,
-        "y": 67,
+        "y": 51,
         "direction": 0,
         "menu": false,
         "selection": 2,
-        "town": 0
+        "town": 0,
+        "prompt": true,
+        "player_visible": true
       }
     },
     {
@@ -284,29 +1188,29 @@
       "passed": true,
       "details": {
         "magic": 1146442580,
-        "frame": 1313,
+        "frame": 1506,
         "mode": 1,
         "setup": 2,
-        "x": 4353.38134765625,
-        "y": 4175.310546875,
+        "x": 4352.541015625,
+        "y": 4174.98974609375,
         "vx": 0.0,
         "vy": 0.0,
-        "heading": 0.0,
+        "heading": 180.0,
         "slip": 0.0,
         "surface": 1,
-        "lap_frames": 165,
+        "lap_frames": 156,
         "best": 0,
         "laps": 0,
         "gate": 0,
         "collisions": 0,
-        "cpu": 0.372802734375,
-        "missed": 0,
-        "camera_x": 4374,
-        "camera_y": 4169,
-        "vblank": 0.042724609375,
+        "cpu": 0.41845703125,
+        "missed": 1,
+        "camera_x": 4352,
+        "camera_y": 4168,
+        "vblank": 0.031982421875,
         "uploaded_bytes": 0,
         "bg_bytes": 24576,
-        "sprite_free_bytes": 27360,
+        "sprite_free_bytes": 25632,
         "map": 0,
         "width": 8192,
         "height": 8192,
@@ -317,7 +1221,7 @@
         "chunk_loads": 0,
         "chunk_decodes": 0,
         "chunk_cache_bytes": 0,
-        "minimap_x": 86,
+        "minimap_x": 89,
         "minimap_y": 46,
         "seed": 12648431,
         "signature": 2788965649,
@@ -325,18 +1229,134 @@
         "town": 0,
         "town_x": 4416,
         "town_y": 4176,
-        "layout_bytes": 17524,
+        "layout_bytes": 17784,
         "scratch_bytes": 45136,
-        "free_ewram": 179424,
+        "free_ewram": 178160,
         "floor_cells": 1460,
-        "generation_updates": 177,
+        "generation_updates": 401,
         "town_visits": 1,
         "radar_x": 4352,
-        "radar_y": 4096,
+        "radar_y": 4160,
         "radar_revisions": 1,
-        "zoom_level": 0,
-        "radar_scale": 128,
-        "loading_progress": 100
+        "zoom_level": 1,
+        "radar_scale": 64,
+        "loading_progress": 100,
+        "tune_acceleration": 0.032958984375,
+        "tune_max_speed": 2.64990234375,
+        "tune_grip": 0.10498046875,
+        "tune_steer": 2.25,
+        "tune_mass": 2200,
+        "tune_selection": 0,
+        "tune_coast": 0.0009765625,
+        "tune_brake": 0.08984375,
+        "material_id": 3,
+        "material_kind": 3,
+        "shown_material": 3,
+        "terrain_rumble": 0.0
+      }
+    },
+    {
+      "name": "Garage fittings persist to map play and B deploys the fitted trap",
+      "passed": true,
+      "details": {
+        "selected": 4,
+        "saw": false,
+        "saw_x": 0.0,
+        "saw_y": 0.0,
+        "guidance": 0,
+        "explosions": 0,
+        "mask": 20,
+        "settings_panel": 0,
+        "garage_slot": 0,
+        "car_type": 0,
+        "energy": 94,
+        "max_energy": 100,
+        "shots": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "hits": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "front": 5,
+        "side": 2,
+        "special": 4,
+        "inventory_open": false,
+        "missiles": [
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "vx": 0.0,
+            "vy": 0.0,
+            "remaining": 0,
+            "age": 0,
+            "target": -1,
+            "heading": 0.0,
+            "explosion": 0
+          }
+        ],
+        "traps": [
+          {
+            "x": 4374.541015625,
+            "y": 4174.98974609375,
+            "remaining": 896,
+            "arm": 14,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          },
+          {
+            "x": 0.0,
+            "y": 0.0,
+            "remaining": 0,
+            "arm": 0,
+            "explosion": 0
+          }
+        ]
       }
     }
   ]

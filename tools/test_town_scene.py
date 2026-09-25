@@ -13,19 +13,81 @@ def run():
     exterior=t.town_state();t.capture('town/exterior')
     t.check('Town slice starts at the south gate',t.state()['mode']==4 and
             exterior['place']==0 and exterior['x']==128 and exterior['y']==226,exterior)
+    t.check('Town south gate shows its animated A prompt',exterior['prompt'],exterior)
 
-    # The large central obstacle forces a route around its eastern side.
-    t.step(t.UP,100);blocked=t.town_state()
-    t.check('Town collision blocks the central rock island',blocked['y']>=140,blocked)
-    t.step(t.DOWN,50);t.step(t.RIGHT,40);t.step(t.UP,180);t.step(t.LEFT,40);t.tap(t.UP);t.tap(t.A);t.step(0,8)
+    # The redesigned town has a straight, readable public street between its
+    # south gate and garage. Rectangular building fronts stop lateral movement.
+    t.step(t.UP,100);street=t.town_state()
+    t.check('Town central street is open from the south gate',street['x']==128 and
+            street['y']==126,street)
+    t.check('Interaction prompt stays hidden away from an approach zone',not street['prompt'],street)
+    t.step(t.LEFT,80);facade=t.town_state()
+    t.check('Town western facade has a rectangular collision edge',90<=facade['x']<=92 and
+            facade['y']==126,facade)
+    t.step(t.RIGHT,40);t.step(t.UP,120);t.tap(t.DOWN)
+    approach=t.town_state();t.capture('town/garage-prompt')
+    t.check('Garage approach shows its animated A prompt',approach['prompt'],approach)
+    t.tap(t.A);t.step(0,8)
     garage=t.town_state();t.capture('town/garage')
-    t.check('Town garage door changes walkable location',garage['place']==1 and
+    t.check('Garage opens from its approach box without facing the door',garage['place']==1 and
             garage['x']==128 and garage['y']==228,garage)
 
-    t.step(t.UP,180);counter=t.town_state();t.tap(t.A);menu=t.town_state()
+    t.step(t.UP,180);t.tap(t.RIGHT);counter=t.town_state()
+    t.capture('town/garage-counter-prompt')
+    t.check('Garage counter approach shows its animated A prompt',counter['prompt'],counter)
+    t.tap(t.A);menu=t.town_state()
     t.capture('town/garage-menu')
-    t.check('Garage counter has solid collision',76<=counter['y']<=94,counter)
-    t.check('Mechanic opens the setup menu',menu['menu'],menu)
+    t.check('Garage counter has solid rectangular collision',72<=counter['y']<=78,counter)
+    t.check('Mechanic opens without facing the counter',menu['menu'],menu)
+    t.tap(t.DOWN);t.capture('town/garage-fabricator');fabricator=t.progression_state()
+    t.check('Mechanic supplies the basic plan and opens the fabricator page',fabricator['menu_page']==1 and
+            fabricator['blueprints']&1 and not fabricator['crafted'],fabricator)
+    t.tap(t.A);insufficient=t.progression_state()
+    t.check('Fabricator refuses a print without credits and scrap',not insufficient['crafted'] and
+            insufficient['scrap']==0,insufficient)
+    t.tap(t.DOWN)
+    t.check('Mechanic menu now contains only setup and fabricator pages',
+            t.progression_state()['menu_page']==0,t.progression_state())
+    t.tap(t.B)
+
+    # The parked car is a separate physical interaction. Approach the clear
+    # strip immediately to its right from the central garage aisle.
+    t.step(t.DOWN,60);t.step(t.LEFT,30)
+    fitting_prompt=t.town_state();t.capture('town/garage-fitting-prompt')
+    t.check('Parked garage car has its own weapon-fitting A prompt',
+            fitting_prompt['prompt'] and fitting_prompt['place']==1,fitting_prompt)
+    t.tap(t.A);t.step(0,4);loadout=t.progression_state();weapons=t.weapon_state()
+    t.capture('town/garage-weapons')
+    t.check('Car trigger loads a separate weapon-fitting scene',
+            t.state()['mode']==8 and loadout['menu_page']==2 and loadout['loadout_slot']==0 and
+            (weapons['front'],weapons['side'],weapons['special'])==(0,2,3) and weapons['mask']==13,
+            dict(state=t.state(),menu=loadout,weapons=weapons))
+    t.tap(t.A);opened=t.progression_state();t.capture('town/garage-weapon-inventory')
+    t.check('A opens only the compatible inventory for the selected front slot',
+            opened['inventory_open'] and opened['inventory_selection']==1,opened)
+    t.tap(t.R);info=t.progression_state();t.capture('town/garage-weapon-info')
+    t.check('R opens weapon information without changing the fitting',info['info_open'] and
+            t.weapon_state()['front']==0,dict(menu=info,weapons=t.weapon_state()))
+    t.tap(t.B);t.tap(t.LEFT);t.tap(t.A)
+    removed=t.weapon_state()
+    t.check('A equips EMPTY from the front inventory and returns to the slot view',
+            removed['front']==5 and removed['mask']==12 and not t.progression_state()['inventory_open'],removed)
+    t.tap(t.RIGHT);t.tap(t.A);t.tap(t.B)
+    t.check('B cancels a compatible inventory without changing the side mount',
+            t.weapon_state()['side']==2 and not t.progression_state()['inventory_open'],t.weapon_state())
+    t.tap(t.RIGHT);t.tap(t.A);t.tap(t.RIGHT);t.tap(t.A)
+    fitted=t.weapon_state();t.capture('town/garage-trap-fitted')
+    t.check('The top slot accepts the alternate trap special',
+            fitted['special']==4 and fitted['mask']==20,fitted)
+    t.tap(t.B);t.step(0,4);returned=t.town_state();t.capture('town/garage-fitting-return')
+    t.check('Leaving weapon fitting reloads the garage at the same car trigger',
+            t.state()['mode']==4 and returned['place']==1 and returned['x']==fitting_prompt['x'] and
+            returned['y']==fitting_prompt['y'],returned)
+    t.check('Leaving weapon fitting restores the visible walking player',
+            returned['player_visible'],returned)
+
+    # Return to the mechanic through the central aisle.
+    t.step(t.RIGHT,30);t.step(t.UP,60);t.tap(t.A)
     t.tap(t.SELECT);t.check('Settings can open over the mechanic menu',t.state()['mode']==6,t.state())
     t.tap(t.SELECT);t.capture('town/garage-menu-resumed')
     t.check('Closing settings restores the mechanic menu',t.state()['mode']==4 and
@@ -33,12 +95,19 @@ def run():
     original=t.state()['setup'];t.tap(t.RIGHT);t.tap(t.A)
     t.check('Mechanic applies the selected setup',t.state()['setup']==(original+1)%3,t.state())
 
-    t.step(t.DOWN,150);t.tap(t.A)
+    t.step(t.DOWN,170);t.tap(t.UP);garage_exit=t.town_state()
+    t.capture('town/garage-exit-prompt')
+    t.check('Garage exit area shows its animated A prompt',garage_exit['prompt'],garage_exit)
+    t.tap(t.A)
     outside=t.town_state()
-    t.check('Garage exit returns beside its exterior door',outside['place']==0 and
-            outside['x']==128 and outside['y']==67,outside)
-    t.step(t.RIGHT,40);t.step(t.DOWN,135);t.step(t.LEFT,40);t.step(t.DOWN,35);t.tap(t.A);t.step(0,20)
+    t.check('Garage exit works without facing the doorway',outside['place']==0 and
+            outside['x']==128 and outside['y']==51,outside)
+    t.step(t.DOWN,190);t.tap(t.A);t.step(0,20)
     t.check('Town south gate restores the overworld',t.state()['mode']==1,t.state())
+    before=t.weapon_state();t.tap(t.B);after=t.weapon_state()
+    t.check('Garage fittings persist to map play and B deploys the fitted trap',
+            (after['front'],after['side'],after['special'])==(5,2,4) and
+            after['shots'][4]==before['shots'][4]+1 and any(p['remaining'] for p in after['traps']),after)
 
 
 if __name__=='__main__':

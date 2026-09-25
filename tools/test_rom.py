@@ -24,6 +24,10 @@ address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswi
 combat_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_combat_telemetry')),16)
 weapon_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_weapon_telemetry')),16)
 town_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_town_telemetry')),16)
+mission_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_mission_telemetry')),16)
+race_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_race_telemetry')),16)
+music_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_music_telemetry')),16)
+progression_address=int(next(line.split()[0] for line in symbols.splitlines() if line.endswith(' dustline_progression_telemetry')),16)
 lib=C.CDLL(str(ROOT/'build/emulator_bridge.so'))
 lib.emulator_open.argtypes=[C.c_char_p]
 lib.emulator_open.restype=C.c_int
@@ -37,7 +41,7 @@ def step(keys=0,frames=1):
     return state()
 
 def state():
-    v=[lib.emulator_read(address+4*i) for i in range(54)]
+    v=[lib.emulator_read(address+4*i) for i in range(66)]
     return dict(magic=v[0],frame=v[1],mode=v[2],setup=v[3],
                 x=v[4]/4096,y=v[5]/4096,vx=v[6]/4096,vy=v[7]/4096,
                 heading=v[8]/4096,slip=v[9]/4096,surface=v[10],
@@ -50,7 +54,12 @@ def state():
                 generations=v[38],town=v[39],town_x=v[40],town_y=v[41],layout_bytes=v[42],
                 scratch_bytes=v[43],free_ewram=v[44],floor_cells=v[45],generation_updates=v[46],town_visits=v[47],
                 radar_x=v[48],radar_y=v[49],radar_revisions=v[50],zoom_level=v[51],radar_scale=v[52],
-                loading_progress=v[53])
+                loading_progress=v[53],tune_acceleration=v[54]/4096,
+                tune_max_speed=v[55]/4096,tune_grip=v[56]/4096,
+                tune_steer=v[57]/4096,tune_mass=v[58],tune_selection=v[59],
+                tune_coast=v[60]/4096,tune_brake=v[61]/4096,
+                material_id=v[62],material_kind=v[63],shown_material=v[64],
+                terrain_rumble=v[65]/4096)
 
 def capture(name):
     size=lib.emulator_pixel_size()
@@ -89,9 +98,11 @@ def combat_state():
     return result
 
 def weapon_state():
-    v=[lib.emulator_read(weapon_address+4*i) for i in range(70)]
+    v=[lib.emulator_read(weapon_address+4*i) for i in range(78)]
     return dict(selected=v[0],saw=bool(v[1]),saw_x=v[2]/4096,saw_y=v[3]/4096,
-                guidance=v[4],explosions=v[5],shots=v[8:13],hits=v[13:18],
+                guidance=v[4],explosions=v[5],mask=v[6],settings_panel=v[7],
+                garage_slot=v[70],car_type=v[71],energy=v[72],max_energy=v[73],shots=v[8:13],hits=v[13:18],
+                front=v[74],side=v[75],special=v[76],inventory_open=bool(v[77]),
                 missiles=[dict(x=v[a]/4096,y=v[a+1]/4096,vx=v[a+2]/4096,vy=v[a+3]/4096,
                                remaining=v[a+4],age=v[a+5],target=v[a+6],heading=v[a+7]/4096,explosion=v[a+8])
                           for a in (20,29)],
@@ -99,9 +110,44 @@ def weapon_state():
                        for a in range(40,70,5)])
 
 def town_state():
-    v=[lib.emulator_read(town_address+4*i) for i in range(8)]
+    v=[lib.emulator_read(town_address+4*i) for i in range(10)]
     return dict(magic=v[0],place=v[1],x=v[2],y=v[3],direction=v[4],
-                menu=bool(v[5]),selection=v[6],town=v[7])
+                menu=bool(v[5]),selection=v[6],town=v[7],prompt=bool(v[8]),
+                player_visible=bool(v[9]))
+
+def mission_state():
+    v=[lib.emulator_read(mission_address+4*i) for i in range(16)]
+    return dict(magic=v[0],type=v[1],status=v[2],origin=v[3],target_town=v[4],
+                target_spawn=v[5],target_x=v[6],target_y=v[7],progress=v[8],goal=v[9],
+                reward=v[10],credits=v[11],completed=v[12],serial=v[13],
+                board=bool(v[14]),selection=v[15])
+
+def race_state():
+    v=[lib.emulator_read(race_address+4*i) for i in range(80)]
+    return dict(magic=v[0],kind=v[1],phase=v[2],outcome=v[3],closed=bool(v[4]),
+                origin=v[5],target_town=v[6],checkpoint_count=v[7],next_checkpoint=v[8],
+                time_limit=v[9],time_left=v[10],elapsed=v[11],score=v[12],reward=v[13],
+                earned=v[14],off_course=v[15],no_progress=v[16],menu=bool(v[17]),
+                selection=v[18],start_x=v[19],start_y=v[20],
+                checkpoints=[(v[21+i*2],v[22+i*2]) for i in range(max(0,min(16,v[7])))],
+                serial=v[53],credits=v[54],world_linger_checkpoint=v[55],
+                world_linger_frames=v[56],world_gate_visible=bool(v[57]),
+                world_left_flag_visible=bool(v[58]),world_right_flag_visible=bool(v[59]),
+                radar_gate_visible=bool(v[60]),world_display_checkpoint=v[61])
+
+def audio_state():
+    v=[lib.emulator_read(music_address+4*i) for i in range(16)]
+    return dict(magic=v[0],playing=bool(v[1]),active=v[2],target=v[3],position=v[4],
+                downgrade=v[5],bpm=v[6],sections=v[7],music_volume=v[8],sound_volume=v[9],
+                muted=bool(v[10]),selection=v[11],sound_master=v[12]/4096,
+                music_output=v[13]/4096,engine_volume=v[14]/4096,engine_pitch=v[15]/4096)
+
+def progression_state():
+    v=[lib.emulator_read(progression_address+4*i) for i in range(16)]
+    return dict(magic=v[0],scrap=v[1],blueprints=v[2],crafted=v[3],duplicates=v[4],
+                collected_scrap=v[5],collected_blueprints=v[6],menu_page=v[7],
+                craft_selection=v[8],active_pickups=v[9],collected_energy=v[10],
+                loadout_slot=v[11],inventory_open=bool(v[12]),inventory_selection=v[13],info_open=bool(v[14]))
 
 def spawn_state():
     c=combat_state(); points=[]
@@ -110,7 +156,8 @@ def spawn_state():
         xy=lib.emulator_read(address)&0xffffffff
         timer=lib.emulator_read(address+4); flags=lib.emulator_read(address+8)&0xffffffff
         slot=flags&255
-        points.append(dict(x=xy&65535,y=xy>>16,ready_at=timer,slot=slot if slot<128 else slot-256,hp=(flags>>8)&255))
+        points.append(dict(x=xy&65535,y=xy>>16,ready_at=timer,slot=slot if slot<128 else slot-256,
+                           hp=(flags>>8)&255,profile=(flags>>16)&255,reward_rolls=(flags>>24)&255))
     return points
 
 def combat_pixel_mask(s):
@@ -178,7 +225,7 @@ def check_scene_pixels(name,art):
 def main():
     assert lib.emulator_open(str(ROOT/'dist/dustline.gba').encode())
     s=step(0,90)
-    capture('title')
+    title_reference=capture('title')
     check('Boots to the catalog title screen',s['magic']==0x44555354 and s['mode']==0,s)
     check('First shared-library map is selected by default',s['map']==0,s)
     tap(LEFT)
@@ -203,6 +250,10 @@ def main():
           dict(frames=len(loading),minimum=min(loading) if loading else None,
                maximum=max(loading) if loading else None,distinct=len(set(loading))))
     tap(START);tap(SELECT)
+    returned_title=capture('title-returned')
+    check('Returning from a map preserves every baked title pixel',
+          list(title_reference.crop((0,0,240,124)).getdata())==
+          list(returned_title.crop((0,0,240,124)).getdata()))
 
     observed=[]
     for index,entry in enumerate(GAME_MAPS):
@@ -258,7 +309,7 @@ if __name__=='__main__':
         combat_start=next((i for i,c in enumerate(checks) if c['name']=='Nearby three-HP enemies spawn on reachable clear floor'),len(checks))
         if combat_start<len(checks):
             (OUT/'combat/test-results.json').write_text(json.dumps(dict(report,checks=checks[combat_start:]),indent=2),encoding='utf8')
-        spawning_start=next((i for i,c in enumerate(checks) if c['name']=='World-wide encounter anchors are reachable, sparse and lightweight'),len(checks))
+        spawning_start=next((i for i,c in enumerate(checks) if c['name']=='World-wide profiled encounter anchors are reachable, sparse and lightweight'),len(checks))
         if spawning_start<len(checks):
             (OUT/'spawning/test-results.json').write_text(json.dumps(dict(report,checks=checks[spawning_start:]),indent=2),encoding='utf8')
         traffic_start=next((i for i,c in enumerate(checks) if c['name']=='Stationary player cannot make enemy drivers permanently park'),len(checks))
