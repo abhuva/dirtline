@@ -29,12 +29,11 @@ economy, or persistent progression yet.
 | A | Accelerate | Confirm, interact, enter doors |
 | B | Brake, then reverse | Cancel |
 | Left / Right | Steer | Choose or adjust menu values |
-| Up / Down | Minimap zoom in/out | Choose handling property; walk in towns |
-| L | Cycle weapon | — |
-| R | Use selected weapon | — |
+| Up / Down | Unused | Choose menu rows; walk in towns |
+| L | Fire fitted top special | Switch vehicle-lab panel |
+| R | Fire fitted front and side weapons | Switch vehicle-lab panel; weapon info |
 | Select | Open vehicle lab | Return from pause to map selection |
 | Start | Pause | Resume |
-| D-pad | Steer and adjust minimap zoom | Navigate menus or walk in towns |
 
 Try releasing the throttle before a bend, turning through it, and applying power
 again on exit. The car retains momentum while coasting, and its heading can differ
@@ -48,7 +47,7 @@ the physics.
 Press Select while driving to open the Handling Lab. It exposes acceleration,
 maximum speed, grip, steering, neutral coast drag, brake force and mass over deliberately broad test ranges;
 Up/Down chooses a property, Left/Right adjusts it, and A restores the fitted
-garage preset. L/R also reaches Weapon Loadout and Audio Control panels. Audio
+garage preset. L/R switches between the Handling and Audio Control panels. Audio
 Control independently adjusts music and sound-effect volume in 10% steps and
 provides a master mute; these choices persist for the current session. Music
 starts at 0%, while sound effects start at 100%.
@@ -56,17 +55,16 @@ starts at 0%, while sound effects start at 100%.
 ## What's in the prototype
 
 - A native GBA ROM written in C++ with Butano and devkitARM.
-- Eight fixed-seed 8192 x 8192 procedural maps selected from the title screen.
+- Seven fixed-seed 8192 x 8192 procedural maps selected from the title screen.
 - Fixed elevated 2D presentation with momentum, grip-limited sliding, braking,
   reverse, terrain collisions, and three distinct vehicle setups.
-- Streaming terrain, a zoomable minimap, outposts, walkable towns, and a garage.
+- Streaming terrain, a fixed-2x minimap, outposts, walkable towns, and a garage.
 - Signed town services with proximity-based, animated button prompts.
 - Deterministic courier and marked-raider contracts from town dispatch boards.
 - A separate race office with hub-to-outpost road events and generated open or
   closed wilderness courses, sequential gates, scoring, payouts and course-abort rules.
-- Pooled enemy drivers and five weapons: gun, saw, side guns, homing missiles,
-  and traps.
-- Player health, a rechargeable shield, synthesized effects, an adaptive
+- Pooled enemy drivers and garage-fitted front, side, missile, and trap weapons.
+- Player health, a rechargeable shield, battery energy, synthesized effects, an adaptive
   eight-channel tracker soundtrack, and original pixel art.
 - Local browser-based map and music workshops shared with the ROM generators.
 

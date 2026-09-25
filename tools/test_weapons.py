@@ -33,14 +33,15 @@ def run(t):
             len(side_shots)==2 and sorted(round(p['y']-t.state()['y']) for p in side_shots)==[-20,20],side_shots)
 
     before=t.combat_state()['ticks'];fittings=t.weapon_state()
-    step(t.L,24);after=t.weapon_state()
-    t.check('L has no map-play loadout function and does not pause simulation',
+    step(t.B,24);after=t.weapon_state()
+    t.check('B brakes without firing a weapon or changing the garage fitting',
             t.combat_state()['ticks']==before+24 and
             (after['front'],after['side'],after['special'])==
-            (fittings['front'],fittings['side'],fittings['special']),after)
+            (fittings['front'],fittings['side'],fittings['special']) and
+            after['shots']==fittings['shots'],after)
 
-    fresh();before=t.state();step(t.B);special=t.weapon_state();missile=special['missiles'][0]
-    t.check('B independently fires the fitted top special without firing normal mounts',
+    fresh();before=t.state();step(t.L);special=t.weapon_state();missile=special['missiles'][0]
+    t.check('L independently fires the fitted top special without firing normal mounts',
             special['shots'][:3]==[0,0,0] and special['shots'][3:]==[1,0] and
             special['energy']==92 and missile['remaining']>0 and
             18<missile['x']-before['x']<21 and abs(missile['y']-before['y'])<1,special)
@@ -50,7 +51,7 @@ def run(t):
             dict(missile=guided,weapon=t.weapon_state()))
     t.capture('weapons/missile-homing')
 
-    fresh();step(t.R|t.B,170);energy=t.weapon_state();image=t.capture('weapons/curved-energy-arc')
+    fresh();step(t.R|t.L,170);energy=t.weapon_state();image=t.capture('weapons/curved-energy-arc')
     amber=(255,206,66)
     amber_pixels=[(x,y) for y in range(140,157) for x in range(181,238) if image.getpixel((x,y))==amber]
     mirrored=sum((image.getpixel((209-d,y))==amber)==(image.getpixel((209+d,y))==amber)

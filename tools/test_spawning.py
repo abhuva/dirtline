@@ -99,7 +99,7 @@ def run(t):
             target=3.0 if abs(error)<20 and distance>100 else .8
             speed=math.hypot(s['vx'],s['vy'])
             if speed<target: keys|=t.A
-            elif speed>target+.15: keys|=t.DOWN
+            elif speed>target+.15: keys|=t.B
             s=t.step(keys)
             # This suite measures encounter streaming, so recover from the real
             # combat death screen and continue the controller-driven route.
@@ -172,7 +172,7 @@ def run(t):
             target=3.0 if abs(error)<20 and distance>100 else .8
             speed=math.hypot(s['vx'],s['vy'])
             if speed<target: keys|=t.A
-            elif speed>target+.15: keys|=t.DOWN
+            elif speed>target+.15: keys|=t.B
             s=t.step(keys)
             if s['mode']==7:
                 t.tap(t.A);s=t.state()

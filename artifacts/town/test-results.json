@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
+  "rom_sha256": "aa998b09769f790e47b0b4dee6502ce4f3672c37d6089ba1996a5614d779be50",
   "checks": [
     {
       "name": "Town slice reaches the entry prompt through normal driving",
@@ -1203,7 +1203,7 @@
         "laps": 0,
         "gate": 0,
         "collisions": 0,
-        "cpu": 0.41845703125,
+        "cpu": 0.418212890625,
         "missed": 1,
         "camera_x": 4352,
         "camera_y": 4168,
@@ -1256,7 +1256,7 @@
       }
     },
     {
-      "name": "Garage fittings persist to map play and B deploys the fitted trap",
+      "name": "Garage fittings persist to map play and L deploys the fitted trap",
       "passed": true,
       "details": {
         "selected": 4,

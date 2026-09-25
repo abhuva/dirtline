@@ -48,23 +48,34 @@ def run(t):
     menu();initial=t.start_map(0);ref=Reference(t,initial['seed'])
     t.check('Wasteland opens at the fixed 2x player-centered view',
             initial['zoom_level']==1 and initial['radar_scale']==64,initial)
+    down_idle=t.step(t.DOWN,18)
+    t.check('Down has no driving action',
+            all(down_idle[key]==initial[key] for key in ('x','y','vx','vy','heading')),
+            dict(before=initial,after=down_idle))
 
-    rough_slip=0;rough_rumble=0
     accelerated=initial
+    for _ in range(40):
+        accelerated=t.step(t.A)
+    coast_start=math.hypot(accelerated['vx'],accelerated['vy'])
+    coast_end=math.hypot(*(t.step(0,6)[axis] for axis in ('vx','vy')))
+
+    # Repeat the same deterministic run so braking and coasting begin from the
+    # same location, speed, encounter state and terrain sample.
+    menu();initial=t.start_map(0);ref=Reference(t,initial['seed'])
+    t.step(t.DOWN,18)
+    rough_slip=0;rough_rumble=0
     for _ in range(40):
         accelerated=t.step(t.A)
         if accelerated['material_kind'] in (1,2):
             rough_slip=max(rough_slip,abs(accelerated['slip']))
             rough_rumble=max(rough_rumble,abs(accelerated['terrain_rumble']))
-    coast_start=math.hypot(accelerated['vx'],accelerated['vy'])
-    coast_end=math.hypot(*(t.step(0,6)[axis] for axis in ('vx','vy')))
-    accelerated=t.step(t.A,12)
     brake_start=math.hypot(accelerated['vx'],accelerated['vy'])
-    brake_end=math.hypot(*(t.step(t.DOWN,6)[axis] for axis in ('vx','vy')))
+    brake_end=math.hypot(*(t.step(t.B,6)[axis] for axis in ('vx','vy')))
     coast_drop=coast_start-coast_end
     brake_drop=brake_start-brake_end
-    t.check('Down braking is materially stronger than neutral coasting',
-            t.state()['mode']==1 and coast_drop>0 and brake_drop>coast_drop*3,
+    t.check('B braking is materially stronger than neutral coasting',
+            t.state()['mode']==1 and coast_drop>0 and
+            abs(brake_start-coast_start)<0.001 and brake_end<coast_end*0.6,
             dict(coast_start=coast_start,coast_end=coast_end,coast_drop=coast_drop,
                  brake_start=brake_start,brake_end=brake_end,brake_drop=brake_drop))
     t.check('Stony ground produces soft lateral chatter and a rumble signal',
@@ -72,7 +83,7 @@ def run(t):
             dict(peak_slip=rough_slip,peak_rumble=rough_rumble,
                  material=accelerated['material_kind']))
 
-    # Up/Down no longer zoom the minimap; Down is now the driving brake.
+    # Up/Down have no driving action and no longer zoom the minimap.
     generation=initial['generations']
     before_zoom=t.state();t.tap(t.UP);t.tap(t.DOWN);t.step(0,24);s=t.state()
     t.capture('settings/radar-fixed-2x')

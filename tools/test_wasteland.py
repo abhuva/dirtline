@@ -276,7 +276,7 @@ def run(t):
     # extra cooldown or a large axis-aligned escape distance.
     left_zone=False
     for _ in range(180):
-        s=t.step(t.DOWN)
+        s=t.step(t.B)
         dx=s['x']-s['town_x'];dy=s['y']-(s['town_y']-32)
         if dx*dx+dy*dy>=74*74:
             left_zone=True;break

@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
+  "rom_sha256": "aa998b09769f790e47b0b4dee6502ce4f3672c37d6089ba1996a5614d779be50",
   "emulator": "libmGBA (Debian bookworm)",
   "checks": [
     {
@@ -242,7 +242,7 @@
       "name": "Spawn streaming fits measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.900146484375,
+        "cpu": 0.9091796875,
         "missed": 0
       }
     },
@@ -285,7 +285,7 @@
       "name": "Damaged-survivor streaming route stays within frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.86376953125,
+        "cpu": 0.860107421875,
         "missed": 0
       }
     },
@@ -412,7 +412,7 @@
       ]
     },
     {
-      "name": "L has no map-play loadout function and does not pause simulation",
+      "name": "B brakes without firing a weapon or changing the garage fitting",
       "passed": true,
       "details": {
         "selected": 2,
@@ -516,7 +516,7 @@
       }
     },
     {
-      "name": "B independently fires the fitted top special without firing normal mounts",
+      "name": "L independently fires the fitted top special without firing normal mounts",
       "passed": true,
       "details": {
         "selected": 3,
@@ -863,7 +863,7 @@
       "name": "Grouped weapon fire fits the measured driving frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.812744140625,
+        "cpu": 0.79296875,
         "missed": 1,
         "ram": 5064
       }

@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "683c703541b2aa74773a528924106e3e88b2f1763d2c24ddf636e4d6f8288456",
+  "rom_sha256": "aa998b09769f790e47b0b4dee6502ce4f3672c37d6089ba1996a5614d779be50",
   "emulator": "libmGBA (Debian bookworm)",
   "checks": [
     {
@@ -154,7 +154,7 @@
         "collisions": 0,
         "avoidance": 1017,
         "recoveries": 4,
-        "simulation_cpu": 0.2606516290726817,
+        "simulation_cpu": 0.2604237867395762,
         "view_cpu": 0.09022556390977443,
         "bumps": 6,
         "last_bump": 0.23876953125,
@@ -319,7 +319,7 @@
         "collisions": 0,
         "avoidance": 1017,
         "recoveries": 4,
-        "simulation_cpu": 0.2606516290726817,
+        "simulation_cpu": 0.2604237867395762,
         "view_cpu": 0.09022556390977443,
         "bumps": 6,
         "last_bump": 0.23876953125,
@@ -479,7 +479,7 @@
         "collisions": 0,
         "avoidance": 1017,
         "recoveries": 4,
-        "simulation_cpu": 0.2606516290726817,
+        "simulation_cpu": 0.2604237867395762,
         "view_cpu": 0.09022556390977443,
         "bumps": 6,
         "last_bump": 0.23876953125,
@@ -623,7 +623,7 @@
       "details": {
         "state": {
           "magic": 1146442580,
-          "frame": 13212,
+          "frame": 13311,
           "mode": 1,
           "setup": 0,
           "x": 4208.777099609375,
@@ -638,7 +638,7 @@
           "laps": 0,
           "gate": 0,
           "collisions": 0,
-          "cpu": 0.4521484375,
+          "cpu": 0.472900390625,
           "missed": 1,
           "camera_x": 4238,
           "camera_y": 4169,
@@ -660,7 +660,7 @@
           "minimap_y": 46,
           "seed": 12648431,
           "signature": 2788965649,
-          "generations": 25,
+          "generations": 26,
           "town": -1,
           "town_x": 4416,
           "town_y": 4176,
@@ -709,7 +709,7 @@
           "avoidance": 7,
           "recoveries": 1,
           "simulation_cpu": 0.22829801777170197,
-          "view_cpu": 0.05809979494190021,
+          "view_cpu": 0.05764411027568922,
           "bumps": 1,
           "last_bump": 1.552490234375,
           "player_mass": 950,
@@ -856,7 +856,7 @@
       "name": "Traffic AI and contact solving stay within the measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.875244140625,
+        "cpu": 0.869384765625,
         "missed": 0
       }
     },
@@ -1107,7 +1107,7 @@
       "name": "Spawn streaming fits measured frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.900146484375,
+        "cpu": 0.9091796875,
         "missed": 0
       }
     },
@@ -1150,7 +1150,7 @@
       "name": "Damaged-survivor streaming route stays within frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.86376953125,
+        "cpu": 0.860107421875,
         "missed": 0
       }
     },
@@ -1277,7 +1277,7 @@
       ]
     },
     {
-      "name": "L has no map-play loadout function and does not pause simulation",
+      "name": "B brakes without firing a weapon or changing the garage fitting",
       "passed": true,
       "details": {
         "selected": 2,
@@ -1381,7 +1381,7 @@
       }
     },
     {
-      "name": "B independently fires the fitted top special without firing normal mounts",
+      "name": "L independently fires the fitted top special without firing normal mounts",
       "passed": true,
       "details": {
         "selected": 3,
@@ -1728,7 +1728,7 @@
       "name": "Grouped weapon fire fits the measured driving frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.812744140625,
+        "cpu": 0.79296875,
         "missed": 1,
         "ram": 5064
       }

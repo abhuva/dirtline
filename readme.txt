@@ -17,8 +17,8 @@ The loading screen shows aggregate progress through the selected map's world,
 material, spawn and decoration node graphs, followed by encounter and scene setup.
 Select opens the paused vehicle lab without resetting the car. L/R switches
 between handling/body selection and audio control. While driving, R fires the
-fitted front and side weapons together and B fires the fitted top special.
-Weapon fitting is changed only at a garage; L is unused while driving.
+fitted front and side weapons together and L fires the fitted top special.
+Weapon fitting is changed only at a garage; there is no loadout switching while driving.
 Start pauses and shows the active contract, reward, completed-job count and
 session credits.
 Music starts at 0% volume and can be enabled from the vehicle lab's AUDIO
@@ -118,7 +118,7 @@ anchor when reactivated. Anchors cannot produce duplicates while their car lives
 Each car has three fixed garage mounts: FRONT accepts the gun, SIDE accepts the
 paired side guns, and TOP accepts a homing missile or trap. Every slot can also
 be left EMPTY. Hold R to fire the fitted front and side mounts together; weapons
-do not wait for an AI range decision. B independently operates the fitted TOP
+do not wait for an AI range decision. L independently operates the fitted TOP
 special. The default fitting is gun + side guns + missile. There is no weapon
 switching or weapon icon during map play, and no full-width driving status bar.
 The default forward gun fires about six shots per second with 120px muzzle
@@ -206,7 +206,7 @@ During a race only the current checkpoint appears on the minimap.
 Select opens the paused vehicle lab. L/R switches between its HANDLING and AUDIO
 CONTROL panels. In HANDLING, Up/Down chooses ACC, SPEED, GRIP,
 STEER, COAST, BRAKE, MASS, BAT or CAR. COAST is the base per-frame slowdown while
-neither A nor Down is held; BRAKE is the forward-speed reduction applied by Down.
+neither A nor B is held; BRAKE is the forward-speed reduction applied by B.
 The existing terrain resistance is added on top, so loose ground still scrubs
 more speed than a road at the same COAST value.
 On CAR, Left/Right selects ROADSTER, SAND BUGGY, OLD CAR, TRUCK or PICKUP and A
@@ -228,8 +228,8 @@ CONTROLS (GBA BUTTONS, AS MAPPED IN YOUR EMULATOR)
 Title Left/Right Select the previous / next map
 Title A          Start the selected map
 A               Accelerate
-Down            Brake; keep holding to reverse once stopped
-B               Fire the fitted TOP special weapon
+B               Brake; keep holding to reverse once stopped
+Up / Down       No driving function
 Left / Right    Steer relative to the car (steering reverses while backing up)
 Town D-pad      Walk in four directions
 Town A          Use any circled-A proximity area; facing does not matter
@@ -240,6 +240,7 @@ Fitting D-pad   Choose a compatible weapon after opening a mount
 Fitting A / B   Open or fit / cancel or close the fitting screen
 Fitting R       Show data for the highlighted fitted or inventory weapon
 R in wasteland  Fire the fitted FRONT and SIDE mounts together
+L in wasteland  Fire the fitted TOP special weapon
 Select          Open vehicle lab while driving or in town (pauses driving)
 L / R           In vehicle lab: switch Handling / Audio panel
 Up / Down       In vehicle lab: choose a property, BAT, CAR or audio row
@@ -250,7 +251,7 @@ Start           Pause / controls screen; press again to resume
 Pause B         Abort an active race (wild races return to their race office)
 Select in pause Return to map selection
 
-Reverse uses Down, after the car has stopped.
+Reverse uses B, after the car has stopped.
 
 PROGRESSION
 -----------

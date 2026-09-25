@@ -1,5 +1,5 @@
 {
-  "rom_sha256": "b53119a83f84a67fb1a07aa65c4bab4d3441f58c42d36ca0a9314af829c1e0e0",
+  "rom_sha256": "a9a5f34806b8755bfccc1e0c625679dbadaec23b1802f0f6137c6076c5c6ad75",
   "checks": [
     {
       "name": "R fires the fitted front gun and both side guns together",
@@ -124,7 +124,7 @@
       ]
     },
     {
-      "name": "L has no map-play loadout function and does not pause simulation",
+      "name": "B brakes without firing a weapon or changing the garage fitting",
       "passed": true,
       "details": {
         "selected": 2,
@@ -228,7 +228,7 @@
       }
     },
     {
-      "name": "B independently fires the fitted top special without firing normal mounts",
+      "name": "L independently fires the fitted top special without firing normal mounts",
       "passed": true,
       "details": {
         "selected": 3,
@@ -575,7 +575,7 @@
       "name": "Grouped weapon fire fits the measured driving frame budget",
       "passed": true,
       "details": {
-        "cpu": 0.921630859375,
+        "cpu": 0.7724609375,
         "missed": 1,
         "ram": 5064
       }

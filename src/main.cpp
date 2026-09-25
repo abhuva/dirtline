@@ -660,7 +660,7 @@ int main() {
         if(state==1) {
             const bool race_locked=race_manager.current().state==races::phase::countdown ||
                                    wild_return_frames>0;
-            driving::Input input {bn::keypad::a_held(),bn::keypad::down_held(),
+            driving::Input input {bn::keypad::a_held(),bn::keypad::b_held(),
                 (bn::keypad::right_held()?1:0)-(bn::keypad::left_held()?1:0)};
             if(!button_guard) {
                 if(race_locked) {
@@ -669,7 +669,7 @@ int main() {
                 ++lap_frames;
                 int combat_start=bn::core::current_cpu_ticks();
                 if(!race_locked)
-                    combat_world.step(car,bn::keypad::r_held(),bn::keypad::b_held());
+                    combat_world.step(car,bn::keypad::r_held(),bn::keypad::l_held());
                 if(combat_world.collected_scrap){scrap+=combat_world.collected_scrap;redraw=true;}
                 if(combat_world.collected_energy)bn::sound_items::chime.play(fixed(0.22));
                 if(combat_world.collected_blueprints){

@@ -104,8 +104,8 @@ def run():
             outside['x']==128 and outside['y']==51,outside)
     t.step(t.DOWN,190);t.tap(t.A);t.step(0,20)
     t.check('Town south gate restores the overworld',t.state()['mode']==1,t.state())
-    before=t.weapon_state();t.tap(t.B);after=t.weapon_state()
-    t.check('Garage fittings persist to map play and B deploys the fitted trap',
+    before=t.weapon_state();t.tap(t.L);after=t.weapon_state()
+    t.check('Garage fittings persist to map play and L deploys the fitted trap',
             (after['front'],after['side'],after['special'])==(5,2,4) and
             after['shots'][4]==before['shots'][4]+1 and any(p['remaining'] for p in after['traps']),after)
 

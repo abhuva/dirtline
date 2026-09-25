@@ -761,10 +761,9 @@ def screens(path, palette):
     d=ImageDraw.Draw(pause)
     d.rectangle((16,56,239,198),outline=13,width=2)
     label(pause,32,68,'PIT / STATUS',11,2)
-    label(pause,32,92,'A GO  DOWN BRAKE  LEFT/RIGHT STEER',12)
-    label(pause,32,104,'R NORMALS / B SPECIAL',11)
-    label(pause,32,116,'L TAP SWAP / HOLD LOADOUT RING',12)
-    label(pause,32,128,'SELECT SETTINGS / START BACK',12)
+    label(pause,32,92,'A GO  B BRAKE  LEFT/RIGHT STEER',12)
+    label(pause,32,104,'R NORMALS / L SPECIAL',11)
+    label(pause,32,116,'SELECT VEHICLE LAB / START BACK',12)
     # Leave a dedicated row for the live HP/shield values before the status
     # divider. Contract/race text below it supplies its own context.
     d.line((31,140,224,140),fill=13,width=1)
